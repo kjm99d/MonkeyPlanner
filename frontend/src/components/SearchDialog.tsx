@@ -6,6 +6,7 @@ import { useBoards, useIssues } from '../api/hooks';
 export function SearchDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedIdx, setSelectedIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const boards = useBoards();
@@ -44,6 +45,13 @@ export function SearchDialog() {
     };
   }, [query, boards.data, issues.data]);
 
+  const flatResults = useMemo(() => {
+    const items: { type: 'board' | 'issue'; id: string; path: string; label: string }[] = [];
+    results.boards.forEach(b => items.push({ type: 'board', id: b.id, path: `/boards/${b.id}`, label: b.name }));
+    results.issues.forEach(i => items.push({ type: 'issue', id: i.id, path: `/issues/${i.id}`, label: i.title }));
+    return items;
+  }, [results]);
+
   const hasResults = results.boards.length > 0 || results.issues.length > 0;
 
   function go(path: string) {
@@ -68,7 +76,18 @@ export function SearchDialog() {
           <input
             ref={inputRef}
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => { setQuery(e.target.value); setSelectedIdx(0); }}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedIdx(i => Math.min(i + 1, flatResults.length - 1));
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedIdx(i => Math.max(i - 1, 0));
+              } else if (e.key === 'Enter' && flatResults[selectedIdx]) {
+                go(flatResults[selectedIdx].path);
+              }
+            }}
             placeholder="Search issues and boards..."
             className="flex-1 bg-transparent text-sm text-ink-primary placeholder:text-ink-muted focus:outline-none"
           />
@@ -83,36 +102,49 @@ export function SearchDialog() {
             {!hasResults && (
               <p className="py-6 text-center text-sm text-ink-muted">No results found</p>
             )}
-            {results.boards.length > 0 && (
-              <div className="mb-2">
-                <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Boards</p>
-                {results.boards.map(b => (
-                  <button
-                    key={b.id}
-                    onClick={() => go(`/boards/${b.id}`)}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-ink-primary hover:bg-surface-muted transition-colors"
-                  >
-                    <LayoutDashboard size={14} className="shrink-0 text-ink-muted" />
-                    {b.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            {results.issues.length > 0 && (
-              <div>
-                <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Issues</p>
-                {results.issues.map(i => (
-                  <button
-                    key={i.id}
-                    onClick={() => go(`/issues/${i.id}`)}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-ink-primary hover:bg-surface-muted transition-colors"
-                  >
-                    <FileText size={14} className="shrink-0 text-ink-muted" />
-                    <span className="truncate">{i.title}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            {(() => {
+              let idx = 0;
+              return (
+                <>
+                  {results.boards.length > 0 && (
+                    <div className="mb-2">
+                      <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Boards</p>
+                      {results.boards.map(b => {
+                        const currentIndex = idx++;
+                        return (
+                          <button
+                            key={b.id}
+                            onClick={() => go(`/boards/${b.id}`)}
+                            className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-ink-primary transition-colors ${currentIndex === selectedIdx ? 'bg-brand-500/10 text-brand-500' : 'hover:bg-surface-muted'}`}
+                          >
+                            <LayoutDashboard size={14} className="shrink-0 text-ink-muted" />
+                            {b.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {results.issues.length > 0 && (
+                    <div>
+                      <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Issues</p>
+                      {results.issues.map(i => {
+                        const currentIndex = idx++;
+                        return (
+                          <button
+                            key={i.id}
+                            onClick={() => go(`/issues/${i.id}`)}
+                            className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-ink-primary transition-colors ${currentIndex === selectedIdx ? 'bg-brand-500/10 text-brand-500' : 'hover:bg-surface-muted'}`}
+                          >
+                            <FileText size={14} className="shrink-0 text-ink-muted" />
+                            <span className="truncate">{i.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
 
