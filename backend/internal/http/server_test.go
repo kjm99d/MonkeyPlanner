@@ -138,10 +138,10 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("done: status=%s completedAt=%v", done.Status, done.CompletedAt)
 	}
 
-	// 8) 역행 차단
+	// 8) 역행 허용 (Done → InProgress)
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "InProgress"})
-	mustStatus(t, resp, 400, body)
+	mustStatus(t, resp, 200, body)
 
 	// 9) 캘린더 월 집계에 반영됨
 	now := time.Now().UTC()
