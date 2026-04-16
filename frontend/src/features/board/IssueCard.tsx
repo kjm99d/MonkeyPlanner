@@ -54,7 +54,7 @@ export function IssueCard({ issue }: Props) {
             }}
             disabled={approve.isPending}
             aria-label={`이슈 ${issue.title} 승인`}
-            className="flex items-center gap-1 rounded-md bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:bg-brand-600 hover:shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:brightness-110 hover:shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             <Check size={12} /> Approve
           </button>

@@ -16,10 +16,13 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: lightColors.brand[50],
+          50: '#F0FDFA',
           500: 'var(--brand-500)',
           600: 'var(--brand-600)',
-          900: lightColors.brand[900],
+          900: '#134E4A',
+        },
+        accent: {
+          DEFAULT: 'var(--accent)',
         },
         status: lightColors.status,
         accent: lightColors.accent,
