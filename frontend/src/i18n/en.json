@@ -1,0 +1,128 @@
+{
+  "app": {
+    "name": "Monkey Planner",
+    "tagline": "Your code monkeys are working",
+    "description": "Create issues, approve them, and mark as done. Check your progress on the calendar."
+  },
+  "nav": {
+    "home": "Home",
+    "boards": "Boards",
+    "calendar": "Calendar",
+    "menu": "Main menu"
+  },
+  "theme": {
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode"
+  },
+  "home": {
+    "title": "Today's Monkeys",
+    "summary": "Activity summary for {{date}}",
+    "created": "Created",
+    "approved": "Approved",
+    "done": "Done",
+    "inProgress": "In Progress",
+    "items": "{{count}} items",
+    "noInProgress": "No tasks in progress",
+    "approvedWaiting": "Approved · Waiting",
+    "boardStatus": "Board Status",
+    "viewAll": "View All",
+    "createFirst": "Create your first board"
+  },
+  "board": {
+    "title": "Boards",
+    "description": "Containers to group your work.",
+    "newName": "New board name",
+    "create": "Create",
+    "noBoards": "No boards yet",
+    "noBoardsHint": "Enter a name above and click \"Create\" to make your first board.",
+    "addIssue": "Add Issue",
+    "newIssueTitle": "New issue title",
+    "issueCreated": "Issue created",
+    "statusChanged": "Status changed to \"{{status}}\"",
+    "addProperty": "Add Property"
+  },
+  "kanban": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "inProgress": "In Progress",
+    "done": "Done",
+    "dragHere": "Drag issues here",
+    "approve": "Approve"
+  },
+  "issue": {
+    "title": "Title",
+    "body": "Body (Markdown)",
+    "save": "Save",
+    "saving": "Saving…",
+    "delete": "Delete this issue",
+    "deleteConfirm": "This issue and all child issues will be deleted. Continue?",
+    "children": "Child Issues",
+    "noPreview": "Nothing to preview.",
+    "created": "Created",
+    "properties": "Properties"
+  },
+  "editor": {
+    "edit": "Edit",
+    "split": "Split",
+    "preview": "Preview",
+    "placeholder": "Markdown body editor"
+  },
+  "calendar": {
+    "title": "{{month}} {{year}}",
+    "today": "Today",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "daily": "{{date}} Results",
+    "created": "Created",
+    "approved": "Approved",
+    "done": "Done",
+    "none": "None",
+    "selectDate": "Select {{date}}"
+  },
+  "status": {
+    "Pending": "Pending",
+    "Approved": "Approved",
+    "InProgress": "In Progress",
+    "Done": "Done"
+  },
+  "property": {
+    "newProperty": "New Property",
+    "name": "Property name",
+    "type": "Type",
+    "options": "Options (comma-separated: P0, P1, P2)",
+    "add": "Add",
+    "text": "Text",
+    "number": "Number",
+    "select": "Select",
+    "multi_select": "Multi Select",
+    "date": "Date",
+    "checkbox": "Checkbox",
+    "input": "Enter...",
+    "checked": "Done",
+    "unchecked": "Not done",
+    "selectPlaceholder": "Select..."
+  },
+  "webhook": {
+    "title": "Webhooks",
+    "add": "Add",
+    "name": "Name",
+    "url": "Webhook URL",
+    "cancel": "Cancel",
+    "events": {
+      "issue.created": "Issue Created",
+      "issue.approved": "Issue Approved",
+      "issue.status_changed": "Status Changed",
+      "issue.deleted": "Issue Deleted"
+    }
+  },
+  "stepper": {
+    "approveOnly": "Use Approve button only",
+    "noPending": "Cannot revert to Pending",
+    "moveTo": "Move to {{label}}"
+  },
+  "common": {
+    "loading": "Loading…",
+    "close": "Close",
+    "location": "Location"
+  }
+}
