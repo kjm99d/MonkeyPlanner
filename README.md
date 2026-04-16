@@ -61,5 +61,35 @@ make test-a11y      # axe-core 자동 접근성 감사
 
 `.githooks/commit-msg`가 위 규칙을 기계적으로 강제한다. `make init` 실행 시 자동 설치됨.
 
+## 성능 baseline (phase 2 회귀 기준선)
+
+M5 직후 Windows 11 / Go 1.26 / Node 24 / modernc SQLite 환경에서 측정했습니다. 이 값은 **phase 2 이후 성능 회귀를 판정하는 기준선**으로 사용됩니다. 측정 시점마다 아래 표의 `현재` 열을 갱신하세요.
+
+| 지표 | baseline | 현재 |
+|---|---|---|
+| 단일 바이너리 크기 (`bin/monkey-planner.exe`, prod 태그) | **28.0 MB** (28,864,512 B) | — |
+| 콜드 스타트 → 첫 `/api/health` 200 | **~32 ms** | — |
+| 웜 `/api/health` round-trip (로컬) | **< 1 ms** (0.89 ms 관측) | — |
+| 프론트 초기 main chunk (vendor) | **54 KB gzip** (165 KB raw) | — |
+| 3D Hero 별도 청크 (lazy, home 방문 시만 로드) | **222 KB gzip** (825 KB raw) | — |
+| 백엔드 `domain` 커버리지 | 91.7% | — |
+| 백엔드 `service` 커버리지 | 86.0% | — |
+
+### 측정 방법
+```bash
+# 1) 빌드
+make build          # bin/monkey-planner(.exe) 생성
+
+# 2) 바이너리 크기
+ls -la bin/monkey-planner.exe
+
+# 3) 콜드 스타트 (더러운 상태 정리 후)
+rm -rf data
+./bin/monkey-planner.exe &
+T0=$(date +%s%N)
+until curl -sf http://localhost:8080/api/health > /dev/null; do sleep 0.05; done
+echo "cold_ready_ms=$(( ($(date +%s%N) - T0) / 1000000 ))"
+```
+
 ## 라이선스
 내부 프로젝트 (라이선스 미정).
