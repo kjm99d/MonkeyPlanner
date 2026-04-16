@@ -26,6 +26,7 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 	ph := &propertyHandler{svc: svc}
 	wh := &webhookHandler{svc: svc}
 	cmh := &commentHandler{svc: svc}
+	eh := &eventsHandler{broker: svc.Broker()}
 
 	r.Route("/api", func(api chi.Router) {
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -80,6 +81,9 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 			c.Get("/", ch.month)
 			c.Get("/day", ch.day)
 		})
+
+		// SSE 이벤트 스트림 (실시간 업데이트)
+		api.Get("/events", eh.stream)
 	})
 
 	if static != nil {

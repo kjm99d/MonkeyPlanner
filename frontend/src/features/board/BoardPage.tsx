@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useBoards, useBoardProperties, useCreateBoardProperty, useDeleteBoardProperty, useCreateIssue, useIssues, useUpdateIssue, useDeleteBoard, useReorderIssues } from '../../api/hooks';
+import { useEventStream } from '../../api/useEventStream';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { useNavigate } from 'react-router-dom';
@@ -80,6 +81,8 @@ export default function BoardPage() {
   }, [fullscreen]);
 
   useEffect(() => { if (board) setBoardName(board.name); }, [board?.name]);
+
+  useEventStream(boardId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
