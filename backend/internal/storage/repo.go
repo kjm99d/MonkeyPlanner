@@ -55,6 +55,10 @@ type IssueRepo interface {
 	ListChildren(ctx context.Context, parentID string) ([]domain.Issue, error)
 	List(ctx context.Context, f IssueFilter) ([]domain.Issue, error)
 	Update(ctx context.Context, id string, patch IssuePatch) (domain.Issue, error)
+	// MergeProperties atomically merges props into the issue's properties JSON.
+	// A key with a nil value is removed (RFC 7396 merge-patch semantics). This
+	// avoids the read-modify-write race inherent in service-layer merging.
+	MergeProperties(ctx context.Context, id string, props map[string]any) (domain.Issue, error)
 	Delete(ctx context.Context, id string) error
 	// Approve 는 멱등: 이미 Approved인 이슈에 호출해도 approved_at 유지.
 	Approve(ctx context.Context, id string, now time.Time) (domain.Issue, error)

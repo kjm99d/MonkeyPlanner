@@ -197,6 +197,33 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	return cur, nil
 }
 
+func (r *issueRepo) MergeProperties(ctx context.Context, id string, props map[string]any) (domain.Issue, error) {
+	if props == nil {
+		props = map[string]any{}
+	}
+	patchJSON, err := json.Marshal(props)
+	if err != nil {
+		return domain.Issue{}, fmt.Errorf("sqlite: marshal props: %w", err)
+	}
+	now := time.Now().UTC()
+	// json_patch applies RFC 7396 merge: keys set to null are removed, others overwritten.
+	// COALESCE guards rows where properties column is NULL (legacy data).
+	res, err := r.db.ExecContext(ctx, `
+		UPDATE issues
+		SET properties = json_patch(COALESCE(properties, '{}'), ?),
+		    updated_at = ?
+		WHERE id = ?`,
+		string(patchJSON), now, id)
+	if err != nil {
+		return domain.Issue{}, fmt.Errorf("sqlite: merge properties: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return domain.Issue{}, storage.ErrNotFound
+	}
+	return r.GetByID(ctx, id)
+}
+
 func (r *issueRepo) Delete(ctx context.Context, id string) error {
 	res, err := r.db.ExecContext(ctx, `DELETE FROM issues WHERE id = ?`, id)
 	if err != nil {

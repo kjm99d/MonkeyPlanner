@@ -281,24 +281,12 @@ func (s *Service) DeleteBoard(ctx context.Context, id string) error {
 
 // ---- Issue Properties 유스케이스 ----
 
-// UpdateIssueProperties 는 이슈의 커스텀 속성을 merge 업데이트합니다.
+// UpdateIssueProperties atomically merges props into the issue's properties.
+// Keys with nil values are removed (RFC 7396 merge-patch semantics). The merge
+// happens at the SQL level so concurrent calls from multiple MCP clients do not
+// lose each other's writes.
 func (s *Service) UpdateIssueProperties(ctx context.Context, id string, props map[string]any) (domain.Issue, error) {
-	cur, err := s.repo.Issues().GetByID(ctx, id)
-	if err != nil {
-		return domain.Issue{}, err
-	}
-	if cur.Properties == nil {
-		cur.Properties = map[string]any{}
-	}
-	for k, v := range props {
-		if v == nil {
-			delete(cur.Properties, k)
-		} else {
-			cur.Properties[k] = v
-		}
-	}
-	merged := cur.Properties
-	return s.repo.Issues().Update(ctx, id, storage.IssuePatch{Properties: &merged})
+	return s.repo.Issues().MergeProperties(ctx, id, props)
 }
 
 // ---- Board Properties 유스케이스 ----
