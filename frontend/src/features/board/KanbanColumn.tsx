@@ -9,6 +9,7 @@ const topAccent: Record<IssueStatus, string> = {
   Pending: 'border-t-amber-400',
   Approved: 'border-t-emerald-500',
   InProgress: 'border-t-blue-500',
+  QA: 'border-t-yellow-500',
   Done: 'border-t-violet-400',
   Rejected: 'border-t-red-500',
 };
@@ -32,7 +33,7 @@ export function KanbanColumn({ status, title, issues, boardProperties, onCreateI
     <section
       ref={setNodeRef}
       aria-label={t('kanban.columnLabel', { title })}
-      className={`min-w-[280px] w-[280px] shrink-0 lg:min-w-0 lg:w-auto lg:shrink lg:flex-1 flex min-h-[24rem] flex-col gap-3 rounded-lg border border-t-[3px] ${topAccent[status]} border-edge-base bg-surface-subtle p-3 transition-colors ${
+      className={`min-w-[260px] flex-1 flex min-h-[24rem] flex-col gap-2.5 rounded-lg border border-t-[3px] ${topAccent[status]} border-edge-base bg-surface-subtle p-3 transition-colors ${
         isOver ? 'border-brand-500 bg-brand-500/5' : ''
       }`}
     >
