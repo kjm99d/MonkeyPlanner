@@ -64,7 +64,7 @@ function MonkeyHead({ position, speed }: { position: [number, number, number]; s
 export default function Hero3D() {
   return (
     <div
-      className="relative h-56 w-full overflow-hidden rounded-xl border border-edge-base bg-gradient-to-br from-brand-50 to-surface-subtle dark:from-brand-900/30 dark:to-surface-subtle"
+      className="hero-banner relative h-56 w-full overflow-hidden rounded-xl border border-edge-base bg-gradient-to-br from-brand-50 to-surface-subtle dark:from-brand-900/30 dark:to-surface-subtle"
       aria-hidden
     >
       <Canvas camera={{ position: [0, 0, 5], fov: 50 }} dpr={[1, 2]}>

@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { lazy, Suspense, useMemo, useEffect, useState } from 'react';
 import { useDayStats, useIssues } from '../../api/hooks';
-import { Card } from '../../components/Card';
 import Hero3DFallback from './Hero3DFallback';
 
 const Hero3D = lazy(() => import('./Hero3D'));
@@ -52,9 +51,9 @@ export default function HomePage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="생성" value={created} hue="text-brand-500" />
-        <StatCard label="승인" value={approved} hue="text-status-approved" />
-        <StatCard label="완료" value={completed} hue="text-status-done" />
+        <StatCard label="생성" value={created} hue="text-brand-500" accent="bg-brand-500" />
+        <StatCard label="승인" value={approved} hue="text-status-approved" accent="bg-status-approved" />
+        <StatCard label="완료" value={completed} hue="text-status-done" accent="bg-status-done" />
       </div>
 
       <section aria-label="최근 승인된 이슈" className="flex flex-col gap-3">
@@ -85,13 +84,14 @@ export default function HomePage() {
   );
 }
 
-function StatCard({ label, value, hue }: { label: string; value: number; hue: string }) {
+function StatCard({ label, value, hue, accent }: { label: string; value: number; hue: string; accent: string }) {
   return (
-    <Card className="transition-transform hover:[transform:perspective(800px)_rotateX(2deg)_rotateY(-2deg)] motion-reduce:hover:transform-none">
-      <div className="flex flex-col gap-1">
+    <div className="relative overflow-hidden rounded-lg border border-edge-base bg-gradient-to-br from-surface-subtle to-surface-muted p-4 shadow-sm transition-transform hover:[transform:perspective(800px)_rotateX(2deg)_rotateY(-2deg)] motion-reduce:hover:transform-none">
+      <div className={`absolute left-0 top-0 h-full w-1 rounded-l-lg ${accent}`} />
+      <div className="flex flex-col gap-1 pl-2">
         <span className="text-sm font-medium text-ink-secondary">{label}</span>
         <span className={`text-5xl font-extrabold tabular-nums tracking-tight ${hue}`}>{value}</span>
       </div>
-    </Card>
+    </div>
   );
 }

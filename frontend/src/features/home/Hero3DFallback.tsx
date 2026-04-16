@@ -5,7 +5,7 @@ export default function Hero3DFallback() {
     <div
       role="img"
       aria-label="몽키 플래너 브랜드 일러스트"
-      className="flex h-56 w-full items-center justify-center overflow-hidden rounded-xl border border-edge-base bg-gradient-to-br from-brand-50 to-surface-subtle dark:from-brand-900/30 dark:to-surface-subtle"
+      className="hero-banner flex h-56 w-full items-center justify-center overflow-hidden rounded-xl border border-edge-base bg-gradient-to-br from-brand-50 to-surface-subtle dark:from-brand-900/30 dark:to-surface-subtle"
     >
       <div className="flex items-center gap-4 text-6xl motion-safe:animate-pulse">
         <span aria-hidden>🍌</span>
