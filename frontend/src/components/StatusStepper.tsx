@@ -26,7 +26,7 @@ export function StatusStepper({ current, onSelect, disabled }: Props) {
   const currentIdx = STEPS.findIndex((s) => s.status === current);
 
   return (
-    <nav aria-label="상태 전이" className="flex items-center gap-1">
+    <nav aria-label={t('stepper.moveTo', { label: '' }).trim()} className="flex items-center gap-1">
       {STEPS.map((step, i) => {
         const isActive = step.status === current;
         const isPast = i < currentIdx;

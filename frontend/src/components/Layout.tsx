@@ -26,7 +26,7 @@ export default function Layout() {
           </a>
 
           {/* 네비 — 중앙 정렬 */}
-          <nav aria-label="주 메뉴" className="flex items-center gap-1">
+          <nav aria-label={t('nav.menu')} className="flex items-center gap-1">
             <NavLink to="/" end className={linkClass}>
               <Home size={16} /> <span className="hidden xs:inline">{t('nav.home')}</span>
             </NavLink>

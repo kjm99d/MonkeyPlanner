@@ -76,7 +76,7 @@ export default function CalendarPage() {
           </div>
         </header>
 
-        <div role="grid" aria-label="월 캘린더" className="grid grid-cols-7 gap-1">
+        <div role="grid" aria-label={t('nav.calendar')} className="grid grid-cols-7 gap-1">
           {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
             <div key={d} className="pb-2 text-center text-xs font-medium text-ink-muted">
               {d}
@@ -126,7 +126,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <aside aria-label="일간 상세" className="flex flex-col gap-4 rounded-lg border border-edge-base bg-surface-subtle p-4">
+      <aside aria-label={t('calendar.daily', { date: selected })} className="flex flex-col gap-4 rounded-lg border border-edge-base bg-surface-subtle p-4">
         <h2 className="text-xl font-semibold">{t('calendar.daily', { date: selected })}</h2>
         {dayStats.isLoading && <p className="text-ink-secondary">{t('common.loading')}</p>}
         {dayStats.data && (
