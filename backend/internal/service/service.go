@@ -103,8 +103,8 @@ func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInpu
 				return domain.Issue{}, ErrInvalidTransition
 			}
 		}
-		// InProgress → Done 은 Complete 메서드로 completed_at 기록
-		if cur.Status == domain.StatusInProgress && *in.Status == domain.StatusDone {
+		// QA → Done 은 Complete 메서드로 completed_at 기록
+		if cur.Status == domain.StatusQA && *in.Status == domain.StatusDone {
 			done, err := s.repo.Issues().Complete(ctx, id, s.now())
 			if err != nil {
 				return domain.Issue{}, err

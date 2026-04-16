@@ -72,6 +72,7 @@
     "pending": "Pending",
     "approved": "Approved",
     "inProgress": "In Progress",
+    "qa": "QA Review",
     "done": "Done",
     "rejected": "Rejected",
     "dragHere": "Drag issues here",
@@ -132,6 +133,7 @@
     "Pending": "Pending",
     "Approved": "Approved",
     "InProgress": "In Progress",
+    "QA": "QA Review",
     "Done": "Done",
     "Rejected": "Rejected"
   },
