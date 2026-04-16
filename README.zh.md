@@ -149,40 +149,47 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 
 ## MCP 服务器配置
 
-### 在 Claude Code 中使用
+### 快速设置（自动更新）
 
-项目根目录已包含 `.mcp.json` 文件：
+1. 从 [Releases](https://github.com/kjm99d/MonkeyPlanner/releases) 下载最新二进制文件（例如 `D:/mp/`）
+2. 将 `update-and-run.sh` 下载到同一目录
+3. 添加到 `.mcp.json` 或 Claude Code 设置中:
 
 ```json
 {
   "mcpServers": {
     "monkey-planner": {
-      "command": "./bin/monkey-planner.exe",
-      "args": ["mcp"],
-      "cwd": "D:/Projects/MonkeyPlanner"
+      "command": "bash",
+      "args": ["/path/to/update-and-run.sh", "mcp"],
+      "env": {
+        "MP_DSN": "sqlite:///path/to/data/monkey.db"
+      }
     }
   }
 }
 ```
 
-**Windows 用户**：请将路径修改为您自己的实际路径。
+包装脚本会在每次启动时自动检查 GitHub 最新版本并更新二进制文件。
 
-### 在 Claude Desktop 中使用
+### 手动设置
 
-在 Claude Desktop 的配置文件（`~/.claude/claude_desktop_config.json`）中添加：
+不使用自动更新，直接配置:
 
 ```json
 {
   "mcpServers": {
     "monkey-planner": {
       "command": "/path/to/monkey-planner",
-      "args": ["mcp"]
+      "args": ["mcp"],
+      "env": {
+        "MP_DSN": "sqlite:///path/to/data/monkey.db"
+      }
     }
   }
 }
 ```
 
-重启 Claude Desktop 后，Monkey Planner 的工具将自动加载。
+Claude Code（`.mcp.json`）和 Claude Desktop（`~/.claude/claude_desktop_config.json`）使用相同格式。更改后请重启。
 
 ### MCP 工具使用示例
 
