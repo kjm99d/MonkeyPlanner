@@ -169,6 +169,22 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 }
 ```
 
+**Windows（无 bash）**: 使用 `update-and-run.bat`:
+
+```json
+{
+  "mcpServers": {
+    "monkey-planner": {
+      "command": "D:/mp/update-and-run.bat",
+      "args": ["mcp"],
+      "env": {
+        "MP_DSN": "sqlite://D:/mp/data/monkey.db"
+      }
+    }
+  }
+}
+```
+
 包装脚本会在每次启动时自动检查 GitHub 最新版本并更新二进制文件。
 
 ### 手动设置
