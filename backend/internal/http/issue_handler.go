@@ -174,3 +174,18 @@ func (h *issueHandler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *issueHandler) reorder(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		IssueIDs []string `json:"issueIds"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeErr(w, http.StatusBadRequest, "invalid_json", err.Error())
+		return
+	}
+	if err := h.svc.ReorderIssues(r.Context(), in.IssueIDs); err != nil {
+		mapError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}

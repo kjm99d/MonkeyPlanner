@@ -62,6 +62,8 @@ type IssueRepo interface {
 	GetMonthStats(ctx context.Context, year int, month time.Month) ([]DayCount, error)
 	// GetDayStats 는 특정 날짜의 3분할 이슈 목록.
 	GetDayStats(ctx context.Context, day time.Time) (DayStats, error)
+	// ReorderIssues 는 issueIDs 순서대로 position 을 업데이트합니다.
+	ReorderIssues(ctx context.Context, issueIDs []string) error
 }
 
 // BoardRepo 는 보드 저장소 인터페이스입니다.
@@ -90,11 +92,19 @@ type WebhookRepo interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// Repo 는 이슈/보드/속성/웹훅 레포를 함께 제공하는 상위 인터페이스입니다.
+// CommentRepo 는 이슈 댓글 저장소 인터페이스입니다.
+type CommentRepo interface {
+	Create(ctx context.Context, issueID, body string) (*domain.Comment, error)
+	List(ctx context.Context, issueID string) ([]domain.Comment, error)
+	Delete(ctx context.Context, commentID string) error
+}
+
+// Repo 는 이슈/보드/속성/웹훅/댓글 레포를 함께 제공하는 상위 인터페이스입니다.
 type Repo interface {
 	Issues() IssueRepo
 	Boards() BoardRepo
 	BoardProperties() BoardPropertyRepo
 	Webhooks() WebhookRepo
+	Comments() CommentRepo
 	Close() error
 }

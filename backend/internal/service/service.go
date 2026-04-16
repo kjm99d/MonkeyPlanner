@@ -163,6 +163,24 @@ func (s *Service) ListIssues(ctx context.Context, f storage.IssueFilter) ([]doma
 	return s.repo.Issues().List(ctx, f)
 }
 
+func (s *Service) ReorderIssues(ctx context.Context, issueIDs []string) error {
+	return s.repo.Issues().ReorderIssues(ctx, issueIDs)
+}
+
+// ---- Comment 유스케이스 ----
+
+func (s *Service) CreateComment(ctx context.Context, issueID, body string) (*domain.Comment, error) {
+	return s.repo.Comments().Create(ctx, issueID, body)
+}
+
+func (s *Service) ListComments(ctx context.Context, issueID string) ([]domain.Comment, error) {
+	return s.repo.Comments().List(ctx, issueID)
+}
+
+func (s *Service) DeleteComment(ctx context.Context, commentID string) error {
+	return s.repo.Comments().Delete(ctx, commentID)
+}
+
 // ---- Board 유스케이스 ----
 
 func (s *Service) CreateBoard(ctx context.Context, name string, viewType domain.ViewType) (domain.Board, error) {

@@ -1,0 +1,1123 @@
+openapi: 3.0.3
+info:
+  title: Monkey Planner API
+  version: 1.0.0
+  description: |
+    REST API for Monkey Planner — a kanban/list board with issues, comments,
+    custom properties, webhooks, and a calendar stats view.
+
+    ### Status transition rules
+    - Issues start as **Pending**.
+    - `POST /api/issues/{id}/approve` is the only way to move from Pending → Approved.
+    - `PATCH /api/issues/{id}` with `status: "Approved"` returns **409** (`use_approve_endpoint`).
+    - Once Approved, free movement between Approved ↔ InProgress ↔ Done is allowed via PATCH.
+    - Returning to Pending from any state is forbidden.
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Service liveness check
+  - name: Boards
+    description: Board (project container) management
+  - name: Issues
+    description: Issue lifecycle (create, read, update, delete, approve, reorder)
+  - name: Comments
+    description: Per-issue comments
+  - name: Properties
+    description: Board-level custom property definitions
+  - name: Webhooks
+    description: Board-level outbound webhook subscriptions
+  - name: Calendar
+    description: Calendar stats (monthly counts and daily issue lists)
+
+paths:
+
+  # ── Health ────────────────────────────────────────────────────────────────
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns service liveness status and version string.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  version:
+                    type: string
+                    example: "0.0.1"
+
+  # ── Boards ────────────────────────────────────────────────────────────────
+  /api/boards:
+    get:
+      tags: [Boards]
+      summary: List all boards
+      operationId: listBoards
+      responses:
+        '200':
+          description: Array of all boards (empty array when none exist)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Boards]
+      summary: Create a board
+      operationId: createBoard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: "Sprint 1"
+                viewType:
+                  $ref: '#/components/schemas/ViewType'
+      responses:
+        '201':
+          description: Board created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/boards/{id}:
+    patch:
+      tags: [Boards]
+      summary: Update a board
+      operationId: patchBoard
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Sprint 2"
+                viewType:
+                  $ref: '#/components/schemas/ViewType'
+      responses:
+        '200':
+          description: Updated board
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Boards]
+      summary: Delete a board
+      operationId: deleteBoard
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Board deleted (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ── Board Properties ───────────────────────────────────────────────────────
+  /api/boards/{boardId}/properties:
+    get:
+      tags: [Properties]
+      summary: List board properties
+      operationId: listBoardProperties
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+      responses:
+        '200':
+          description: Array of board property definitions (empty array when none)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BoardProperty'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Properties]
+      summary: Create a board property
+      operationId: createBoardProperty
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, type]
+              properties:
+                name:
+                  type: string
+                  example: "Priority"
+                type:
+                  $ref: '#/components/schemas/PropertyType'
+                options:
+                  type: array
+                  items:
+                    type: string
+                  description: Required for select / multi_select types
+                  example: ["High", "Medium", "Low"]
+      responses:
+        '201':
+          description: Property created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardProperty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/boards/{boardId}/properties/{propId}:
+    patch:
+      tags: [Properties]
+      summary: Update a board property
+      operationId: updateBoardProperty
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+        - name: propId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Property ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Severity"
+                options:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Critical", "High", "Low"]
+                position:
+                  type: integer
+                  description: Display order index (0-based)
+                  example: 0
+      responses:
+        '200':
+          description: Updated property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardProperty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Properties]
+      summary: Delete a board property
+      operationId: deleteBoardProperty
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+        - name: propId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Property ID
+      responses:
+        '204':
+          description: Property deleted (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ── Board Webhooks ────────────────────────────────────────────────────────
+  /api/boards/{boardId}/webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List board webhooks
+      operationId: listWebhooks
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+      responses:
+        '200':
+          description: Array of webhooks (empty array when none)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Webhooks]
+      summary: Create a webhook
+      operationId: createWebhook
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, url, events]
+              properties:
+                name:
+                  type: string
+                  example: "Slack notifications"
+                url:
+                  type: string
+                  format: uri
+                  example: "https://hooks.slack.com/services/T000/B000/xxxx"
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookEvent'
+                  minItems: 1
+                  example: ["issue.created", "issue.approved"]
+      responses:
+        '201':
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/boards/{boardId}/webhooks/{whId}:
+    patch:
+      tags: [Webhooks]
+      summary: Update a webhook
+      operationId: updateWebhook
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+        - name: whId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Webhook ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated name"
+                url:
+                  type: string
+                  format: uri
+                  example: "https://hooks.slack.com/services/T000/B000/yyyy"
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookEvent'
+                  example: ["issue.status_changed"]
+                enabled:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Updated webhook
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Webhooks]
+      summary: Delete a webhook
+      operationId: deleteWebhook
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+        - name: whId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Webhook ID
+      responses:
+        '204':
+          description: Webhook deleted (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ── Issues ────────────────────────────────────────────────────────────────
+  /api/boards/{boardId}/issues/reorder:
+    post:
+      tags: [Issues]
+      summary: Reorder issues on a board
+      description: |
+        Reassigns `position` values to the supplied issue IDs in the given order.
+        All listed issues must belong to the board.
+      operationId: reorderIssues
+      parameters:
+        - $ref: '#/components/parameters/PathBoardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [issueIds]
+              properties:
+                issueIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Ordered list of issue IDs
+                  example: ["id-3", "id-1", "id-2"]
+      responses:
+        '204':
+          description: Reorder applied (no content)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/issues:
+    get:
+      tags: [Issues]
+      summary: List issues
+      description: |
+        Returns issues filtered by optional query parameters.
+        - `board_id`: filter by board
+        - `status`: filter by status value (`Pending`, `Approved`, `InProgress`, `Done`)
+        - `parent_id`: filter by parent issue ID; pass an empty string to list only root issues
+      operationId: listIssues
+      parameters:
+        - name: board_id
+          in: query
+          schema:
+            type: string
+          description: Filter by board ID
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/Status'
+          description: Filter by status
+        - name: parent_id
+          in: query
+          schema:
+            type: string
+          description: >
+            Filter by parent issue ID.
+            Omit to return all issues regardless of hierarchy.
+            Pass empty string (`parent_id=`) to return only root-level issues (no parent).
+      responses:
+        '200':
+          description: Array of issues (empty array when none match)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Issues]
+      summary: Create an issue
+      description: |
+        Creates a new issue with status `Pending`.
+        If `parentId` is supplied the issue becomes a child of that issue.
+      operationId: createIssue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [boardId, title]
+              properties:
+                boardId:
+                  type: string
+                  example: "board-uuid"
+                parentId:
+                  type: string
+                  nullable: true
+                  description: Parent issue ID (omit for root-level issue)
+                  example: "parent-uuid"
+                title:
+                  type: string
+                  example: "Implement login screen"
+                body:
+                  type: string
+                  example: "Use OAuth2 with Google provider"
+      responses:
+        '201':
+          description: Issue created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/issues/{id}:
+    get:
+      tags: [Issues]
+      summary: Get an issue with its children
+      operationId: getIssue
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Issue and its direct child issues
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issue:
+                    $ref: '#/components/schemas/Issue'
+                  children:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Issue'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      tags: [Issues]
+      summary: Update an issue
+      description: |
+        Partial update — only provided fields are changed.
+
+        **Special field: `properties`**
+        When the `properties` key is present the update is handled as a
+        property-merge operation and the response is returned immediately;
+        other fields in the same request body are ignored.
+
+        **Special field: `parentId`**
+        - Omit the key: parent is unchanged.
+        - Set to `null`: move issue to root level.
+        - Set to a string ID: reparent to that issue.
+
+        **Status rules**
+        Setting `status` to `"Approved"` returns **409**
+        (`use_approve_endpoint`). Use `POST /api/issues/{id}/approve` instead.
+        Moving to `Pending` from any state is also forbidden.
+      operationId: patchIssue
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated title"
+                body:
+                  type: string
+                  example: "Updated description"
+                status:
+                  $ref: '#/components/schemas/Status'
+                parentId:
+                  type: string
+                  nullable: true
+                  description: >
+                    New parent ID, null to move to root, or omit to leave unchanged.
+                  example: null
+                properties:
+                  type: object
+                  additionalProperties: true
+                  description: >
+                    Custom property values keyed by property ID.
+                    When present, all other fields in this request are ignored
+                    and a merge update is applied.
+                  example:
+                    prop-uuid-priority: "High"
+                    prop-uuid-due: "2025-12-31"
+      responses:
+        '200':
+          description: Updated issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: |
+            Conflict.
+            - `use_approve_endpoint`: tried to set status to Approved via PATCH.
+            - `conflict`: storage-level conflict.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Issues]
+      summary: Delete an issue
+      operationId: deleteIssue
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Issue deleted (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/issues/{id}/approve:
+    post:
+      tags: [Issues]
+      summary: Approve an issue
+      description: |
+        Transitions the issue from **Pending** to **Approved** and records
+        `approvedAt`. This is the only permitted path for this transition.
+
+        The operation is idempotent: calling it on an already-Approved issue
+        preserves the original `approvedAt` timestamp.
+      operationId: approveIssue
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Approved issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: |
+            Conflict — issue is not in a state that can be approved
+            (e.g. already Approved, InProgress, or Done and the transition
+            is meaningless, or a storage conflict).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ── Comments ──────────────────────────────────────────────────────────────
+  /api/issues/{issueId}/comments:
+    get:
+      tags: [Comments]
+      summary: List comments for an issue
+      operationId: listComments
+      parameters:
+        - name: issueId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Issue ID
+      responses:
+        '200':
+          description: Array of comments (empty array when none)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Comments]
+      summary: Create a comment on an issue
+      operationId: createComment
+      parameters:
+        - name: issueId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Issue ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  example: "Looks good to me!"
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/comments/{commentId}:
+    delete:
+      tags: [Comments]
+      summary: Delete a comment
+      operationId: deleteComment
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Comment ID
+      responses:
+        '204':
+          description: Comment deleted (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ── Calendar ──────────────────────────────────────────────────────────────
+  /api/calendar:
+    get:
+      tags: [Calendar]
+      summary: Monthly calendar stats
+      description: |
+        Returns per-day counts of created, approved, and completed issues
+        for the given calendar month.
+      operationId: getCalendarMonth
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1970
+            maximum: 9999
+          description: Calendar year (e.g. 2025)
+          example: 2025
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Calendar month (1–12)
+          example: 6
+      responses:
+        '200':
+          description: Array of day-count objects (empty array when no data)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DayCount'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/calendar/day:
+    get:
+      tags: [Calendar]
+      summary: Daily issue stats
+      description: |
+        Returns the three lists of issues (created, approved, completed)
+        for a specific calendar date.
+      operationId: getCalendarDay
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date in YYYY-MM-DD format
+          example: "2025-06-15"
+      responses:
+        '200':
+          description: Three-bucket issue lists for the requested day
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DayStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# ── Components ───────────────────────────────────────────────────────────────
+components:
+
+  parameters:
+    PathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Resource ID
+
+    PathBoardId:
+      name: boardId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Board ID
+
+  responses:
+    BadRequest:
+      description: Bad request — invalid input or JSON
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+
+    # ── Enumerations ──────────────────────────────────────────────────────
+    Status:
+      type: string
+      enum: [Pending, Approved, InProgress, Done]
+      description: Issue lifecycle status
+      example: Pending
+
+    ViewType:
+      type: string
+      enum: [kanban, list]
+      description: Board display mode
+      example: kanban
+
+    PropertyType:
+      type: string
+      enum: [text, number, select, multi_select, date, checkbox]
+      description: Data type of a board property
+      example: select
+
+    WebhookEvent:
+      type: string
+      enum:
+        - issue.created
+        - issue.approved
+        - issue.status_changed
+        - issue.deleted
+      description: Event types a webhook can subscribe to
+      example: issue.created
+
+    # ── Core domain objects ────────────────────────────────────────────────
+    Board:
+      type: object
+      required: [id, name, viewType, createdAt]
+      properties:
+        id:
+          type: string
+          example: "b1a2c3d4-e5f6-7890-abcd-ef1234567890"
+        name:
+          type: string
+          example: "Sprint 1"
+        viewType:
+          $ref: '#/components/schemas/ViewType'
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    Issue:
+      type: object
+      required: [id, boardId, title, body, status, properties, position, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: "i1a2b3c4-d5e6-7890-abcd-ef1234567890"
+        boardId:
+          type: string
+          example: "b1a2c3d4-e5f6-7890-abcd-ef1234567890"
+        parentId:
+          type: string
+          nullable: true
+          description: Parent issue ID; null for root-level issues
+          example: null
+        title:
+          type: string
+          example: "Implement login screen"
+        body:
+          type: string
+          example: "Use OAuth2 with Google provider"
+        status:
+          $ref: '#/components/schemas/Status'
+        properties:
+          type: object
+          additionalProperties: true
+          description: Custom property values keyed by property ID
+          example:
+            prop-uuid-priority: "High"
+            prop-uuid-due: "2025-12-31"
+        position:
+          type: integer
+          description: Sort position within the board column
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-02T12:00:00Z"
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the issue was approved; null until approved
+          example: null
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the issue moved to Done; null until completed
+          example: null
+
+    Comment:
+      type: object
+      required: [id, issueId, body, createdAt]
+      properties:
+        id:
+          type: string
+          example: "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+        issueId:
+          type: string
+          example: "i1a2b3c4-d5e6-7890-abcd-ef1234567890"
+        body:
+          type: string
+          example: "Looks good to me!"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-03T09:00:00Z"
+
+    BoardProperty:
+      type: object
+      required: [id, boardId, name, type, options, position, createdAt]
+      properties:
+        id:
+          type: string
+          example: "p1a2b3c4-d5e6-7890-abcd-ef1234567890"
+        boardId:
+          type: string
+          example: "b1a2c3d4-e5f6-7890-abcd-ef1234567890"
+        name:
+          type: string
+          example: "Priority"
+        type:
+          $ref: '#/components/schemas/PropertyType'
+        options:
+          type: array
+          items:
+            type: string
+          description: Available option values for select / multi_select types
+          example: ["High", "Medium", "Low"]
+        position:
+          type: integer
+          description: Display order index (0-based)
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    Webhook:
+      type: object
+      required: [id, boardId, name, url, events, enabled, createdAt]
+      properties:
+        id:
+          type: string
+          example: "w1a2b3c4-d5e6-7890-abcd-ef1234567890"
+        boardId:
+          type: string
+          example: "b1a2c3d4-e5f6-7890-abcd-ef1234567890"
+        name:
+          type: string
+          example: "Slack notifications"
+        url:
+          type: string
+          format: uri
+          example: "https://hooks.slack.com/services/T000/B000/xxxx"
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEvent'
+          example: ["issue.created", "issue.approved"]
+        enabled:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    DayCount:
+      type: object
+      required: [date, created, approved, completed]
+      description: Aggregated issue counts for a single calendar day
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: UTC midnight timestamp for the day
+          example: "2025-06-15T00:00:00Z"
+        created:
+          type: integer
+          description: Number of issues created on this day
+          example: 3
+        approved:
+          type: integer
+          description: Number of issues approved on this day
+          example: 1
+        completed:
+          type: integer
+          description: Number of issues completed (moved to Done) on this day
+          example: 2
+
+    DayStats:
+      type: object
+      required: [created, approved, completed]
+      description: Three-bucket issue lists for a specific calendar day
+      properties:
+        created:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: Issues created on this day
+        approved:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: Issues approved on this day
+        completed:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: Issues that moved to Done on this day
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      description: Standard error envelope returned on all non-2xx responses
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              example: "not_found"
+            message:
+              type: string
+              description: Human-readable error description
+              example: "not found"

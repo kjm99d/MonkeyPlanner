@@ -21,6 +21,7 @@ type Repo struct {
 	boards   *boardRepo
 	props    *boardPropertyRepo
 	webhooks *webhookRepo
+	comments *commentRepo
 }
 
 // Open 은 지정된 DSN(예: "./data/monkey.db")으로 SQLite를 엽니다.
@@ -44,13 +45,15 @@ func Open(dsn string) (*Repo, error) {
 		boards:   &boardRepo{db: db},
 		props:    &boardPropertyRepo{db: db},
 		webhooks: &webhookRepo{db: db},
+		comments: &commentRepo{db: db},
 	}, nil
 }
 
-func (r *Repo) Issues() storage.IssueRepo              { return r.issues }
-func (r *Repo) Boards() storage.BoardRepo              { return r.boards }
+func (r *Repo) Issues() storage.IssueRepo                  { return r.issues }
+func (r *Repo) Boards() storage.BoardRepo                  { return r.boards }
 func (r *Repo) BoardProperties() storage.BoardPropertyRepo { return r.props }
 func (r *Repo) Webhooks() storage.WebhookRepo              { return r.webhooks }
+func (r *Repo) Comments() storage.CommentRepo              { return r.comments }
 func (r *Repo) Close() error                               { return r.db.Close() }
 
 // ---- issueRepo ----
@@ -65,9 +68,9 @@ func (r *issueRepo) Create(ctx context.Context, i domain.Issue) (domain.Issue, e
 	}
 	propsJSON, _ := json.Marshal(i.Properties)
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO issues (id, board_id, parent_id, title, body, status, properties, created_at, updated_at, approved_at, completed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		i.ID, i.BoardID, i.ParentID, i.Title, i.Body, i.Status, string(propsJSON),
+		INSERT INTO issues (id, board_id, parent_id, title, body, status, properties, position, created_at, updated_at, approved_at, completed_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		i.ID, i.BoardID, i.ParentID, i.Title, i.Body, i.Status, string(propsJSON), i.Position,
 		i.CreatedAt.UTC(), i.UpdatedAt.UTC(), utcPtr(i.ApprovedAt), utcPtr(i.CompletedAt))
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: create issue: %w", err)
@@ -108,7 +111,7 @@ func (r *issueRepo) List(ctx context.Context, f storage.IssueFilter) ([]domain.I
 			args = append(args, *f.ParentID)
 		}
 	}
-	q += ` ORDER BY created_at DESC`
+	q += ` ORDER BY position ASC, created_at DESC`
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite: list issues: %w", err)
@@ -297,10 +300,24 @@ func (r *issueRepo) GetDayStats(ctx context.Context, day time.Time) (storage.Day
 	return storage.DayStats{Created: created, Approved: approved, Completed: completed}, nil
 }
 
+func (r *issueRepo) ReorderIssues(ctx context.Context, issueIDs []string) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("sqlite: begin: %w", err)
+	}
+	defer tx.Rollback()
+	for pos, id := range issueIDs {
+		if _, err := tx.ExecContext(ctx, `UPDATE issues SET position=? WHERE id=?`, pos, id); err != nil {
+			return fmt.Errorf("sqlite: reorder issue: %w", err)
+		}
+	}
+	return tx.Commit()
+}
+
 // ---- 공통 helpers ----
 
 const selectIssueCols = `
-SELECT id, board_id, parent_id, title, body, status, properties, created_at, updated_at, approved_at, completed_at
+SELECT id, board_id, parent_id, title, body, status, properties, position, created_at, updated_at, approved_at, completed_at
 FROM issues`
 
 func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
@@ -308,7 +325,7 @@ func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
 	var parent sql.NullString
 	var propsStr string
 	var approvedAt, completedAt sql.NullTime
-	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsStr, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
+	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsStr, &i.Position, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Issue{}, storage.ErrNotFound
