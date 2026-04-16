@@ -39,11 +39,13 @@ type DayStats struct {
 
 // IssuePatch 는 PATCH 요청에서 변경할 필드만 담습니다 (nil = 미변경).
 type IssuePatch struct {
-	Title      *string
-	Body       *string
-	ParentID   **string         // 이중 포인터: nil(미변경) vs *nil(=NULL로 설정)
-	Status     *domain.Status   // Approved로 전이 시도 시 서비스 계층이 409 응답
-	Properties *map[string]any  // nil이면 미변경, 값이면 전체 교체(merge는 서비스 계층)
+	Title        *string
+	Body         *string
+	Instructions *string
+	ParentID     **string              // 이중 포인터: nil(미변경) vs *nil(=NULL로 설정)
+	Status       *domain.Status        // Approved로 전이 시도 시 서비스 계층이 409 응답
+	Properties   *map[string]any       // nil이면 미변경, 값이면 전체 교체(merge는 서비스 계층)
+	Criteria     *[]domain.Criterion   // nil이면 미변경
 }
 
 // IssueRepo 는 이슈 저장소 인터페이스입니다.
@@ -64,6 +66,12 @@ type IssueRepo interface {
 	GetDayStats(ctx context.Context, day time.Time) (DayStats, error)
 	// ReorderIssues 는 issueIDs 순서대로 position 을 업데이트합니다.
 	ReorderIssues(ctx context.Context, issueIDs []string) error
+	// AddDependency 는 blockerID → blockedID 의존성을 추가합니다.
+	AddDependency(ctx context.Context, blockerID, blockedID string) error
+	// RemoveDependency 는 blockerID → blockedID 의존성을 제거합니다.
+	RemoveDependency(ctx context.Context, blockerID, blockedID string) error
+	// GetBlockedBy 는 issueID 를 차단하는 blocker ID 목록을 반환합니다.
+	GetBlockedBy(ctx context.Context, issueID string) ([]string, error)
 }
 
 // BoardRepo 는 보드 저장소 인터페이스입니다.
