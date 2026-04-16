@@ -72,6 +72,7 @@
     "pending": "待機",
     "approved": "承認済",
     "inProgress": "進行中",
+    "qa": "QA検証",
     "done": "完了",
     "rejected": "却下",
     "dragHere": "ここにイシューをドラッグ",
@@ -132,6 +133,7 @@
     "Pending": "待機",
     "Approved": "承認済",
     "InProgress": "進行中",
+    "QA": "QA検証",
     "Done": "完了",
     "Rejected": "却下"
   },

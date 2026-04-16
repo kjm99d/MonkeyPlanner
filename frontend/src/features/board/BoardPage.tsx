@@ -6,7 +6,7 @@ import { useBoards, useBoardProperties, useCreateBoardProperty, useDeleteBoardPr
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, LayoutGrid, List, Filter, AlertCircle, Download, FileText } from 'lucide-react';
+import { Trash2, LayoutGrid, List, Filter, AlertCircle, Download, FileText, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Breadcrumb } from '../../components/Breadcrumb';
@@ -23,6 +23,7 @@ const COLUMN_KEYS: { status: IssueStatus; key: string }[] = [
   { status: 'Pending', key: 'kanban.pending' },
   { status: 'Approved', key: 'kanban.approved' },
   { status: 'InProgress', key: 'kanban.inProgress' },
+  { status: 'QA', key: 'kanban.qa' },
   { status: 'Done', key: 'kanban.done' },
   { status: 'Rejected', key: 'kanban.rejected' },
 ];
@@ -55,6 +56,28 @@ export default function BoardPage() {
   const [boardName, setBoardName] = useState('');
   const [hideDone, setHideDone] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem('board-fullscreen', String(fullscreen));
+    // 전체화면 시 Layout의 max-w 제한을 해제
+    const main = document.querySelector('main > div');
+    if (main) {
+      if (fullscreen) {
+        main.classList.remove('max-w-6xl');
+        main.classList.add('max-w-full');
+      } else {
+        main.classList.remove('max-w-full');
+        main.classList.add('max-w-6xl');
+      }
+    }
+    return () => {
+      if (main) {
+        main.classList.remove('max-w-full');
+        main.classList.add('max-w-6xl');
+      }
+    };
+  }, [fullscreen]);
 
   useEffect(() => { if (board) setBoardName(board.name); }, [board?.name]);
 
@@ -75,7 +98,7 @@ export default function BoardPage() {
   }, [issues.data, filterText, filterStatus]);
 
   const grouped = useMemo(() => {
-    const map: Record<IssueStatus, Issue[]> = { Pending: [], Approved: [], InProgress: [], Done: [], Rejected: [] };
+    const map: Record<IssueStatus, Issue[]> = { Pending: [], Approved: [], InProgress: [], QA: [], Done: [], Rejected: [] };
     filtered.forEach((i) => map[i.status].push(i));
     return map;
   }, [filtered]);
@@ -330,6 +353,7 @@ export default function BoardPage() {
             <option value="Pending">{t('status.Pending')}</option>
             <option value="Approved">{t('status.Approved')}</option>
             <option value="InProgress">{t('status.InProgress')}</option>
+            <option value="QA">{t('status.QA')}</option>
             <option value="Done">{t('status.Done')}</option>
             <option value="Rejected">{t('status.Rejected')}</option>
           </select>
@@ -342,6 +366,14 @@ export default function BoardPage() {
             className={`rounded px-2 py-1 text-xs transition-colors ${hideDone ? 'bg-brand-500/10 text-brand-500' : 'text-ink-muted hover:text-ink-secondary'}`}
           >
             {hideDone ? t('board.showDone', 'Show done') : t('board.hideDone', 'Hide done')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFullscreen(f => !f)}
+            className="rounded px-2 py-1 text-xs text-ink-muted hover:text-ink-secondary transition-colors"
+            title={fullscreen ? t('board.exitFullscreen', 'Exit fullscreen') : t('board.fullscreen', 'Fullscreen')}
+          >
+            {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
           <div className="flex items-center gap-1 rounded-md bg-surface-muted p-0.5">
             <button
