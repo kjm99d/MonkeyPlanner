@@ -20,7 +20,7 @@ export function PropertyEditor({ properties, values, onChange }: Props) {
   if (properties.length === 0) return null;
 
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-4 backdrop-blur-sm">
+    <section className="flex flex-col gap-3 rounded-xl border border-edge-base bg-surface-subtle p-4">
       <h3 className="text-sm font-semibold text-ink-secondary">속성</h3>
       <div className="flex flex-col gap-2.5">
         {properties.map((prop) => (

@@ -2,7 +2,7 @@ import { Banana, Brain, Zap } from 'lucide-react';
 
 export default function HeroBanner() {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-[var(--glass-border)] bg-gradient-to-br from-brand-500/10 via-surface-subtle to-accent/5 px-6 py-8 dark:from-brand-500/20 dark:via-surface-subtle dark:to-accent/10">
+    <div className="relative overflow-hidden rounded-xl border border-edge-base bg-gradient-to-br from-brand-500/5 via-surface-subtle to-surface-muted px-6 py-8">
       {/* 배경 장식 원 */}
       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brand-500/10 blur-2xl" />
       <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-accent/10 blur-2xl" />
