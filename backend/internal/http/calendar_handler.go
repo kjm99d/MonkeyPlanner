@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ckmdevb/monkey-planner/backend/internal/domain"
 	"github.com/ckmdevb/monkey-planner/backend/internal/service"
 	"github.com/ckmdevb/monkey-planner/backend/internal/storage"
 )
@@ -46,6 +47,16 @@ func (h *calendarHandler) day(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		mapError(w, err)
 		return
+	}
+	// nil slice → [] 로 정규화 (클라이언트가 .length 접근 시 TypeError 방지)
+	if out.Created == nil {
+		out.Created = []domain.Issue{}
+	}
+	if out.Approved == nil {
+		out.Approved = []domain.Issue{}
+	}
+	if out.Completed == nil {
+		out.Completed = []domain.Issue{}
 	}
 	writeJSON(w, http.StatusOK, out)
 }
