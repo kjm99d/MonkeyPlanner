@@ -5,7 +5,7 @@ import { Clock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useBoards, useDayStats, useIssues } from '../../api/hooks';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Skeleton } from '../../components/Skeleton';
-import HeroBanner from './HeroBanner';
+import { WeeklyChart } from './WeeklyChart';
 
 function todayString(): string {
   const d = new Date();
@@ -26,16 +26,11 @@ export default function HomePage() {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3 fade-up">
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('home.title')}</h1>
-            <p className="mt-1 text-sm text-ink-secondary">
-              {t('home.summary', { date })}
-            </p>
-          </div>
-        </div>
-        <HeroBanner />
+      <header className="fade-up">
+        <h1 className="text-2xl font-bold tracking-tight">{t('home.title')}</h1>
+        <p className="mt-1 text-sm text-ink-secondary">
+          {t('home.summary', { date })}
+        </p>
       </header>
 
       {/* 통계 카드 3분할 */}
@@ -54,6 +49,9 @@ export default function HomePage() {
           </>
         )}
       </div>
+
+      {/* 주간 차트 */}
+      <WeeklyChart />
 
       {/* 2열 레이아웃: 진행 중 이슈 + 보드 요약 */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -155,13 +153,16 @@ export default function HomePage() {
 function StatCard({ label, value, hue, accent, delay }: { label: string; value: number; hue: string; accent: string; delay: number }) {
   return (
     <div
-      className="fade-up relative overflow-hidden rounded-lg border border-edge-base bg-gradient-to-br from-surface-subtle to-surface-muted p-4 shadow-sm transition-transform hover:[transform:perspective(800px)_rotateX(2deg)_rotateY(-2deg)] motion-reduce:hover:transform-none"
+      className="fade-up relative overflow-hidden rounded-lg border border-edge-base bg-gradient-to-br from-surface-subtle to-surface-muted p-4 shadow-sm transition-shadow hover:shadow-md"
       style={{ animationDelay: `${delay * 60}ms` }}
     >
       <div className={`absolute left-0 top-0 h-full w-1 rounded-l-lg ${accent}`} />
-      <div className="flex flex-col gap-1 pl-2">
-        <span className="text-sm font-medium text-ink-secondary">{label}</span>
-        <span className={`text-5xl font-extrabold tabular-nums tracking-tight ${hue}`}>{value}</span>
+      <div className="flex items-end justify-between pl-2">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-medium text-ink-muted">{label}</span>
+          <span className={`text-3xl font-bold tabular-nums tracking-tight ${hue}`}>{value}</span>
+        </div>
+        <span className="text-xs text-ink-muted tabular-nums">today</span>
       </div>
     </div>
   );
