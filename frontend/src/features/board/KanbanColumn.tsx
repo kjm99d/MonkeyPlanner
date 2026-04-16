@@ -24,8 +24,8 @@ export function KanbanColumn({ status, title, issues, boardProperties }: Props) 
   return (
     <section
       ref={setNodeRef}
-      aria-label={`${title} 컬럼`}
-      className={`flex min-h-[24rem] flex-col gap-3 rounded-lg border border-t-[3px] ${topAccent[status]} border-edge-base bg-surface-subtle p-3 transition-colors ${
+      aria-label={t('kanban.columnLabel', { title })}
+      className={`min-w-[280px] w-[280px] shrink-0 lg:min-w-0 lg:w-auto lg:shrink lg:flex-1 flex min-h-[24rem] flex-col gap-3 rounded-lg border border-t-[3px] ${topAccent[status]} border-edge-base bg-surface-subtle p-3 transition-colors ${
         isOver ? 'border-brand-500 bg-brand-500/5' : ''
       }`}
     >
@@ -37,8 +37,8 @@ export function KanbanColumn({ status, title, issues, boardProperties }: Props) 
       </header>
       <div className="flex flex-col gap-2">
         {issues.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-10 text-center">
-            <ClipboardList size={28} className="text-ink-muted opacity-25" />
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-edge-base/60 py-8 text-center">
+            <ClipboardList size={24} className="text-ink-muted opacity-30" />
             <p className="text-xs text-ink-muted">{t('kanban.dragHere')}</p>
           </div>
         ) : (
