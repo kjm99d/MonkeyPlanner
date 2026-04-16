@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { useBoards, useBoardProperties, useCreateBoardProperty, useDeleteBoardProperty, useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
-import { api } from '../../api/client';
+import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useBoards, useBoardProperties, useCreateBoardProperty, useDeleteBoardProperty, useCreateIssue, useIssues, useUpdateIssue, useDeleteBoard } from '../../api/hooks';
 import { useNavigate } from 'react-router-dom';
+import { Trash2, LayoutGrid, List, Filter, AlertCircle } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Breadcrumb } from '../../components/Breadcrumb';
 import { AddPropertyForm } from '../../components/PropertyEditor';
 import { useToast } from '../../components/Toast';
 import { WebhookSettings } from '../../components/WebhookSettings';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { StatusBadge } from '../../components/StatusBadge';
 import { KanbanColumn } from './KanbanColumn';
 import type { Issue, IssueStatus } from '../../api/types';
 
@@ -27,6 +29,7 @@ export default function BoardPage() {
   const board = boards.data?.find((b) => b.id === boardId);
   const issues = useIssues({ boardId });
   const createIssue = useCreateIssue();
+  const deleteBoard = useDeleteBoard();
   const boardPropsQuery = useBoardProperties(boardId);
   const createProp = useCreateBoardProperty();
   const deleteProp = useDeleteBoardProperty();
@@ -37,31 +40,53 @@ export default function BoardPage() {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+  const [filterText, setFilterText] = useState('');
+  const [filterStatus, setFilterStatus] = useState<IssueStatus | 'all'>('all');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
+  const filtered = useMemo(() => {
+    let items = issues.data ?? [];
+    if (filterText.trim()) {
+      const q = filterText.toLowerCase();
+      items = items.filter(i => i.title.toLowerCase().includes(q));
+    }
+    if (filterStatus !== 'all') {
+      items = items.filter(i => i.status === filterStatus);
+    }
+    return items;
+  }, [issues.data, filterText, filterStatus]);
+
   const grouped = useMemo(() => {
-    const map: Record<IssueStatus, Issue[]> = {
-      Pending: [],
-      Approved: [],
-      InProgress: [],
-      Done: [],
-    };
-    (issues.data ?? []).forEach((i) => map[i.status].push(i));
+    const map: Record<IssueStatus, Issue[]> = { Pending: [], Approved: [], InProgress: [], Done: [] };
+    filtered.forEach((i) => map[i.status].push(i));
     return map;
-  }, [issues.data]);
+  }, [filtered]);
 
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !boardId) return;
-    await createIssue.mutateAsync({ boardId, title: title.trim() });
-    setTitle('');
-    toast('success', t('board.issueCreated'));
+    try {
+      await createIssue.mutateAsync({ boardId, title: title.trim() });
+      setTitle('');
+      toast('success', t('board.issueCreated'));
+    } catch (err) {
+      toast('error', (err as { message?: string }).message ?? t('board.issueCreateFailed'));
+    }
+  }
+
+  function onDragStart(e: DragStartEvent) {
+    const issue = (issues.data ?? []).find((i) => i.id === String(e.active.id));
+    setActiveIssue(issue ?? null);
   }
 
   async function onDragEnd(e: DragEndEvent) {
+    setActiveIssue(null);
     setErrMsg(null);
     if (!e.over) return;
     const toStatus = e.over.id as IssueStatus;
@@ -71,11 +96,8 @@ export default function BoardPage() {
     try {
       await updateIssue.mutateAsync({ id: issueId, patch: { status: toStatus } });
       toast('success', t('board.statusChanged', { status: toStatus }));
-    } catch (err) {
-      const msg =
-        (err as { message?: string; code?: string })?.message ??
-        (err as { code?: string })?.code ??
-        '상태 변경 실패';
+    } catch {
+      const msg = t('board.statusChangeFailed');
       setErrMsg(msg);
       toast('error', msg);
     }
@@ -89,20 +111,16 @@ export default function BoardPage() {
             { label: t('nav.boards'), to: '/boards' },
             { label: board?.name ?? '...' },
           ]} />
-          <h1 className="text-3xl font-bold">{board?.name ?? t('board.title')}</h1>
+          <h1 className="text-2xl font-bold">{board?.name ?? t('board.title')}</h1>
         </div>
         {boardId && (
           <button
             type="button"
-            onClick={async () => {
-              if (!window.confirm(`"${board?.name}" 보드와 모든 이슈를 삭제합니다. 계속할까요?`)) return;
-              await api.del(`/api/boards/${boardId}`);
-              navigate('/boards');
-              toast('success', '보드가 삭제되었습니다');
-            }}
-            className="rounded-md px-3 py-1.5 text-xs text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+            onClick={() => setConfirmDelete(true)}
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
           >
-            보드 삭제
+            <Trash2 size={13} />
+            {t('board.delete')}
           </button>
         )}
       </header>
@@ -114,14 +132,18 @@ export default function BoardPage() {
             {p.name} · {p.type}
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm(`속성 "${p.name}"을(를) 삭제하시겠습니까? 모든 이슈에서 이 속성 값이 사라집니다.`)) {
-                  deleteProp.mutate({ boardId: boardId!, propId: p.id });
-                  toast('success', `속성 "${p.name}" 삭제됨`);
+              onClick={async () => {
+                if (window.confirm(t('board.propertyDeleteConfirm', { name: p.name }))) {
+                  try {
+                    await deleteProp.mutateAsync({ boardId: boardId!, propId: p.id });
+                    toast('success', t('board.propertyDeleted', { name: p.name }));
+                  } catch {
+                    toast('error', t('board.statusChangeFailed'));
+                  }
                 }
               }}
               className="hidden group-hover:inline-flex items-center justify-center rounded-full text-ink-muted hover:text-red-500 transition-colors"
-              aria-label={`${p.name} 속성 삭제`}
+              aria-label={t('board.deletePropertyLabel', { name: p.name })}
             >
               ×
             </button>
@@ -129,40 +151,159 @@ export default function BoardPage() {
         ))}
         {boardId && (
           <AddPropertyForm
-            onAdd={(name, type, options) => {
-              createProp.mutate({ boardId: boardId!, name, type, options });
-              toast('success', `속성 "${name}" 추가됨`);
+            onAdd={async (name, type, options) => {
+              try {
+                await createProp.mutateAsync({ boardId: boardId!, name, type, options });
+                toast('success', t('board.propertyAdded', { name }));
+              } catch {
+                toast('error', t('board.issueCreateFailed'));
+              }
             }}
           />
         )}
       </div>
 
-      <form onSubmit={onCreate} className="flex gap-2">
+      <form onSubmit={onCreate} className="flex gap-2 rounded-lg border border-edge-base bg-surface-subtle p-2">
         <Input
           placeholder={t('board.newIssueTitle')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           aria-label={t('board.newIssueTitle')}
-          className="flex-1"
+          className="flex-1 border-0 bg-transparent focus-visible:ring-0"
         />
-        <Button type="submit" disabled={createIssue.isPending}>
+        <Button type="submit" size="sm" disabled={createIssue.isPending}>
           {t('board.addIssue')}
         </Button>
       </form>
 
       {errMsg && (
-        <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        <div role="alert" className="flex items-center gap-2 rounded-md border-l-4 border-red-500 bg-red-50 px-4 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+          <AlertCircle size={16} className="shrink-0" />
           {errMsg}
         </div>
       )}
 
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
-          {COLUMN_KEYS.map((c) => (
-            <KanbanColumn key={c.status} status={c.status} title={t(c.key)} issues={grouped[c.status]} boardProperties={boardPropsQuery.data} />
-          ))}
+      {/* filter + view controls */}
+      <div className="flex items-center justify-between gap-3">
+        {/* filter bar on left */}
+        <div className="flex flex-1 items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 rounded-md border border-edge-base bg-surface-subtle px-2 py-1.5">
+            <Filter size={14} className="text-ink-muted" />
+            <input
+              type="text"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              placeholder={t('board.filterPlaceholder', 'Filter issues...')}
+              className="flex-1 bg-transparent text-sm text-ink-primary placeholder:text-ink-muted focus:outline-none"
+            />
+          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as IssueStatus | 'all')}
+            className="h-8 rounded-md border border-edge-base bg-surface-subtle px-2 text-xs text-ink-secondary focus:outline-none focus:border-brand-500"
+          >
+            <option value="all">{t('board.allStatuses', 'All')}</option>
+            <option value="Pending">{t('status.Pending')}</option>
+            <option value="Approved">{t('status.Approved')}</option>
+            <option value="InProgress">{t('status.InProgress')}</option>
+            <option value="Done">{t('status.Done')}</option>
+          </select>
         </div>
-      </DndContext>
+        {/* view toggle on right */}
+        <div className="flex items-center gap-1 rounded-md bg-surface-muted p-0.5">
+          <button
+            type="button"
+            onClick={() => setViewMode('kanban')}
+            className={`rounded px-2 py-1 text-xs transition-colors ${viewMode === 'kanban' ? 'bg-surface-base text-ink-primary shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
+          >
+            <LayoutGrid size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('table')}
+            className={`rounded px-2 py-1 text-xs transition-colors ${viewMode === 'table' ? 'bg-surface-base text-ink-primary shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
+          >
+            <List size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* conditionally render kanban or table */}
+      {viewMode === 'table' ? (
+        <div className="overflow-x-auto rounded-lg border border-edge-base">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-edge-base bg-surface-subtle text-left text-xs font-medium text-ink-muted">
+                <th className="px-4 py-2.5">{t('board.colTitle')}</th>
+                <th className="px-4 py-2.5">{t('board.colStatus')}</th>
+                <th className="px-4 py-2.5">{t('board.colCreated')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(issue => (
+                <tr key={issue.id} className="border-b border-edge-base last:border-0 hover:bg-surface-subtle transition-colors">
+                  <td className="px-4 py-2.5">
+                    <Link to={`/issues/${issue.id}`} className="font-medium text-ink-primary hover:underline">
+                      {issue.title}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <StatusBadge status={issue.status} />
+                  </td>
+                  <td className="px-4 py-2.5 text-xs text-ink-muted">
+                    {new Date(issue.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-8 text-center text-sm text-ink-muted">
+                    {t('board.noIssuesFound')}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {COLUMN_KEYS.map((c) => (
+              <KanbanColumn key={c.status} status={c.status} title={t(c.key)} issues={grouped[c.status]} boardProperties={boardPropsQuery.data} />
+            ))}
+          </div>
+          <DragOverlay dropAnimation={null}>
+            {activeIssue && (
+              <div className="w-[280px] rotate-[2deg] rounded-lg border-2 border-brand-500 bg-surface-base p-3 shadow-2xl">
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-ink-primary">{activeIssue.title}</span>
+                  </div>
+                  <StatusBadge status={activeIssue.status} />
+                </div>
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
+      )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t('board.delete')}
+        description={t('board.deleteConfirm', { name: board?.name })}
+        confirmLabel={t('board.delete')}
+        onConfirm={async () => {
+          setConfirmDelete(false);
+          try {
+            await deleteBoard.mutateAsync(boardId!);
+            navigate('/boards');
+            toast('success', t('board.deleted'));
+          } catch (err) {
+            toast('error', (err as { message?: string }).message ?? t('board.deleteFailed'));
+          }
+        }}
+        onCancel={() => setConfirmDelete(false)}
+      />
 
       {/* Webhook 설정 */}
       {boardId && <WebhookSettings boardId={boardId} />}

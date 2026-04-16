@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDayStats, useMonthStats } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -62,22 +63,22 @@ export default function CalendarPage() {
     <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
       <div className="flex flex-col gap-4">
         <header className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t('calendar.title', { year, month })}</h1>
+          <h1 className="text-2xl font-bold">{t('calendar.title', { year, month })}</h1>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={() => shift(-1)} aria-label={t('calendar.prevMonth')}>
-              ←
+              <ChevronLeft size={16} />
             </Button>
             <Button size="sm" variant="ghost" onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()+1); setSelected(ymd(today)); }}>
               {t('calendar.today')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => shift(1)} aria-label={t('calendar.nextMonth')}>
-              →
+              <ChevronRight size={16} />
             </Button>
           </div>
         </header>
 
         <div role="grid" aria-label={t('nav.calendar')} className="grid grid-cols-7 gap-1">
-          {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
+          {[t('calendar.sun'), t('calendar.mon'), t('calendar.tue'), t('calendar.wed'), t('calendar.thu'), t('calendar.fri'), t('calendar.sat')].map((d) => (
             <div key={d} className="pb-2 text-center text-xs font-medium text-ink-muted">
               {d}
             </div>
@@ -108,7 +109,7 @@ export default function CalendarPage() {
                   {c.day}
                 </span>
                 {stat && (stat.created + stat.approved + stat.completed > 0) && (
-                  <div className="flex flex-wrap gap-1 text-[10px] tabular-nums">
+                  <div className="flex flex-wrap gap-1 text-[11px] tabular-nums">
                     {stat.created > 0 && (
                       <span className="rounded bg-ink-primary/10 px-1 text-ink-primary">+{stat.created}</span>
                     )}
@@ -144,12 +145,14 @@ export default function CalendarPage() {
 function DaySection({ title, issues }: { title: string; issues: Issue[] }) {
   const { t } = useTranslation();
   return (
-    <section aria-label={`${title} 이슈`}>
+    <section aria-label={t('calendar.issuesLabel', { title })}>
       <h3 className="mb-2 text-sm font-medium text-ink-secondary">
         {title} <span className="text-ink-muted">({issues.length})</span>
       </h3>
       {issues.length === 0 ? (
-        <p className="text-xs text-ink-muted">{t('calendar.none')}</p>
+        <div className="flex items-center gap-2 rounded-md border border-dashed border-edge-base py-3 px-3">
+          <span className="text-xs text-ink-muted">{t('calendar.none')}</span>
+        </div>
       ) : (
         <ul className="flex flex-col gap-1">
           {issues.map((iss) => (

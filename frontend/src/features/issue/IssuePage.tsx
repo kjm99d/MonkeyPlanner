@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   useApproveIssue,
@@ -12,9 +12,11 @@ import {
 } from '../../api/hooks';
 import { Breadcrumb } from '../../components/Breadcrumb';
 import { Button } from '../../components/Button';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Input } from '../../components/Input';
 import { MarkdownEditor } from '../../components/MarkdownEditor';
 import { PropertyEditor } from '../../components/PropertyEditor';
+import { Skeleton } from '../../components/Skeleton';
 import { StatusBadge } from '../../components/StatusBadge';
 import { StatusStepper } from '../../components/StatusStepper';
 import type { IssueStatus } from '../../api/types';
@@ -22,6 +24,7 @@ import type { IssueStatus } from '../../api/types';
 export default function IssuePage() {
   const { t } = useTranslation();
   const { issueId } = useParams<{ issueId: string }>();
+  const navigate = useNavigate();
   const query = useIssue(issueId);
   const boards = useBoards();
   const update = useUpdateIssue();
@@ -33,6 +36,7 @@ export default function IssuePage() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (query.data?.issue) {
@@ -41,8 +45,29 @@ export default function IssuePage() {
     }
   }, [query.data?.issue?.id, query.data?.issue?.title, query.data?.issue?.body]);
 
+  // Track dirty state for unsaved changes warning
+  const isDirty =
+    query.data?.issue != null &&
+    (title !== query.data.issue.title || body !== query.data.issue.body);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
   if (query.isLoading || !query.data) {
-    return <p className="text-ink-secondary">이슈를 불러오는 중…</p>;
+    return (
+      <section className="flex flex-col gap-6">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-40 w-full" />
+      </section>
+    );
   }
 
   const iss = query.data.issue;
@@ -53,7 +78,7 @@ export default function IssuePage() {
     try {
       await update.mutateAsync({ id: issueId, patch: { title, body } });
     } catch (err) {
-      setSaveErr((err as { message?: string }).message ?? '저장 실패');
+      setSaveErr((err as { message?: string }).message ?? t('issue.saveFailed'));
     }
   }
 
@@ -67,7 +92,7 @@ export default function IssuePage() {
         await update.mutateAsync({ id: issueId, patch: { status } });
       }
     } catch (err) {
-      setSaveErr((err as { message?: string }).message ?? '상태 변경 실패');
+      setSaveErr((err as { message?: string }).message ?? t('issue.statusChangeFailed'));
     }
   }
 
@@ -76,7 +101,7 @@ export default function IssuePage() {
   return (
     <section className="flex flex-col gap-6">
       <Breadcrumb items={[
-        { label: '보드', to: '/boards' },
+        { label: t('nav.boards'), to: '/boards' },
         { label: board?.name ?? '...', to: `/boards/${iss.boardId}` },
         { label: iss.title },
       ]} />
@@ -86,13 +111,13 @@ export default function IssuePage() {
           <div className="flex items-center gap-3">
             <StatusBadge status={iss.status} />
             <span className="text-xs text-ink-muted">
-              {new Date(iss.createdAt).toLocaleString('ko-KR')} 생성
+              {t('issue.createdAt', { date: new Date(iss.createdAt).toLocaleString() })}
             </span>
           </div>
           <div className="flex gap-2">
             {iss.status === 'Pending' && (
               <Button size="sm" onClick={() => setStatus('Approved')}>
-                ✓ Approve
+                {t('kanban.approve')}
               </Button>
             )}
           </div>
@@ -159,17 +184,25 @@ export default function IssuePage() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={async () => {
-            if (!issueId) return;
-            if (!window.confirm(t('issue.deleteConfirm'))) return;
-            await remove.mutateAsync(issueId);
-            window.history.back();
-          }}
+          onClick={() => setConfirmDelete(true)}
           className="rounded-md px-3 py-1.5 text-xs text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
         >
           {t('issue.delete')}
         </button>
       </div>
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t('issue.delete')}
+        description={t('issue.deleteConfirm')}
+        confirmLabel={t('issue.delete')}
+        onConfirm={async () => {
+          setConfirmDelete(false);
+          if (!issueId) return;
+          await remove.mutateAsync(issueId);
+          navigate(`/boards/${iss.boardId}`);
+        }}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </section>
   );
 }

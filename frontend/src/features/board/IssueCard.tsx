@@ -1,5 +1,6 @@
 import { useDraggable } from '@dnd-kit/core';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { GripVertical, Check, Calendar, Tag } from 'lucide-react';
 import type { Issue, BoardProperty } from '../../api/types';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -11,16 +12,16 @@ type Props = {
 };
 
 export function IssueCard({ issue, boardProperties = [] }: Props) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { t } = useTranslation();
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: issue.id,
   });
   const approve = useApproveIssue();
 
-  const style: React.CSSProperties = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0) perspective(800px) rotateX(3deg) rotateY(-3deg)`,
-      }
-    : undefined as unknown as React.CSSProperties;
+  // DragOverlay handles the visual ghost — hide the original card during drag
+  const style: React.CSSProperties | undefined = isDragging
+    ? { opacity: 0.3, pointerEvents: 'none' }
+    : undefined;
 
   // 속성 값 추출 (비어있지 않은 것만)
   const propValues = boardProperties
@@ -33,9 +34,9 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
       style={style}
       {...attributes}
       {...listeners}
-      aria-grabbed={isDragging}
+      aria-roledescription="draggable item"
       className={`group flex cursor-grab flex-col gap-2 rounded-lg border border-edge-base bg-surface-base p-3 shadow-sm transition-shadow hover:shadow-md motion-reduce:transition-none ${
-        isDragging ? 'shadow-lg opacity-90 cursor-grabbing' : ''
+        isDragging ? 'cursor-grabbing' : ''
       }`}
     >
       <div className="flex items-start gap-2">
@@ -69,10 +70,10 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
               approve.mutate(issue.id);
             }}
             disabled={approve.isPending}
-            aria-label={`Approve ${issue.title}`}
+            aria-label={t('kanban.approveLabel', { title: issue.title })}
             className="flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:brightness-110 hover:shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            <Check size={12} /> Approve
+            <Check size={12} /> {t('kanban.approve')}
           </button>
         </div>
       )}
@@ -84,7 +85,7 @@ function PropertyPill({ prop, value }: { prop: BoardProperty; value: unknown }) 
   if (prop.type === 'checkbox') {
     if (!value) return null;
     return (
-      <span className="inline-flex items-center gap-0.5 rounded bg-status-done/10 px-1.5 py-0.5 text-[10px] text-status-done">
+      <span className="inline-flex items-center gap-0.5 rounded bg-status-done/10 px-1.5 py-0.5 text-[11px] text-status-done">
         <Check size={10} /> {prop.name}
       </span>
     );
@@ -92,7 +93,7 @@ function PropertyPill({ prop, value }: { prop: BoardProperty; value: unknown }) 
 
   if (prop.type === 'date') {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded bg-status-inProgress/10 px-1.5 py-0.5 text-[10px] text-status-inProgress">
+      <span className="inline-flex items-center gap-0.5 rounded bg-status-inProgress/10 px-1.5 py-0.5 text-[11px] text-status-inProgress">
         <Calendar size={10} /> {String(value)}
       </span>
     );
@@ -102,7 +103,7 @@ function PropertyPill({ prop, value }: { prop: BoardProperty; value: unknown }) 
     return (
       <>
         {value.map((v: string) => (
-          <span key={v} className="inline-flex items-center gap-0.5 rounded bg-brand-500/10 px-1.5 py-0.5 text-[10px] text-brand-500">
+          <span key={v} className="inline-flex items-center gap-0.5 rounded bg-brand-500/10 px-1.5 py-0.5 text-[11px] text-brand-500">
             <Tag size={9} /> {v}
           </span>
         ))}
@@ -112,7 +113,7 @@ function PropertyPill({ prop, value }: { prop: BoardProperty; value: unknown }) 
 
   // select, text, number
   return (
-    <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] text-ink-secondary">
+    <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[11px] text-ink-secondary">
       {prop.name}: {String(value)}
     </span>
   );
