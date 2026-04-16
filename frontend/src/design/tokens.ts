@@ -35,9 +35,9 @@ export const lightColors = {
 
 export const darkColors = {
   bg: {
-    base: '#0a0a0a',
-    subtle: '#18181b',
-    muted: '#27272a',
+    base: '#09090b',
+    subtle: '#1a1a1f',
+    muted: '#2a2a30',
   },
   border: {
     base: '#3f3f46',

@@ -88,18 +88,6 @@ export default function IssuePage() {
                 ✓ Approve
               </Button>
             )}
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={async () => {
-                if (!issueId) return;
-                if (!window.confirm('이슈와 모든 자식 이슈가 삭제됩니다. 계속할까요?')) return;
-                await remove.mutateAsync(issueId);
-                window.history.back();
-              }}
-            >
-              삭제
-            </Button>
           </div>
         </div>
         <StatusStepper
@@ -147,6 +135,22 @@ export default function IssuePage() {
           </ul>
         </section>
       )}
+
+      <hr className="border-edge-base" />
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={async () => {
+            if (!issueId) return;
+            if (!window.confirm('이슈와 모든 자식 이슈가 삭제됩니다. 계속할까요?')) return;
+            await remove.mutateAsync(issueId);
+            window.history.back();
+          }}
+          className="rounded-md px-3 py-1.5 text-xs text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+        >
+          이 이슈 삭제
+        </button>
+      </div>
     </section>
   );
 }
