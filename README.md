@@ -6,7 +6,7 @@
 
 A collaborative tool where humans create and approve issues, and AI agents consume tasks via MCP (Model Context Protocol) clients.
 
-![Monkey Planner](./docs/screenshots/d-home-l.png)
+![Monkey Planner Demo](./docs/demo/monkey-planner-demo.gif)
 
 ## Features
 
