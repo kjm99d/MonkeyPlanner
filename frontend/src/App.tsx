@@ -1,34 +1,31 @@
-import { Routes, Route, Link } from 'react-router-dom';
-
-function Home() {
-  return (
-    <main className="p-6">
-      <h1 className="text-3xl font-bold">몽키 플래너</h1>
-      <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-        코숭이 에이전트들의 작업 기억 저장소
-      </p>
-      <nav className="mt-6 flex gap-4">
-        <Link to="/boards" className="underline">보드</Link>
-        <Link to="/calendar" className="underline">캘린더</Link>
-      </nav>
-    </main>
-  );
-}
-
-function BoardsPlaceholder() {
-  return <main className="p-6"><h1 className="text-2xl">보드 (M3-3에서 구현)</h1></main>;
-}
-
-function CalendarPlaceholder() {
-  return <main className="p-6"><h1 className="text-2xl">캘린더 (M3-5에서 구현)</h1></main>;
-}
+import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import HomePage from './features/home/HomePage';
+import BoardsListPage from './features/board/BoardsListPage';
+import BoardPage from './features/board/BoardPage';
+import IssuePage from './features/issue/IssuePage';
+import CalendarPage from './features/calendar/CalendarPage';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/boards" element={<BoardsPlaceholder />} />
-      <Route path="/calendar" element={<CalendarPlaceholder />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/boards" element={<BoardsListPage />} />
+        <Route path="/boards/:boardId" element={<BoardPage />} />
+        <Route path="/issues/:issueId" element={<IssuePage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
     </Routes>
+  );
+}
+
+function NotFound() {
+  return (
+    <section>
+      <h1 className="text-3xl font-bold">찾을 수 없습니다</h1>
+      <p className="mt-2 text-ink-secondary">요청하신 경로가 존재하지 않습니다.</p>
+    </section>
   );
 }

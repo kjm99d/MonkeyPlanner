@@ -1,0 +1,75 @@
+import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useDayStats, useIssues } from '../../api/hooks';
+import { Card } from '../../components/Card';
+
+function todayString(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+export default function HomePage() {
+  const date = useMemo(todayString, []);
+  const day = useDayStats(date);
+  const recent = useIssues({ status: 'Approved' });
+
+  const created = day.data?.created.length ?? 0;
+  const approved = day.data?.approved.length ?? 0;
+  const completed = day.data?.completed.length ?? 0;
+
+  return (
+    <section className="flex flex-col gap-8">
+      <header>
+        <h1 className="text-4xl font-bold tracking-tight">오늘의 코숭이</h1>
+        <p className="mt-2 text-ink-secondary">
+          오늘 <time dateTime={date}>{date}</time> 의 활동 요약입니다.
+        </p>
+      </header>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="생성" value={created} hue="text-ink-primary" />
+        <StatCard label="승인" value={approved} hue="text-status-approved" />
+        <StatCard label="완료" value={completed} hue="text-status-done" />
+      </div>
+
+      <section aria-label="최근 승인된 이슈" className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">최근 승인된 이슈</h2>
+        {recent.isLoading && <p className="text-ink-secondary">불러오는 중…</p>}
+        {recent.data && recent.data.length === 0 && (
+          <p className="text-ink-secondary">아직 승인된 이슈가 없습니다.</p>
+        )}
+        <ul className="flex flex-col gap-2">
+          {recent.data?.slice(0, 5).map((iss) => (
+            <li key={iss.id}>
+              <Link
+                to={`/issues/${iss.id}`}
+                className="block rounded-md border border-edge-base bg-surface-subtle px-4 py-3 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{iss.title}</span>
+                  <time className="text-xs text-ink-muted" dateTime={iss.approvedAt ?? iss.updatedAt}>
+                    {new Date(iss.approvedAt ?? iss.updatedAt).toLocaleString('ko-KR')}
+                  </time>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </section>
+  );
+}
+
+function StatCard({ label, value, hue }: { label: string; value: number; hue: string }) {
+  return (
+    <Card className="transition-transform hover:[transform:perspective(800px)_rotateX(2deg)_rotateY(-2deg)] motion-reduce:hover:transform-none">
+      <div className="flex flex-col gap-1">
+        <span className="text-sm text-ink-secondary">{label}</span>
+        <span className={`text-4xl font-bold tabular-nums ${hue}`}>{value}</span>
+      </div>
+    </Card>
+  );
+}
