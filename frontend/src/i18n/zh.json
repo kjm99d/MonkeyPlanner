@@ -1,0 +1,128 @@
+{
+  "app": {
+    "name": "猴子计划器",
+    "tagline": "代码猴子们正在工作",
+    "description": "创建问题、审批并完成。在日历中查看工作成果。"
+  },
+  "nav": {
+    "home": "首页",
+    "boards": "看板",
+    "calendar": "日历",
+    "menu": "主菜单"
+  },
+  "theme": {
+    "toLight": "切换到浅色模式",
+    "toDark": "切换到深色模式"
+  },
+  "home": {
+    "title": "今日的代码猴",
+    "summary": "{{date}} 活动摘要",
+    "created": "创建",
+    "approved": "已审批",
+    "done": "已完成",
+    "inProgress": "进行中的任务",
+    "items": "{{count}}项",
+    "noInProgress": "没有进行中的任务",
+    "approvedWaiting": "已审批·等待处理",
+    "boardStatus": "看板状态",
+    "viewAll": "查看全部",
+    "createFirst": "创建你的第一个看板"
+  },
+  "board": {
+    "title": "看板",
+    "description": "用于分组工作的容器。",
+    "newName": "新看板名称",
+    "create": "创建",
+    "noBoards": "还没有看板",
+    "noBoardsHint": "在上方输入名称并点击\"创建\"来创建第一个看板。",
+    "addIssue": "添加问题",
+    "newIssueTitle": "新问题标题",
+    "issueCreated": "问题已创建",
+    "statusChanged": "状态已变更为\"{{status}}\"",
+    "addProperty": "添加属性"
+  },
+  "kanban": {
+    "pending": "待处理",
+    "approved": "已审批",
+    "inProgress": "进行中",
+    "done": "已完成",
+    "dragHere": "将问题拖到这里",
+    "approve": "审批"
+  },
+  "issue": {
+    "title": "标题",
+    "body": "正文 (Markdown)",
+    "save": "保存",
+    "saving": "保存中…",
+    "delete": "删除此问题",
+    "deleteConfirm": "此问题及所有子问题将被删除。是否继续？",
+    "children": "子问题",
+    "noPreview": "没有可预览的内容。",
+    "created": "创建",
+    "properties": "属性"
+  },
+  "editor": {
+    "edit": "编辑",
+    "split": "分屏",
+    "preview": "预览",
+    "placeholder": "Markdown正文编辑器"
+  },
+  "calendar": {
+    "title": "{{year}}年{{month}}月",
+    "today": "今天",
+    "prevMonth": "上个月",
+    "nextMonth": "下个月",
+    "daily": "{{date}} 成果",
+    "created": "创建",
+    "approved": "审批",
+    "done": "完成",
+    "none": "无",
+    "selectDate": "选择 {{date}}"
+  },
+  "status": {
+    "Pending": "待处理",
+    "Approved": "已审批",
+    "InProgress": "进行中",
+    "Done": "已完成"
+  },
+  "property": {
+    "newProperty": "新属性",
+    "name": "属性名称",
+    "type": "类型",
+    "options": "选项（逗号分隔: P0, P1, P2）",
+    "add": "添加",
+    "text": "文本",
+    "number": "数字",
+    "select": "选择",
+    "multi_select": "多选",
+    "date": "日期",
+    "checkbox": "复选框",
+    "input": "输入...",
+    "checked": "已完成",
+    "unchecked": "未完成",
+    "selectPlaceholder": "选择..."
+  },
+  "webhook": {
+    "title": "Webhooks",
+    "add": "添加",
+    "name": "名称",
+    "url": "Webhook URL",
+    "cancel": "取消",
+    "events": {
+      "issue.created": "问题创建",
+      "issue.approved": "问题审批",
+      "issue.status_changed": "状态变更",
+      "issue.deleted": "问题删除"
+    }
+  },
+  "stepper": {
+    "approveOnly": "仅通过审批按钮切换",
+    "noPending": "无法恢复到待处理状态",
+    "moveTo": "移至{{label}}"
+  },
+  "common": {
+    "loading": "加载中…",
+    "close": "关闭",
+    "location": "位置"
+  }
+}

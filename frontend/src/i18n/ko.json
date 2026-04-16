@@ -1,0 +1,128 @@
+{
+  "app": {
+    "name": "몽키 플래너",
+    "tagline": "코숭이들이 일하고 있어요",
+    "description": "이슈를 만들고, 승인하고, 완료하세요. 캘린더에서 실적을 확인할 수 있습니다."
+  },
+  "nav": {
+    "home": "홈",
+    "boards": "보드",
+    "calendar": "캘린더",
+    "menu": "주 메뉴"
+  },
+  "theme": {
+    "toLight": "라이트 모드로 전환",
+    "toDark": "다크 모드로 전환"
+  },
+  "home": {
+    "title": "오늘의 코숭이",
+    "summary": "{{date}} 활동 요약",
+    "created": "생성",
+    "approved": "승인",
+    "done": "완료",
+    "inProgress": "진행 중인 작업",
+    "items": "{{count}}건",
+    "noInProgress": "진행 중인 작업이 없습니다",
+    "approvedWaiting": "승인됨 · 작업 대기",
+    "boardStatus": "보드 현황",
+    "viewAll": "전체 보기",
+    "createFirst": "첫 보드를 만들어보세요"
+  },
+  "board": {
+    "title": "보드",
+    "description": "작업을 묶어둘 컨테이너입니다.",
+    "newName": "새 보드 이름",
+    "create": "생성",
+    "noBoards": "아직 보드가 없습니다",
+    "noBoardsHint": "위 입력란에 이름을 적고 \"생성\"을 눌러 첫 보드를 만들어 보세요.",
+    "addIssue": "이슈 추가",
+    "newIssueTitle": "새 이슈 제목",
+    "issueCreated": "이슈가 생성되었습니다",
+    "statusChanged": "상태가 \"{{status}}\"로 변경되었습니다",
+    "addProperty": "속성 추가"
+  },
+  "kanban": {
+    "pending": "대기",
+    "approved": "승인됨",
+    "inProgress": "진행 중",
+    "done": "완료",
+    "dragHere": "이슈를 여기로 드래그하세요",
+    "approve": "Approve"
+  },
+  "issue": {
+    "title": "제목",
+    "body": "본문 (Markdown)",
+    "save": "저장",
+    "saving": "저장 중…",
+    "delete": "이 이슈 삭제",
+    "deleteConfirm": "이슈와 모든 자식 이슈가 삭제됩니다. 계속할까요?",
+    "children": "자식 이슈",
+    "noPreview": "미리볼 내용이 없습니다.",
+    "created": "생성",
+    "properties": "속성"
+  },
+  "editor": {
+    "edit": "편집",
+    "split": "분할",
+    "preview": "미리보기",
+    "placeholder": "마크다운 본문 편집기"
+  },
+  "calendar": {
+    "title": "{{year}}년 {{month}}월",
+    "today": "오늘",
+    "prevMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "daily": "{{date}} 실적",
+    "created": "생성",
+    "approved": "승인",
+    "done": "완료",
+    "none": "없음",
+    "selectDate": "{{date}} 날짜 선택"
+  },
+  "status": {
+    "Pending": "대기",
+    "Approved": "승인됨",
+    "InProgress": "진행 중",
+    "Done": "완료"
+  },
+  "property": {
+    "newProperty": "새 속성",
+    "name": "속성 이름",
+    "type": "타입",
+    "options": "옵션 (쉼표 구분: P0, P1, P2)",
+    "add": "추가",
+    "text": "텍스트",
+    "number": "숫자",
+    "select": "선택",
+    "multi_select": "다중 선택",
+    "date": "날짜",
+    "checkbox": "체크박스",
+    "input": "입력...",
+    "checked": "완료",
+    "unchecked": "미완료",
+    "selectPlaceholder": "선택..."
+  },
+  "webhook": {
+    "title": "Webhooks",
+    "add": "추가",
+    "name": "이름",
+    "url": "Webhook URL",
+    "cancel": "취소",
+    "events": {
+      "issue.created": "이슈 생성",
+      "issue.approved": "이슈 승인",
+      "issue.status_changed": "상태 변경",
+      "issue.deleted": "이슈 삭제"
+    }
+  },
+  "stepper": {
+    "approveOnly": "Approve 버튼으로만 전환 가능",
+    "noPending": "대기 상태로 되돌릴 수 없음",
+    "moveTo": "{{label}}(으)로 전환"
+  },
+  "common": {
+    "loading": "불러오는 중…",
+    "close": "닫기",
+    "location": "위치"
+  }
+}

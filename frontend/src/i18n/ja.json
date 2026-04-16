@@ -1,0 +1,128 @@
+{
+  "app": {
+    "name": "モンキープランナー",
+    "tagline": "コード猿たちが作業中です",
+    "description": "イシューを作成し、承認し、完了しましょう。カレンダーで実績を確認できます。"
+  },
+  "nav": {
+    "home": "ホーム",
+    "boards": "ボード",
+    "calendar": "カレンダー",
+    "menu": "メインメニュー"
+  },
+  "theme": {
+    "toLight": "ライトモードに切替",
+    "toDark": "ダークモードに切替"
+  },
+  "home": {
+    "title": "今日のコード猿",
+    "summary": "{{date}} の活動要約",
+    "created": "作成",
+    "approved": "承認",
+    "done": "完了",
+    "inProgress": "進行中のタスク",
+    "items": "{{count}}件",
+    "noInProgress": "進行中のタスクはありません",
+    "approvedWaiting": "承認済み・作業待ち",
+    "boardStatus": "ボード状況",
+    "viewAll": "すべて表示",
+    "createFirst": "最初のボードを作成しましょう"
+  },
+  "board": {
+    "title": "ボード",
+    "description": "作業をまとめるコンテナです。",
+    "newName": "新しいボード名",
+    "create": "作成",
+    "noBoards": "まだボードがありません",
+    "noBoardsHint": "上の入力欄に名前を入力し「作成」をクリックして最初のボードを作りましょう。",
+    "addIssue": "イシュー追加",
+    "newIssueTitle": "新しいイシュータイトル",
+    "issueCreated": "イシューが作成されました",
+    "statusChanged": "ステータスが「{{status}}」に変更されました",
+    "addProperty": "属性追加"
+  },
+  "kanban": {
+    "pending": "待機",
+    "approved": "承認済",
+    "inProgress": "進行中",
+    "done": "完了",
+    "dragHere": "ここにイシューをドラッグ",
+    "approve": "承認"
+  },
+  "issue": {
+    "title": "タイトル",
+    "body": "本文 (Markdown)",
+    "save": "保存",
+    "saving": "保存中…",
+    "delete": "このイシューを削除",
+    "deleteConfirm": "イシューとすべての子イシューが削除されます。続けますか？",
+    "children": "子イシュー",
+    "noPreview": "プレビューする内容がありません。",
+    "created": "作成",
+    "properties": "属性"
+  },
+  "editor": {
+    "edit": "編集",
+    "split": "分割",
+    "preview": "プレビュー",
+    "placeholder": "Markdown本文エディタ"
+  },
+  "calendar": {
+    "title": "{{year}}年{{month}}月",
+    "today": "今日",
+    "prevMonth": "前月",
+    "nextMonth": "翌月",
+    "daily": "{{date}} の実績",
+    "created": "作成",
+    "approved": "承認",
+    "done": "完了",
+    "none": "なし",
+    "selectDate": "{{date}} を選択"
+  },
+  "status": {
+    "Pending": "待機",
+    "Approved": "承認済",
+    "InProgress": "進行中",
+    "Done": "完了"
+  },
+  "property": {
+    "newProperty": "新しい属性",
+    "name": "属性名",
+    "type": "タイプ",
+    "options": "オプション（カンマ区切り: P0, P1, P2）",
+    "add": "追加",
+    "text": "テキスト",
+    "number": "数値",
+    "select": "選択",
+    "multi_select": "複数選択",
+    "date": "日付",
+    "checkbox": "チェックボックス",
+    "input": "入力...",
+    "checked": "完了",
+    "unchecked": "未完了",
+    "selectPlaceholder": "選択..."
+  },
+  "webhook": {
+    "title": "Webhooks",
+    "add": "追加",
+    "name": "名前",
+    "url": "Webhook URL",
+    "cancel": "キャンセル",
+    "events": {
+      "issue.created": "イシュー作成",
+      "issue.approved": "イシュー承認",
+      "issue.status_changed": "ステータス変更",
+      "issue.deleted": "イシュー削除"
+    }
+  },
+  "stepper": {
+    "approveOnly": "承認ボタンのみで切替可能",
+    "noPending": "待機状態に戻せません",
+    "moveTo": "{{label}}に変更"
+  },
+  "common": {
+    "loading": "読み込み中…",
+    "close": "閉じる",
+    "location": "場所"
+  }
+}
