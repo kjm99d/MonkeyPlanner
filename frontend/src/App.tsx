@@ -5,6 +5,7 @@ import BoardsListPage from './features/board/BoardsListPage';
 import BoardPage from './features/board/BoardPage';
 import IssuePage from './features/issue/IssuePage';
 import CalendarPage from './features/calendar/CalendarPage';
+import ApprovalPage from './features/approval/ApprovalPage';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/boards/:boardId" element={<BoardPage />} />
         <Route path="/issues/:issueId" element={<IssuePage />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/approve" element={<ApprovalPage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

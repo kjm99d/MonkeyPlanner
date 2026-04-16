@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { NavLink, Outlet, Link } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, LayoutDashboard, Calendar, Squirrel, Plus, Menu, X, PanelLeftClose, PanelLeft, Search } from 'lucide-react';
+import { Home, LayoutDashboard, Calendar, CheckCircle2, Squirrel, Plus, Menu, X, PanelLeftClose, PanelLeft, Search } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { useBoards } from '../api/hooks';
+import { useBoards, useIssues } from '../api/hooks';
 import { SearchDialog } from '../components/SearchDialog';
 import { ShortcutsDialog } from '../components/ShortcutsDialog';
 
@@ -25,6 +25,23 @@ const boardLinkClass = ({ isActive }: { isActive: boolean }) =>
 function Sidebar({ onNavigate, hideHeader, collapsed }: { onNavigate?: () => void; hideHeader?: boolean; collapsed?: boolean }) {
   const { t } = useTranslation();
   const boards = useBoards();
+  const allIssues = useIssues({});
+
+  const issueCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    (allIssues.data ?? []).forEach(i => {
+      map[i.boardId] = (map[i.boardId] ?? 0) + 1;
+    });
+    return map;
+  }, [allIssues.data]);
+
+  const recentIssues = useMemo(() => {
+    return (allIssues.data ?? [])
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 3);
+  }, [allIssues.data]);
+
+  const pendingCount = useMemo(() => (allIssues.data ?? []).filter(i => i.status === 'Pending').length, [allIssues.data]);
 
   return (
     <div className="flex h-full flex-col">
@@ -68,6 +85,29 @@ function Sidebar({ onNavigate, hideHeader, collapsed }: { onNavigate?: () => voi
         </div>
       )}
 
+      {/* Recent issues section */}
+      {!collapsed && recentIssues.length > 0 && (
+        <div className="flex flex-col gap-0.5 border-t border-edge-base px-2 pt-2 pb-1">
+          <span className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+            Recent
+          </span>
+          {recentIssues.map(issue => (
+            <NavLink
+              key={issue.id}
+              to={`/issues/${issue.id}`}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-md px-2.5 py-1 text-xs transition-colors truncate ${
+                  isActive ? 'bg-surface-muted text-ink-primary' : 'text-ink-muted hover:bg-surface-muted hover:text-ink-secondary'
+                }`
+              }
+            >
+              <span className="truncate">{issue.title}</span>
+            </NavLink>
+          ))}
+        </div>
+      )}
+
       {/* Main nav */}
       <nav aria-label={t('nav.menu')} className="flex flex-col gap-0.5 px-2 pt-1 pb-2">
         <NavLink
@@ -88,6 +128,16 @@ function Sidebar({ onNavigate, hideHeader, collapsed }: { onNavigate?: () => voi
         >
           <Calendar size={16} className="shrink-0" />
           {!collapsed && t('nav.calendar')}
+        </NavLink>
+        <NavLink to="/approve" className={navLinkClass} onClick={onNavigate}
+          title={collapsed ? t('approval.title') : undefined}>
+          <CheckCircle2 size={16} className="shrink-0" />
+          {!collapsed && t('approval.title')}
+          {!collapsed && pendingCount > 0 && (
+            <span className="ml-auto rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] tabular-nums text-accent font-medium">
+              {pendingCount}
+            </span>
+          )}
         </NavLink>
       </nav>
 
@@ -117,6 +167,11 @@ function Sidebar({ onNavigate, hideHeader, collapsed }: { onNavigate?: () => voi
               >
                 <LayoutDashboard size={14} className="shrink-0 opacity-50" />
                 <span className="truncate">{b.name}</span>
+                {!collapsed && issueCounts[b.id] > 0 && (
+                  <span className="ml-auto rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] tabular-nums text-ink-muted">
+                    {issueCounts[b.id]}
+                  </span>
+                )}
               </NavLink>
             ))}
             {boards.data?.length === 0 && (
@@ -140,6 +195,7 @@ function Sidebar({ onNavigate, hideHeader, collapsed }: { onNavigate?: () => voi
 
 export default function Layout() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true');
 
@@ -155,6 +211,25 @@ export default function Layout() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [sidebarOpen]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if ((e.target as HTMLElement)?.isContentEditable) return;
+
+      if (e.key === 'a' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        navigate('/approve');
+      }
+      if (e.key === 'h' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        navigate('/');
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [navigate]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-base text-ink-primary">
