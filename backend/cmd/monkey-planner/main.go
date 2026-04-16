@@ -15,6 +15,9 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/web"
 )
 
+// version is set at build time via -ldflags "-X main.version=v1.2.0"
+var version = "dev"
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "mcp" {
 		runMCP()
@@ -40,7 +43,7 @@ func main() {
 		log.Printf("monkey-planner: dev build — run Vite dev server at :5173 for UI (%v)", err)
 	}
 
-	router := mphttp.NewRouter(svc, static)
+	router := mphttp.NewRouter(svc, static, version)
 
 	log.Printf("monkey-planner listening on %s (dsn=%s)", addr, dsn)
 	if err := http.ListenAndServe(addr, router); err != nil {

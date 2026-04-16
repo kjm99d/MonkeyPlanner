@@ -10,13 +10,15 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kjm99d/monkey-planner/backend/internal/domain"
+	"github.com/kjm99d/monkey-planner/backend/internal/events"
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 )
 
 // Service는 이슈·보드·캘린더 유스케이스를 묶은 퍼사드입니다.
 type Service struct {
-	repo storage.Repo
-	now  func() time.Time
+	repo   storage.Repo
+	now    func() time.Time
+	broker *events.Broker
 }
 
 // New는 storage.Repo 를 감싸 Service 를 만듭니다. now 가 nil이면 time.Now().UTC() 사용.
@@ -24,7 +26,23 @@ func New(repo storage.Repo, now func() time.Time) *Service {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return &Service{repo: repo, now: now}
+	return &Service{repo: repo, now: now, broker: events.New()}
+}
+
+// Broker 는 SSE 구독용 이벤트 브로커를 반환합니다.
+func (s *Service) Broker() *events.Broker { return s.broker }
+
+// publishEvent 는 SSE 구독자에게 이벤트를 발행합니다.
+func (s *Service) publishEvent(boardID, eventType, issueID, status string) {
+	if s.broker == nil {
+		return
+	}
+	s.broker.Publish(events.Event{
+		Type:    eventType,
+		BoardID: boardID,
+		IssueID: issueID,
+		Status:  status,
+	})
 }
 
 // ---- Issue 유스케이스 ----
@@ -69,6 +87,7 @@ func (s *Service) CreateIssue(ctx context.Context, in CreateIssueInput) (domain.
 		return domain.Issue{}, err
 	}
 	s.DispatchWebhook(created.BoardID, domain.EventIssueCreated, &created)
+	s.publishEvent(created.BoardID, "issue.created", created.ID, string(created.Status))
 	return created, nil
 }
 
@@ -128,7 +147,16 @@ func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInpu
 		Status:       patchStatus,
 		Criteria:     in.Criteria,
 	}
-	return s.repo.Issues().Update(ctx, id, patch)
+	updated, err := s.repo.Issues().Update(ctx, id, patch)
+	if err != nil {
+		return updated, err
+	}
+	if patchStatus != nil {
+		s.publishEvent(updated.BoardID, "issue.status_changed", updated.ID, string(updated.Status))
+	} else {
+		s.publishEvent(updated.BoardID, "issue.updated", updated.ID, string(updated.Status))
+	}
+	return updated, nil
 }
 
 func (s *Service) ApproveIssue(ctx context.Context, id string) (domain.Issue, error) {
@@ -137,11 +165,17 @@ func (s *Service) ApproveIssue(ctx context.Context, id string) (domain.Issue, er
 		return domain.Issue{}, err
 	}
 	s.DispatchWebhook(approved.BoardID, domain.EventIssueApproved, &approved)
+	s.publishEvent(approved.BoardID, "issue.approved", approved.ID, string(approved.Status))
 	return approved, nil
 }
 
 func (s *Service) CompleteIssue(ctx context.Context, id string) (domain.Issue, error) {
-	return s.repo.Issues().Complete(ctx, id, s.now())
+	done, err := s.repo.Issues().Complete(ctx, id, s.now())
+	if err != nil {
+		return done, err
+	}
+	s.publishEvent(done.BoardID, "issue.status_changed", done.ID, string(done.Status))
+	return done, nil
 }
 
 func (s *Service) DeleteIssue(ctx context.Context, id string) error {
@@ -151,6 +185,7 @@ func (s *Service) DeleteIssue(ctx context.Context, id string) error {
 		return err
 	}
 	s.DispatchWebhook(iss.BoardID, domain.EventIssueDeleted, &iss)
+	s.publishEvent(iss.BoardID, "issue.deleted", iss.ID, "")
 	return nil
 }
 
@@ -186,7 +221,14 @@ func (s *Service) GetBlockedBy(ctx context.Context, issueID string) ([]string, e
 // ---- Comment 유스케이스 ----
 
 func (s *Service) CreateComment(ctx context.Context, issueID, body string) (*domain.Comment, error) {
-	return s.repo.Comments().Create(ctx, issueID, body)
+	c, err := s.repo.Comments().Create(ctx, issueID, body)
+	if err != nil {
+		return c, err
+	}
+	if iss, gerr := s.repo.Issues().GetByID(ctx, issueID); gerr == nil {
+		s.publishEvent(iss.BoardID, "comment.created", issueID, "")
+	}
+	return c, nil
 }
 
 func (s *Service) ListComments(ctx context.Context, issueID string) ([]domain.Comment, error) {

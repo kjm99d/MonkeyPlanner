@@ -52,23 +52,27 @@
 
 ### 自动化与集成
 - **Webhook** — 支持 Discord、Slack、Telegram
-  - 事件类型：`issue.created`、`issue.approved`、`issue.status_changed`、`issue.deleted`
+  - 事件类型：`issue.created`、`issue.approved`、`issue.status_changed`、`issue.updated`、`issue.deleted`、`comment.created`
+- **实时 UI 同步（SSE）** — 通过 MCP/CLI 修改问题时，已打开的浏览器标签无需刷新即时同步
 - **JSON 导出** — 导出所有问题数据
 - **右键上下文菜单** — 快捷操作菜单
 - **问题模板** — 按看板存储至 localStorage
 
 ### MCP 服务器（AI 智能体集成）
-10 个工具，赋能 AI 智能体自动化：
+13 个工具，赋能 AI 智能体自动化：
 1. `list_boards` — 查看所有看板
 2. `list_issues` — 查询问题（支持 boardId、status 筛选）
 3. `get_issue` — 获取问题详情（含指令、标准、评论）
 4. `create_issue` — 创建新问题
 5. `approve_issue` — 审批：Pending → Approved
 6. `claim_issue` — 认领：Approved → InProgress
-7. `complete_issue` — 完成：InProgress → Done（可附带评论）
-8. `add_comment` — 为问题添加评论
-9. `update_criteria` — 勾选/取消验收标准
-10. `search_issues` — 按标题搜索问题
+7. `submit_qa` — 提交 QA：InProgress → QA
+8. `complete_issue` — 完成：QA → Done（可附带评论）
+9. `reject_issue` — 拒绝：QA → InProgress（必须说明原因）
+10. `add_comment` — 为问题添加评论
+11. `update_criteria` — 勾选/取消验收标准
+12. `search_issues` — 按标题搜索问题
+13. `get_version` — 获取 MCP 服务器版本（用于诊断）
 
 ## 技术栈
 
@@ -216,49 +220,76 @@ AI: 列出所有看板
 AI: 查找与"认证"相关的问题
 → 调用 search_issues(query="认证")
 
-AI: 审批第一个待处理问题，将其标记为进行中，然后完成它
-→ 依次调用 approve_issue() → claim_issue() → complete_issue()
+AI: 审批第一个待处理问题，完成后提交 QA
+→ 依次调用 approve_issue() → claim_issue() → submit_qa()
 ```
 
-## 智能体工作流
+## 工作流 — 实际使用场景
+
+以下是修复多语言切换 Bug 时的真实工作流，展示人类与 AI 智能体如何通过 Monkey Planner 协作。
+
+### 状态流程
 
 ```
-┌────────────────┐
-│  人工创建问题  │  填写标题、正文、指令
-└────────┬───────┘
-         │
-         ↓
-┌────────────────┐
-│  点击审批按钮  │  Pending → Approved
-└────────┬───────┘
-         │
-         ↓
-┌────────────────────────────┐
-│  AI 智能体（MCP 客户端）   │  调用 list_issues 或 search_issues
-└────────┬───────────────────┘
-         │
-         ↓
-┌────────────────────┐
-│ claim_issue()      │  Approved → InProgress
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ 任务执行中...      │  add_comment(), update_criteria()
-│                    │  （汇报进度 & 勾选验收标准）
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ complete_issue()   │  InProgress → Done
-│ + 最终评论         │
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────┐
-│  人工复核      │  查看结果并给出反馈
-└────────────────┘
+待处理 → 已审批 → 进行中 → QA验证 → 已完成
+                    ↑              │（附带原因拒绝）
+                    └──────────────┘
 ```
+
+### 逐步说明
+
+**1. 创建问题** — 人类发现 Bug，要求 AI 注册问题
+```
+人类: "点击语言切换按钮没有弹出下拉菜单，创建一个问题。"
+AI:   create_issue(boardId, title, body, instructions)  →  状态: 待处理
+```
+
+**2. 审批** — 人类确认并审批
+```
+人类: （在看板上点击 Approve，或指示 AI）
+AI:   approve_issue(issueId)  →  状态: 已审批
+```
+
+**3. 开始工作** — AI 认领问题并开始修复
+```
+AI:   claim_issue(issueId)  →  状态: 进行中
+      - 分析代码，定位根因
+      - 实现修复，运行测试
+      - 提交更改
+```
+
+**4. 提交 QA** — 完成工作后请求验证
+```
+AI:   submit_qa(issueId, comment: "提交 abc1234 — 修复点击处理器")
+      →  状态: QA验证
+      add_comment(issueId, "提交信息: ...")
+```
+
+**5. 验证** — 人类亲自测试
+```
+人类: 在浏览器中测试，发现下拉菜单被侧边栏遮挡
+      →  reject_issue(issueId, reason: "下拉菜单被侧边栏遮挡")
+      →  状态: 进行中（回到第3步）
+
+      或者
+
+人类: 重新修复后测试，一切正常
+      →  complete_issue(issueId)  →  状态: 已完成
+```
+
+**6. 反馈循环** — 通过评论沟通
+```
+人类: add_comment("下拉菜单被左侧遮挡了，请修复")
+AI:   get_issue() → 查看评论 → 修复 → 提交 → submit_qa()
+人类: 测试 → complete_issue()  →  完成 ✓
+```
+
+### 关键要点
+
+- **人类控制关卡**: 审批、QA 通过/拒绝、完成决定
+- **AI 执行工作**: 代码分析、实现、测试、提交
+- **评论是沟通渠道**: 双方通过 `add_comment` 交换反馈
+- **QA 循环防止过早完成**: 必须通过人类验证才能标记为完成
 
 ## API 文档
 

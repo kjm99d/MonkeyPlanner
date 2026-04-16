@@ -52,23 +52,27 @@
 
 ### 자동화 & 연동
 - **Webhook** — Discord, Slack, Telegram 지원
-  - 이벤트: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.deleted`
+  - 이벤트: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.updated`, `issue.deleted`, `comment.created`
+- **실시간 UI 동기화 (SSE)** — MCP/CLI로 이슈 변경 시 열려있는 브라우저 탭에 새로고침 없이 즉시 반영
 - **JSON 내보내기** — 모든 이슈 데이터 내보내기
 - **우클릭 컨텍스트 메뉴** — 빠른 작업 메뉴
 - **이슈 템플릿** — 보드별 localStorage 저장
 
 ### MCP 서버 (AI 에이전트 연동)
-10가지 도구로 AI 에이전트 자동화:
+13가지 도구로 AI 에이전트 자동화:
 1. `list_boards` — 모든 보드 조회
 2. `list_issues` — 이슈 조회 (boardId, status 필터)
 3. `get_issue` — 이슈 상세 (지시사항, 기준, 댓글 포함)
 4. `create_issue` — 새 이슈 생성
 5. `approve_issue` — Pending → Approved 승인
 6. `claim_issue` — Approved → InProgress 전환
-7. `complete_issue` — InProgress → Done 완료 (선택 댓글)
-8. `add_comment` — 이슈에 댓글 추가
-9. `update_criteria` — 성공 기준 체크/언체크
-10. `search_issues` — 제목 기반 이슈 검색
+7. `submit_qa` — InProgress → QA 검증 제출
+8. `complete_issue` — QA → Done 완료 (선택 댓글)
+9. `reject_issue` — QA → InProgress 거절 (사유 필수)
+10. `add_comment` — 이슈에 댓글 추가
+11. `update_criteria` — 성공 기준 체크/언체크
+12. `search_issues` — 제목 기반 이슈 검색
+13. `get_version` — MCP 서버 버전 확인 (진단용)
 
 ## 기술 스택
 
@@ -216,49 +220,76 @@ AI: 모든 보드를 나열해주세요
 AI: "인증" 관련 이슈를 찾아주세요
 → search_issues(query="인증") 호출
 
-AI: 첫 번째 Pending 이슈를 승인하고 진행 중으로 전환한 후 완료하겠습니다
-→ approve_issue() → claim_issue() → complete_issue() 순차 호출
+AI: 첫 번째 Pending 이슈를 승인하고, 작업 후 QA 제출하겠습니다
+→ approve_issue() → claim_issue() → submit_qa() 순차 호출
 ```
 
-## 에이전트 작업 플로우
+## 워크플로우 — 실제 사용 시나리오
+
+다국어 전환 버그를 수정하면서 경험한 실제 워크플로우입니다. 사람과 AI 에이전트가 몽키플래너를 통해 어떻게 협업하는지 보여줍니다.
+
+### 상태 흐름
 
 ```
-┌────────────────┐
-│  사람이 이슈   │  제목, 본문, 지시사항 입력
-└────────┬───────┘
-         │
-         ↓
-┌────────────────┐
-│  Approve 버튼  │  Pending → Approved
-└────────┬───────┘
-         │
-         ↓
-┌────────────────────────────┐
-│  AI 에이전트 (MCP 클라이언트) │  list_issues 또는 search_issues
-└────────┬───────────────────┘
-         │
-         ↓
-┌────────────────────┐
-│ claim_issue()      │  Approved → InProgress
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ 작업 진행 중...    │  add_comment(), update_criteria()
-│                    │  (상황 보고 & 기준 체크)
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ complete_issue()   │  InProgress → Done
-│ + 최종 댓글        │
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────┐
-│  사람이 확인   │  결과 검토 및 피드백
-└────────────────┘
+대기 → 승인 → 진행중 → QA 검증 → 완료
+                ↑                 │ (사유와 함께 거절)
+                └─────────────────┘
 ```
+
+### 단계별 진행
+
+**1. 이슈 생성** — 사람이 버그를 발견하고 AI에게 이슈 등록 요청
+```
+사람: "다국어 버튼 눌러도 선택 창이 안 떠. 이슈 만들어줘."
+AI:   create_issue(boardId, title, body, instructions)  →  상태: 대기
+```
+
+**2. 승인** — 사람이 이슈를 확인하고 승인
+```
+사람: (보드에서 Approve 클릭 또는 AI에게 지시)
+AI:   approve_issue(issueId)  →  상태: 승인됨
+```
+
+**3. 작업 시작** — AI가 이슈를 claim하고 코드 수정 시작
+```
+AI:   claim_issue(issueId)  →  상태: 진행 중
+      - 코드 분석, 원인 파악
+      - 수정 구현, 테스트 실행
+      - 변경사항 커밋
+```
+
+**4. QA 제출** — 작업 완료 후 검증 요청
+```
+AI:   submit_qa(issueId, comment: "커밋 abc1234 — 클릭 핸들러 수정")
+      →  상태: QA 검증
+      add_comment(issueId, "커밋 정보: ...")
+```
+
+**5. 검증** — 사람이 직접 테스트
+```
+사람: 브라우저에서 테스트, 드롭다운이 사이드바에 가려지는 문제 발견
+      →  reject_issue(issueId, reason: "드롭다운이 사이드바에 가려짐")
+      →  상태: 진행 중  (3단계로 복귀)
+
+      또는
+
+사람: 재수정 후 테스트, 모든 것이 정상 동작
+      →  complete_issue(issueId)  →  상태: 완료
+```
+
+**6. 피드백 루프** — 댓글을 통한 소통
+```
+사람: add_comment("드롭다운이 왼쪽으로 가려져요. 수정해주세요")
+AI:   get_issue() → 댓글 확인 → 수정 → 커밋 → submit_qa()
+사람: 테스트 → complete_issue()  →  완료 ✓
+```
+
+### 핵심 포인트
+
+- **사람이 관문을 통제**: 승인, QA 통과/거절, 완료 결정
+- **AI가 작업을 수행**: 코드 분석, 구현, 테스트, 커밋
+- **댓글이 소통 채널**: 양쪽 모두 `add_comment`로 피드백 교환
+- **QA 루프로 조기 완료 방지**: 사람의 검증을 통과해야 완료 가능
 
 ## API 문서
 
