@@ -109,9 +109,7 @@ export default function IssuePage() {
         className="text-lg font-semibold"
       />
 
-      <MarkdownEditor value={body} onChange={setBody} />
-
-      {/* 커스텀 속성 */}
+      {/* 커스텀 속성 — 본문 위에 배치 */}
       {boardProps.data && boardProps.data.length > 0 && (
         <PropertyEditor
           properties={boardProps.data}
@@ -122,6 +120,8 @@ export default function IssuePage() {
           }}
         />
       )}
+
+      <MarkdownEditor value={body} onChange={setBody} />
 
       <div className="flex items-center gap-3">
         <Button onClick={onSave} disabled={update.isPending}>
