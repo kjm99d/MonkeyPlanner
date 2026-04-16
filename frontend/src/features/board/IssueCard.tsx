@@ -1,5 +1,6 @@
 import { useDraggable } from '@dnd-kit/core';
 import { Link } from 'react-router-dom';
+import { GripVertical, Check } from 'lucide-react';
 import type { Issue } from '../../api/types';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useApproveIssue } from '../../api/hooks';
@@ -32,7 +33,7 @@ export function IssueCard({ issue }: Props) {
       }`}
     >
       <div className="flex items-start gap-2">
-        <span className="mt-0.5 cursor-grab text-ink-muted opacity-40 group-hover:opacity-80 transition-opacity" aria-hidden>⠿</span>
+        <GripVertical size={14} className="mt-0.5 shrink-0 cursor-grab text-ink-muted opacity-30 group-hover:opacity-70 transition-opacity" aria-hidden />
         <Link
           to={`/issues/${issue.id}`}
           onClick={(e) => e.stopPropagation()}
@@ -53,9 +54,9 @@ export function IssueCard({ issue }: Props) {
             }}
             disabled={approve.isPending}
             aria-label={`이슈 ${issue.title} 승인`}
-            className="rounded-md bg-brand-500 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+            className="flex items-center gap-1 rounded-md bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:bg-brand-600 hover:shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            ✓ Approve
+            <Check size={12} /> Approve
           </button>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Home, LayoutDashboard, Calendar } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -19,13 +20,13 @@ export default function Layout() {
             </a>
             <nav aria-label="주 메뉴" className="flex gap-1">
               <NavLink to="/" end className={linkClass}>
-                홈
+                <Home size={16} /> 홈
               </NavLink>
               <NavLink to="/boards" className={linkClass}>
-                보드
+                <LayoutDashboard size={16} /> 보드
               </NavLink>
               <NavLink to="/calendar" className={linkClass}>
-                캘린더
+                <Calendar size={16} /> 캘린더
               </NavLink>
             </nav>
           </div>
