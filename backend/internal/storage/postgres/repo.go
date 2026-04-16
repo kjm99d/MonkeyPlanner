@@ -45,10 +45,11 @@ func Open(dsn string) (*Repo, error) {
 	}, nil
 }
 
-func (r *Repo) Issues() storage.IssueRepo              { return r.issues }
-func (r *Repo) Boards() storage.BoardRepo              { return r.boards }
+func (r *Repo) Issues() storage.IssueRepo                  { return r.issues }
+func (r *Repo) Boards() storage.BoardRepo                  { return r.boards }
 func (r *Repo) BoardProperties() storage.BoardPropertyRepo { return nil } // phase 2
 func (r *Repo) Webhooks() storage.WebhookRepo              { return nil } // phase 2
+func (r *Repo) Comments() storage.CommentRepo              { return nil } // phase 2
 func (r *Repo) Close() error                               { return r.db.Close() }
 
 // ---- issueRepo ----
@@ -105,7 +106,7 @@ func (r *issueRepo) List(ctx context.Context, f storage.IssueFilter) ([]domain.I
 			q += ` AND parent_id = ` + addArg(*f.ParentID)
 		}
 	}
-	q += ` ORDER BY created_at DESC`
+	q += ` ORDER BY position ASC, created_at DESC`
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: list issues: %w", err)
@@ -255,6 +256,20 @@ func (r *issueRepo) GetMonthStats(ctx context.Context, year int, month time.Mont
 	return out, nil
 }
 
+func (r *issueRepo) ReorderIssues(ctx context.Context, issueIDs []string) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("postgres: begin: %w", err)
+	}
+	defer tx.Rollback()
+	for pos, id := range issueIDs {
+		if _, err := tx.ExecContext(ctx, `UPDATE issues SET position=$1 WHERE id=$2`, pos, id); err != nil {
+			return fmt.Errorf("postgres: reorder issue: %w", err)
+		}
+	}
+	return tx.Commit()
+}
+
 func (r *issueRepo) GetDayStats(ctx context.Context, day time.Time) (storage.DayStats, error) {
 	start := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC)
 	end := start.AddDate(0, 0, 1)
@@ -286,7 +301,7 @@ func (r *issueRepo) GetDayStats(ctx context.Context, day time.Time) (storage.Day
 // ---- 공통 helpers ----
 
 const selectIssueCols = `
-SELECT id, board_id, parent_id, title, body, status, properties, created_at, updated_at, approved_at, completed_at
+SELECT id, board_id, parent_id, title, body, status, properties, position, created_at, updated_at, approved_at, completed_at
 FROM issues`
 
 func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
@@ -294,7 +309,7 @@ func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
 	var parent sql.NullString
 	var propsBytes []byte
 	var approvedAt, completedAt sql.NullTime
-	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsBytes, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
+	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsBytes, &i.Position, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Issue{}, storage.ErrNotFound

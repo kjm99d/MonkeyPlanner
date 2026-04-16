@@ -25,6 +25,7 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 	ch := &calendarHandler{svc: svc}
 	ph := &propertyHandler{svc: svc}
 	wh := &webhookHandler{svc: svc}
+	cmh := &commentHandler{svc: svc}
 
 	r.Route("/api", func(api chi.Router) {
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -54,6 +55,9 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 			w.Delete("/{whId}", wh.delete)
 		})
 
+		// 보드별 이슈 순서 재정렬
+		api.Post("/boards/{boardId}/issues/reorder", ih.reorder)
+
 		api.Route("/issues", func(i chi.Router) {
 			i.Get("/", ih.list)
 			i.Post("/", ih.create)
@@ -61,7 +65,13 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 			i.Patch("/{id}", ih.patch)
 			i.Delete("/{id}", ih.delete)
 			i.Post("/{id}/approve", ih.approve)
+			// 이슈 댓글
+			i.Get("/{issueId}/comments", cmh.list)
+			i.Post("/{issueId}/comments", cmh.create)
 		})
+
+		// 댓글 삭제 (issueId 불필요)
+		api.Delete("/comments/{commentId}", cmh.delete)
 
 		api.Route("/calendar", func(c chi.Router) {
 			c.Get("/", ch.month)

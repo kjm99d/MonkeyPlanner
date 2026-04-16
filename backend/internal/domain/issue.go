@@ -33,6 +33,7 @@ type Issue struct {
 	Body        string            `json:"body"`
 	Status      Status            `json:"status"`
 	Properties  map[string]any    `json:"properties"`
+	Position    int               `json:"position"`
 	CreatedAt   time.Time         `json:"createdAt"`
 	UpdatedAt   time.Time         `json:"updatedAt"`
 	ApprovedAt  *time.Time        `json:"approvedAt,omitempty"`
