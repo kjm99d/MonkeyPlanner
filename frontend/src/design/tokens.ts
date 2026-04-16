@@ -66,6 +66,7 @@ export const darkColors = {
 
 export const fontFamily = {
   sans: [
+    '"Plus Jakarta Sans"',
     '"Pretendard Variable"',
     'Pretendard',
     '-apple-system',
