@@ -34,18 +34,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          cp -r dist ../backend/web/dist
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
 
-      - name: Build backend
+      - name: Build backend (with embedded frontend)
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
           cd backend
-          go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+          go build -tags prod -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
             -o ../monkey-planner-${{ matrix.suffix }}${{ matrix.ext }} \
             ./cmd/monkey-planner
 
@@ -54,7 +65,7 @@ jobs:
           name: monkey-planner-${{ matrix.suffix }}
           path: monkey-planner-${{ matrix.suffix }}${{ matrix.ext }}
 
-  frontend:
+  frontend-dist:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +87,7 @@ jobs:
           path: frontend-dist.tar.gz
 
   release:
-    needs: [build, frontend]
+    needs: [build, frontend-dist]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -115,12 +126,12 @@ jobs:
 
             | File | Description |
             |------|-------------|
-            | `monkey-planner-linux-amd64` | Linux x86_64 |
-            | `monkey-planner-linux-arm64` | Linux ARM64 |
-            | `monkey-planner-darwin-amd64` | macOS Intel |
-            | `monkey-planner-darwin-arm64` | macOS Apple Silicon |
-            | `monkey-planner-windows-amd64.exe` | Windows x86_64 |
-            | `frontend-dist.tar.gz` | Frontend build |
+            | `monkey-planner-linux-amd64` | Linux x86_64 (frontend embedded) |
+            | `monkey-planner-linux-arm64` | Linux ARM64 (frontend embedded) |
+            | `monkey-planner-darwin-amd64` | macOS Intel (frontend embedded) |
+            | `monkey-planner-darwin-arm64` | macOS Apple Silicon (frontend embedded) |
+            | `monkey-planner-windows-amd64.exe` | Windows x86_64 (frontend embedded) |
+            | `frontend-dist.tar.gz` | Frontend build (standalone) |
           files: artifacts/*
           draft: false
           prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') }}
