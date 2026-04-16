@@ -223,7 +223,7 @@ func (r *issueRepo) Complete(ctx context.Context, id string, now time.Time) (dom
 		SET status='Done',
 		    completed_at = COALESCE(completed_at, ?),
 		    updated_at = ?
-		WHERE id = ? AND status = 'InProgress'`,
+		WHERE id = ? AND status = 'QA'`,
 		now.UTC(), now.UTC(), id)
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: complete: %w", err)

@@ -6,7 +6,7 @@ import (
 )
 
 func TestStatusValid(t *testing.T) {
-	valids := []Status{StatusPending, StatusApproved, StatusInProgress, StatusDone}
+	valids := []Status{StatusPending, StatusApproved, StatusInProgress, StatusQA, StatusDone}
 	for _, s := range valids {
 		if !s.Valid() {
 			t.Errorf("expected %q to be valid", s)
@@ -26,11 +26,17 @@ func TestValidateTransition(t *testing.T) {
 	}{
 		// 전진 허용
 		{"approved→inProgress", StatusApproved, StatusInProgress, nil},
-		{"inProgress→done", StatusInProgress, StatusDone, nil},
+		{"inProgress→qa", StatusInProgress, StatusQA, nil},
+		{"qa→done", StatusQA, StatusDone, nil},
 
-		// 역행 허용 (Approved ⇄ InProgress ⇄ Done)
-		{"done→inProgress", StatusDone, StatusInProgress, nil},
-		{"inProgress→done again", StatusInProgress, StatusDone, nil},
+		// QA → InProgress (리젝 후 재작업)
+		{"qa→inProgress", StatusQA, StatusInProgress, nil},
+
+		// Done → QA (재검증)
+		{"done→qa", StatusDone, StatusQA, nil},
+
+		// InProgress → Done 직접 차단 (QA를 거쳐야 함)
+		{"inProgress→done blocked", StatusInProgress, StatusDone, ErrUnknownTransition},
 
 		// Pending→Approved 직접 차단 (Approve 엔드포인트만)
 		{"pending→approved direct PATCH", StatusPending, StatusApproved, ErrDirectApproval},

@@ -30,6 +30,7 @@ export default {
           pending: 'var(--status-pending)',
           approved: 'var(--status-approved)',
           inProgress: 'var(--status-inProgress)',
+          qa: 'var(--status-qa)',
           done: 'var(--status-done)',
           rejected: 'var(--status-rejected)',
         },

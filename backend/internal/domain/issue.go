@@ -12,6 +12,7 @@ const (
 	StatusPending    Status = "Pending"
 	StatusApproved   Status = "Approved"
 	StatusInProgress Status = "InProgress"
+	StatusQA         Status = "QA"
 	StatusDone       Status = "Done"
 	StatusRejected   Status = "Rejected"
 )
@@ -19,7 +20,7 @@ const (
 // Valid 는 Status 가 허용된 값인지 검증합니다.
 func (s Status) Valid() bool {
 	switch s {
-	case StatusPending, StatusApproved, StatusInProgress, StatusDone, StatusRejected:
+	case StatusPending, StatusApproved, StatusInProgress, StatusQA, StatusDone, StatusRejected:
 		return true
 	}
 	return false
@@ -63,8 +64,10 @@ var (
 // 규칙:
 //   - Pending→Approved 직접 전이는 차단 (Approve 전용 엔드포인트 사용 강제)
 //   - Pending→Rejected 전이는 허용 (거절 처리)
-//   - Pending→(InProgress|Done) 직접 전이는 차단 (반드시 Approve를 거쳐야 함)
-//   - Approved ⇄ InProgress ⇄ Done 사이는 자유 이동 허용 (단일 사용자 유연성)
+//   - Approved → InProgress (claim)
+//   - InProgress → QA (작업 완료 후 QA 제출)
+//   - QA → Done (검증 통과)
+//   - QA → InProgress (검증 실패, 재작업)
 //   - Rejected 는 터미널 상태 (다른 상태로 전이 불가)
 func ValidateTransition(from, to Status) error {
 	if !from.Valid() || !to.Valid() {
@@ -73,7 +76,7 @@ func ValidateTransition(from, to Status) error {
 	if from == to {
 		return ErrSelfSameTransition
 	}
-	// Rejected는 터미널 상태 — 다른 상태로 전이 불가
+	// Rejected는 터미널 상태
 	if from == StatusRejected {
 		return ErrUnknownTransition
 	}
@@ -87,15 +90,24 @@ func ValidateTransition(from, to Status) error {
 		}
 		return ErrUnknownTransition
 	}
-	// Approved/InProgress/Done 사이는 자유 이동
-	if to == StatusPending {
-		return ErrUnknownTransition // Pending으로 되돌리기는 불가
+	// Pending/Rejected로 되돌리기 불가
+	if to == StatusPending || to == StatusRejected {
+		return ErrUnknownTransition
 	}
 	if to == StatusApproved {
-		return ErrDirectApproval // Approved로 가려면 Approve 버튼 사용
+		return ErrDirectApproval
 	}
-	if to == StatusRejected {
-		return ErrUnknownTransition // Approved 이후에는 Rejected로 전이 불가
+	// 허용되는 전이 정의
+	allowed := map[Status][]Status{
+		StatusApproved:   {StatusInProgress},
+		StatusInProgress: {StatusQA},
+		StatusQA:         {StatusDone, StatusInProgress},
+		StatusDone:       {StatusQA},
 	}
-	return nil
+	for _, s := range allowed[from] {
+		if s == to {
+			return nil
+		}
+	}
+	return ErrUnknownTransition
 }
