@@ -72,6 +72,7 @@
     "pending": "待处理",
     "approved": "已审批",
     "inProgress": "进行中",
+    "qa": "QA验证",
     "done": "已完成",
     "rejected": "已拒绝",
     "dragHere": "将问题拖到这里",
@@ -132,6 +133,7 @@
     "Pending": "待处理",
     "Approved": "已审批",
     "InProgress": "进行中",
+    "QA": "QA验证",
     "Done": "已完成",
     "Rejected": "已拒绝"
   },

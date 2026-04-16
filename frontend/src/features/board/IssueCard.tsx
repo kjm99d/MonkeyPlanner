@@ -61,7 +61,7 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
       }}
     >
       <div className="flex items-start gap-2">
-        <GripVertical size={14} className="mt-0.5 shrink-0 cursor-grab text-ink-muted opacity-30 group-hover:opacity-70 transition-opacity" aria-hidden />
+        <GripVertical size={14} className="mt-0.5 shrink-0 cursor-grab text-ink-muted opacity-0 group-hover:opacity-70 transition-opacity" aria-hidden />
         <div className="flex-1 min-w-0">
           {editing ? (
             <input
@@ -91,20 +91,19 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
                 setEditTitle(issue.title);
                 setEditing(true);
               }}
-              className="font-medium text-ink-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+              className="text-sm font-medium text-ink-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+              title={issue.title}
             >
               {issue.title}
             </Link>
           )}
-          {issue.status === 'InProgress' && (
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-status-inProgress">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-status-inProgress opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-status-inProgress" />
-              </span>
-              <span>{elapsedTime(issue.updatedAt)}</span>
-            </div>
-          )}
+          {/* 하단 메타 정보 */}
+          <div className="mt-1.5 flex items-center gap-2 text-[11px] text-ink-muted">
+            <span>{elapsedTime(issue.updatedAt)}</span>
+            {issue.criteria.length > 0 && (
+              <span>{issue.criteria.filter(c => c.done).length}/{issue.criteria.length}</span>
+            )}
+          </div>
           {/* 속성 값 인라인 표시 */}
           {propValues.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1" onPointerDown={(e) => e.stopPropagation()}>
@@ -114,7 +113,6 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
             </div>
           )}
         </div>
-        <StatusBadge status={issue.status} />
       </div>
       {issue.status === 'Pending' && (
         <div className="flex justify-end">

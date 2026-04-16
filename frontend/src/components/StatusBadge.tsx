@@ -5,6 +5,7 @@ const classes: Record<IssueStatus, string> = {
   Pending: 'bg-status-pending/15 text-status-pending border-status-pending/30',
   Approved: 'bg-status-approved/15 text-status-approved border-status-approved/30',
   InProgress: 'bg-status-inProgress/15 text-status-inProgress border-status-inProgress/40',
+  QA: 'bg-status-qa/15 text-status-qa border-status-qa/40',
   Done: 'bg-status-done/15 text-status-done border-status-done/40',
   Rejected: 'bg-status-rejected/15 text-status-rejected border-status-rejected/30',
 };

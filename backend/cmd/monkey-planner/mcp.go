@@ -122,7 +122,7 @@ func mcpToolDefinitions() []map[string]any {
 		},
 		{
 			"name":        "list_issues",
-			"description": "List issues. Filter by boardId and/or status (Pending, Approved, InProgress, Done, Rejected)",
+			"description": "List issues. Filter by boardId and/or status (Pending, Approved, InProgress, QA, Done, Rejected)",
 			"inputSchema": map[string]any{
 				"type": "object",
 				"properties": map[string]any{
@@ -179,8 +179,20 @@ func mcpToolDefinitions() []map[string]any {
 			},
 		},
 		{
+			"name":        "submit_qa",
+			"description": "Submit an in-progress issue for QA review (moves from InProgress to QA)",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"issueId": map[string]any{"type": "string", "description": "Issue ID to submit for QA"},
+					"comment": map[string]any{"type": "string", "description": "Optional summary of what was done"},
+				},
+				"required": []string{"issueId"},
+			},
+		},
+		{
 			"name":        "complete_issue",
-			"description": "Complete an in-progress issue (moves to Done). Optionally add a completion summary as a comment.",
+			"description": "Complete a QA-reviewed issue (moves from QA to Done). Optionally add a completion summary as a comment.",
 			"inputSchema": map[string]any{
 				"type": "object",
 				"properties": map[string]any{
@@ -188,6 +200,18 @@ func mcpToolDefinitions() []map[string]any {
 					"comment": map[string]any{"type": "string", "description": "Optional completion summary comment"},
 				},
 				"required": []string{"issueId"},
+			},
+		},
+		{
+			"name":        "reject_issue",
+			"description": "Reject a QA issue back to InProgress with a required reason (moves from QA to InProgress)",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"issueId": map[string]any{"type": "string", "description": "Issue ID to reject"},
+					"reason":  map[string]any{"type": "string", "description": "Reason for rejection (required)"},
+				},
+				"required": []string{"issueId", "reason"},
 			},
 		},
 		{
@@ -356,6 +380,26 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 			Status: &st,
 		})
 
+	case "submit_qa":
+		var args struct {
+			IssueID string `json:"issueId"`
+			Comment string `json:"comment"`
+		}
+		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
+			return nil, fmt.Errorf("issueId is required")
+		}
+		st := domain.StatusQA
+		issue, err := svc.UpdateIssue(ctx, args.IssueID, service.UpdateIssueInput{
+			Status: &st,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if args.Comment != "" {
+			_, _ = svc.CreateComment(ctx, args.IssueID, args.Comment)
+		}
+		return issue, nil
+
 	case "complete_issue":
 		var args struct {
 			IssueID string `json:"issueId"`
@@ -371,6 +415,27 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if args.Comment != "" {
 			_, _ = svc.CreateComment(ctx, args.IssueID, args.Comment)
 		}
+		return issue, nil
+
+	case "reject_issue":
+		var args struct {
+			IssueID string `json:"issueId"`
+			Reason  string `json:"reason"`
+		}
+		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
+			return nil, fmt.Errorf("issueId is required")
+		}
+		if args.Reason == "" {
+			return nil, fmt.Errorf("reason is required for rejection")
+		}
+		st := domain.StatusInProgress
+		issue, err := svc.UpdateIssue(ctx, args.IssueID, service.UpdateIssueInput{
+			Status: &st,
+		})
+		if err != nil {
+			return nil, err
+		}
+		_, _ = svc.CreateComment(ctx, args.IssueID, "❌ QA 거절: "+args.Reason)
 		return issue, nil
 
 	case "add_comment":
