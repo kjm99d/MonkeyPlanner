@@ -5,22 +5,22 @@
 export const lightColors = {
   bg: {
     base: '#ffffff',
-    subtle: '#fafafa',
-    muted: '#f4f4f5',
+    subtle: '#f8fafc',
+    muted: '#f1f5f9',
   },
   border: {
-    base: '#e4e4e7',
+    base: '#e2e8f0',
   },
   text: {
-    primary: '#18181b',
-    secondary: '#52525b',
-    muted: '#a1a1aa',
+    primary: '#0f172a',
+    secondary: '#475569',
+    muted: '#94a3b8',
   },
   brand: {
-    50: '#fff7ed',
-    500: '#f97316',
-    600: '#ea580c',
-    900: '#7c2d12',
+    50: '#f0fdfa',
+    500: '#0d9488',
+    600: '#0f766e',
+    900: '#134e4a',
   },
   status: {
     pending: '#a1a1aa',
@@ -35,23 +35,23 @@ export const lightColors = {
 
 export const darkColors = {
   bg: {
-    base: '#09090b',
-    subtle: '#1a1a1f',
-    muted: '#2a2a30',
+    base: '#0f172a',
+    subtle: '#1e293b',
+    muted: '#334155',
   },
   border: {
-    base: '#3f3f46',
+    base: '#475569',
   },
   text: {
-    primary: '#fafafa',
-    secondary: '#a1a1aa',
-    muted: '#71717a',
+    primary: '#f8fafc',
+    secondary: '#cbd5e1',
+    muted: '#64748b',
   },
   brand: {
-    50: '#431407',
-    500: '#fb923c',
-    600: '#f97316',
-    900: '#fed7aa',
+    50: '#042f2e',
+    500: '#14b8a6',
+    600: '#0d9488',
+    900: '#ccfbf1',
   },
   status: {
     pending: '#71717a',
@@ -124,7 +124,7 @@ export const shadow = {
   sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
   md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
   lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-  focus: '0 0 0 4px rgb(249 115 22 / 0.35)',
+  focus: '0 0 0 4px rgb(13 148 136 / 0.35)',
 } as const;
 
 /** 상태별 뱃지 색상을 한 자리에서 쓰기 위한 맵. */
