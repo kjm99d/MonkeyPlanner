@@ -47,7 +47,7 @@ export function MarkdownEditor({ value, onChange, label }: Props) {
         )}
         {tab !== 'edit' && (
           <article
-            aria-label="마크다운 미리보기"
+            aria-label={t('editor.preview')}
             className="prose prose-sm max-w-none rounded-md border border-edge-base bg-surface-subtle p-3 text-ink-primary dark:prose-invert"
           >
             <ReactMarkdown rehypePlugins={[rehypeSanitize]}>

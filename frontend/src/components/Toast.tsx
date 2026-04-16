@@ -50,7 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <button
               onClick={() => dismiss(t.id)}
               className="ml-2 shrink-0 rounded p-0.5 opacity-60 hover:opacity-100 transition-opacity"
-              aria-label="닫기"
+              aria-label="Close"
             >
               <X size={14} />
             </button>
