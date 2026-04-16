@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  useAddDependency,
   useApproveIssue,
   useBoards,
   useBoardProperties,
   useDeleteIssue,
   useIssue,
+  useRemoveDependency,
   useUpdateIssue,
   useUpdateIssueProperties,
 } from '../../api/hooks';
@@ -16,10 +18,11 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Input } from '../../components/Input';
 import { MarkdownEditor } from '../../components/MarkdownEditor';
 import { PropertyEditor } from '../../components/PropertyEditor';
+import { CommentSection } from '../../components/CommentSection';
 import { Skeleton } from '../../components/Skeleton';
 import { StatusBadge } from '../../components/StatusBadge';
 import { StatusStepper } from '../../components/StatusStepper';
-import type { IssueStatus } from '../../api/types';
+import type { Criterion, IssueStatus } from '../../api/types';
 
 export default function IssuePage() {
   const { t } = useTranslation();
@@ -33,17 +36,25 @@ export default function IssuePage() {
   const updateProps = useUpdateIssueProperties();
   const boardProps = useBoardProperties(query.data?.issue.boardId);
 
+  const addDep = useAddDependency();
+  const removeDep = useRemoveDependency();
+
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [criteria, setCriteria] = useState<Criterion[]>([]);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [depInput, setDepInput] = useState('');
 
   useEffect(() => {
     if (query.data?.issue) {
       setTitle(query.data.issue.title);
       setBody(query.data.issue.body);
+      setInstructions(query.data.issue.instructions ?? '');
+      setCriteria(query.data.issue.criteria ?? []);
     }
-  }, [query.data?.issue?.id, query.data?.issue?.title, query.data?.issue?.body]);
+  }, [query.data?.issue?.id, query.data?.issue?.title, query.data?.issue?.body, query.data?.issue?.instructions]);
 
   // Track dirty state for unsaved changes warning
   const isDirty =
@@ -76,7 +87,7 @@ export default function IssuePage() {
     if (!issueId) return;
     setSaveErr(null);
     try {
-      await update.mutateAsync({ id: issueId, patch: { title, body } });
+      await update.mutateAsync({ id: issueId, patch: { title, body, instructions, criteria } });
     } catch (err) {
       setSaveErr((err as { message?: string }).message ?? t('issue.saveFailed'));
     }
@@ -148,6 +159,52 @@ export default function IssuePage() {
         />
       )}
 
+      <section className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-ink-secondary">{t('issue.instructions')}</span>
+          <span className="rounded bg-brand-500/10 px-1.5 py-0.5 text-[10px] text-brand-500">MCP</span>
+        </div>
+        <textarea
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          placeholder={t('issue.instructionsPlaceholder')}
+          className="min-h-[80px] rounded-md border border-edge-base bg-surface-subtle p-3 font-mono text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
+        />
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h3 className="text-sm font-medium text-ink-secondary">{t('issue.criteria')}</h3>
+        {criteria.map((c, i) => (
+          <label key={i} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={c.done}
+              onChange={() => {
+                const next = [...criteria];
+                next[i] = { ...next[i], done: !next[i].done };
+                setCriteria(next);
+              }}
+              className="h-4 w-4 rounded border-edge-base accent-brand-500"
+            />
+            <span className={c.done ? 'line-through text-ink-muted' : 'text-ink-primary'}>{c.text}</span>
+            <button type="button" onClick={() => setCriteria(criteria.filter((_, j) => j !== i))}
+              className="ml-auto text-ink-muted hover:text-red-500 text-xs">×</button>
+          </label>
+        ))}
+        <div className="flex gap-1">
+          <input
+            placeholder={t('issue.addCriterion')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                setCriteria([...criteria, { text: e.currentTarget.value.trim(), done: false }]);
+                e.currentTarget.value = '';
+              }
+            }}
+            className="flex-1 rounded-md border border-edge-base bg-surface-base px-2 py-1 text-sm focus:outline-none focus:border-brand-500"
+          />
+        </div>
+      </section>
+
       <MarkdownEditor value={body} onChange={setBody} />
 
       <div className="flex items-center gap-3">
@@ -179,6 +236,54 @@ export default function IssuePage() {
           </ul>
         </section>
       )}
+
+      <section aria-label={t('issue.dependencies')} className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">{t('issue.dependencies')}</h2>
+        <p className="text-sm text-ink-secondary">{t('issue.blockedBy')}</p>
+        {(iss.blockedBy ?? []).length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {(iss.blockedBy ?? []).map((blockerId) => (
+              <li key={blockerId} className="flex items-center justify-between rounded-md border border-edge-base bg-surface-subtle px-3 py-2">
+                <Link
+                  to={`/issues/${blockerId}`}
+                  className="text-sm text-brand-500 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                >
+                  {blockerId}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => issueId && removeDep.mutate({ issueId, blockerId })}
+                  className="rounded px-2 py-0.5 text-xs text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                >
+                  {t('issue.removeDependency')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <div className="flex gap-2">
+          <input
+            value={depInput}
+            onChange={(e) => setDepInput(e.target.value)}
+            placeholder={t('issue.addDependency')}
+            className="flex-1 rounded-md border border-edge-base bg-surface-subtle px-3 py-1.5 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
+          />
+          <Button
+            size="sm"
+            disabled={!depInput.trim() || addDep.isPending}
+            onClick={() => {
+              if (!issueId || !depInput.trim()) return;
+              addDep.mutate({ issueId, blockerId: depInput.trim() }, {
+                onSuccess: () => setDepInput(''),
+              });
+            }}
+          >
+            {t('issue.addDependency')}
+          </Button>
+        </div>
+      </section>
+
+      <CommentSection issueId={issueId!} />
 
       <hr className="border-edge-base" />
       <div className="flex justify-end">
