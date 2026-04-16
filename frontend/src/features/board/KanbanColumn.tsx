@@ -1,4 +1,5 @@
 import { useDroppable } from '@dnd-kit/core';
+import { useTranslation } from 'react-i18next';
 import { ClipboardList } from 'lucide-react';
 import type { Issue, IssueStatus } from '../../api/types';
 import { IssueCard } from './IssueCard';
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function KanbanColumn({ status, title, issues }: Props) {
+  const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
     <section
@@ -36,7 +38,7 @@ export function KanbanColumn({ status, title, issues }: Props) {
         {issues.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <ClipboardList size={28} className="text-ink-muted opacity-25" />
-            <p className="text-xs text-ink-muted">이슈를 여기로 드래그하세요</p>
+            <p className="text-xs text-ink-muted">{t('kanban.dragHere')}</p>
           </div>
         ) : (
           issues.map((iss) => <IssueCard key={iss.id} issue={iss} />)

@@ -109,10 +109,10 @@
     "url": "Webhook URL",
     "cancel": "Cancel",
     "events": {
-      "issue.created": "Issue Created",
-      "issue.approved": "Issue Approved",
-      "issue.status_changed": "Status Changed",
-      "issue.deleted": "Issue Deleted"
+      "issue_created": "Issue Created",
+      "issue_approved": "Issue Approved",
+      "issue_status_changed": "Status Changed",
+      "issue_deleted": "Issue Deleted"
     }
   },
   "stepper": {

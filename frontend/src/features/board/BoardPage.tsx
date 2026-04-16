@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useBoards, useBoardProperties, useCreateBoardProperty, useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
 import { Button } from '../../components/Button';
@@ -11,11 +12,11 @@ import { WebhookSettings } from '../../components/WebhookSettings';
 import { KanbanColumn } from './KanbanColumn';
 import type { Issue, IssueStatus } from '../../api/types';
 
-const COLUMNS: { status: IssueStatus; title: string }[] = [
-  { status: 'Pending', title: '대기' },
-  { status: 'Approved', title: '승인됨' },
-  { status: 'InProgress', title: '진행 중' },
-  { status: 'Done', title: '완료' },
+const COLUMN_KEYS: { status: IssueStatus; key: string }[] = [
+  { status: 'Pending', key: 'kanban.pending' },
+  { status: 'Approved', key: 'kanban.approved' },
+  { status: 'InProgress', key: 'kanban.inProgress' },
+  { status: 'Done', key: 'kanban.done' },
 ];
 
 export default function BoardPage() {
@@ -28,6 +29,7 @@ export default function BoardPage() {
   const createProp = useCreateBoardProperty();
   const updateIssue = useUpdateIssue();
 
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -52,7 +54,7 @@ export default function BoardPage() {
     if (!title.trim() || !boardId) return;
     await createIssue.mutateAsync({ boardId, title: title.trim() });
     setTitle('');
-    toast('success', '이슈가 생성되었습니다');
+    toast('success', t('board.issueCreated'));
   }
 
   async function onDragEnd(e: DragEndEvent) {
@@ -64,7 +66,7 @@ export default function BoardPage() {
     if (!current || current.status === toStatus) return;
     try {
       await updateIssue.mutateAsync({ id: issueId, patch: { status: toStatus } });
-      toast('success', `상태가 "${toStatus}"로 변경되었습니다`);
+      toast('success', t('board.statusChanged', { status: toStatus }));
     } catch (err) {
       const msg =
         (err as { message?: string; code?: string })?.message ??
@@ -104,14 +106,14 @@ export default function BoardPage() {
 
       <form onSubmit={onCreate} className="flex gap-2">
         <Input
-          placeholder="새 이슈 제목"
+          placeholder={t('board.newIssueTitle')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          aria-label="새 이슈 제목"
+          aria-label={t('board.newIssueTitle')}
           className="flex-1"
         />
         <Button type="submit" disabled={createIssue.isPending}>
-          이슈 추가
+          {t('board.addIssue')}
         </Button>
       </form>
 
@@ -123,8 +125,8 @@ export default function BoardPage() {
 
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
-          {COLUMNS.map((c) => (
-            <KanbanColumn key={c.status} status={c.status} title={c.title} issues={grouped[c.status]} />
+          {COLUMN_KEYS.map((c) => (
+            <KanbanColumn key={c.status} status={c.status} title={t(c.key)} issues={grouped[c.status]} />
           ))}
         </div>
       </DndContext>

@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { Banana, Brain, Zap } from 'lucide-react';
 
 export default function HeroBanner() {
+  const { t } = useTranslation();
   return (
     <div className="relative overflow-hidden rounded-xl border border-edge-base bg-gradient-to-br from-brand-500/5 via-surface-subtle to-surface-muted px-6 py-8">
       {/* 배경 장식 원 */}
@@ -10,10 +12,10 @@ export default function HeroBanner() {
       <div className="relative flex items-center justify-between gap-6">
         <div className="flex flex-col gap-2">
           <h2 className="text-lg font-bold text-ink-primary">
-            코숭이들이 일하고 있어요
+            {t('app.tagline')}
           </h2>
           <p className="text-sm text-ink-secondary">
-            이슈를 만들고, 승인하고, 완료하세요. 캘린더에서 실적을 확인할 수 있습니다.
+            {t('app.description')}
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-3">

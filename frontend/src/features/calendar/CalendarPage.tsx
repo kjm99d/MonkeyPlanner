@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useDayStats, useMonthStats } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -22,6 +23,7 @@ function daysInMonth(y: number, m: number): number {
 }
 
 export default function CalendarPage() {
+  const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -60,15 +62,15 @@ export default function CalendarPage() {
     <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
       <div className="flex flex-col gap-4">
         <header className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{year}년 {month}월</h1>
+          <h1 className="text-3xl font-bold">{t('calendar.title', { year, month })}</h1>
           <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={() => shift(-1)} aria-label="이전 달">
+            <Button size="sm" variant="ghost" onClick={() => shift(-1)} aria-label={t('calendar.prevMonth')}>
               ←
             </Button>
             <Button size="sm" variant="ghost" onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()+1); setSelected(ymd(today)); }}>
-              오늘
+              {t('calendar.today')}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => shift(1)} aria-label="다음 달">
+            <Button size="sm" variant="ghost" onClick={() => shift(1)} aria-label={t('calendar.nextMonth')}>
               →
             </Button>
           </div>
@@ -90,7 +92,7 @@ export default function CalendarPage() {
                 key={c.dateStr}
                 role="gridcell"
                 aria-selected={isSelected}
-                aria-label={`${c.dateStr} 날짜 선택`}
+                aria-label={t('calendar.selectDate', { date: c.dateStr })}
                 onClick={() => c.dateStr && setSelected(c.dateStr)}
                 className={`flex min-h-[5.5rem] flex-col items-start gap-1 rounded-md border p-2 text-left transition-transform hover:-translate-y-0.5 motion-reduce:hover:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   isSelected
@@ -125,13 +127,13 @@ export default function CalendarPage() {
       </div>
 
       <aside aria-label="일간 상세" className="flex flex-col gap-4 rounded-lg border border-edge-base bg-surface-subtle p-4">
-        <h2 className="text-xl font-semibold">{selected} 실적</h2>
-        {dayStats.isLoading && <p className="text-ink-secondary">불러오는 중…</p>}
+        <h2 className="text-xl font-semibold">{t('calendar.daily', { date: selected })}</h2>
+        {dayStats.isLoading && <p className="text-ink-secondary">{t('common.loading')}</p>}
         {dayStats.data && (
           <div className="flex flex-col gap-4">
-            <DaySection title="생성" issues={dayStats.data.created} />
-            <DaySection title="승인" issues={dayStats.data.approved} />
-            <DaySection title="완료" issues={dayStats.data.completed} />
+            <DaySection title={t('calendar.created')} issues={dayStats.data.created} />
+            <DaySection title={t('calendar.approved')} issues={dayStats.data.approved} />
+            <DaySection title={t('calendar.done')} issues={dayStats.data.completed} />
           </div>
         )}
       </aside>
@@ -140,13 +142,14 @@ export default function CalendarPage() {
 }
 
 function DaySection({ title, issues }: { title: string; issues: Issue[] }) {
+  const { t } = useTranslation();
   return (
     <section aria-label={`${title} 이슈`}>
       <h3 className="mb-2 text-sm font-medium text-ink-secondary">
         {title} <span className="text-ink-muted">({issues.length})</span>
       </h3>
       {issues.length === 0 ? (
-        <p className="text-xs text-ink-muted">없음</p>
+        <p className="text-xs text-ink-muted">{t('calendar.none')}</p>
       ) : (
         <ul className="flex flex-col gap-1">
           {issues.map((iss) => (

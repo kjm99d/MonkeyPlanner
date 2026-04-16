@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { useBoards, useCreateBoard, useIssues } from '../../api/hooks';
 import { Button } from '../../components/Button';
@@ -41,6 +42,7 @@ function BoardCardWithCount({ id, name, viewType, createdAt }: { id: string; nam
 }
 
 export default function BoardsListPage() {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const boards = useBoards();
   const createBoard = useCreateBoard();
@@ -56,21 +58,21 @@ export default function BoardsListPage() {
     <section className="flex flex-col gap-6">
       <header className="fade-up flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-bold">보드</h1>
-          <p className="mt-1 text-ink-secondary">작업을 묶어둘 컨테이너입니다.</p>
+          <h1 className="text-3xl font-bold">{t('board.title')}</h1>
+          <p className="mt-1 text-ink-secondary">{t('board.description')}</p>
         </div>
       </header>
 
       <form onSubmit={submit} className="fade-up flex gap-2" style={{ animationDelay: '60ms' }}>
         <Input
-          placeholder="새 보드 이름"
+          placeholder={t('board.newName')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          aria-label="새 보드 이름"
+          aria-label={t('board.newName')}
           className="flex-1"
         />
         <Button type="submit" disabled={createBoard.isPending}>
-          <Plus size={16} /> 생성
+          <Plus size={16} /> {t('board.create')}
         </Button>
       </form>
 
@@ -87,8 +89,8 @@ export default function BoardsListPage() {
             <Plus size={28} className="text-brand-500" />
           </div>
           <div>
-            <p className="text-lg font-semibold text-ink-primary">아직 보드가 없습니다</p>
-            <p className="mt-1 text-sm text-ink-secondary">위 입력란에 이름을 적고 "생성"을 눌러 첫 보드를 만들어 보세요.</p>
+            <p className="text-lg font-semibold text-ink-primary">{t('board.noBoards')}</p>
+            <p className="mt-1 text-sm text-ink-secondary">{t('board.noBoardsHint')}</p>
           </div>
         </div>
       )}
