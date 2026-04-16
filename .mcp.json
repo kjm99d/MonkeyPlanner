@@ -1,9 +1,11 @@
 {
   "mcpServers": {
     "monkey-planner": {
-      "command": "./bin/monkey-planner.exe",
-      "args": ["mcp"],
-      "cwd": "D:/Projects/MonkeyPlanner"
+      "command": "bash",
+      "args": ["D:/mp/update-and-run.sh", "mcp"],
+      "env": {
+        "MP_DSN": "sqlite://D:/mp/data/monkey.db"
+      }
     }
   }
 }

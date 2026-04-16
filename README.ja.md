@@ -149,40 +149,47 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 
 ## MCPサーバーの設定
 
-### Claude Code での使用
+### クイックセットアップ（自動更新）
 
-`.mcp.json` ファイルをプロジェクトルートに配置します:
+1. [Releases](https://github.com/kjm99d/MonkeyPlanner/releases)から最新バイナリをダウンロード（例: `D:/mp/`）
+2. 同じディレクトリに `update-and-run.sh` をダウンロード
+3. `.mcp.json` または Claude Code 設定に追加:
 
 ```json
 {
   "mcpServers": {
     "monkey-planner": {
-      "command": "./bin/monkey-planner.exe",
-      "args": ["mcp"],
-      "cwd": "D:/Projects/MonkeyPlanner"
+      "command": "bash",
+      "args": ["/path/to/update-and-run.sh", "mcp"],
+      "env": {
+        "MP_DSN": "sqlite:///path/to/data/monkey.db"
+      }
     }
   }
 }
 ```
 
-**Windowsユーザーの方**: パスはご自身の環境に合わせて変更してください。
+ラッパースクリプトが起動時にGitHubの最新リリースを自動チェックし、バイナリを更新します。
 
-### Claude Desktop での使用
+### 手動セットアップ
 
-Claude Desktop の設定ファイル（`~/.claude/claude_desktop_config.json`）に追記します:
+自動更新なしで直接設定:
 
 ```json
 {
   "mcpServers": {
     "monkey-planner": {
       "command": "/path/to/monkey-planner",
-      "args": ["mcp"]
+      "args": ["mcp"],
+      "env": {
+        "MP_DSN": "sqlite:///path/to/data/monkey.db"
+      }
     }
   }
 }
 ```
 
-設定後、Claude Desktop を再起動すると Monkey Planner のツールが自動的に読み込まれます。
+Claude Code（`.mcp.json`）と Claude Desktop（`~/.claude/claude_desktop_config.json`）の両方で同じ形式が使えます。変更後に再起動してください。
 
 ### MCPツールの使用例
 
