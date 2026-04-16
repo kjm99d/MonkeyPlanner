@@ -17,6 +17,10 @@
     --accent: #f97316;
     --glass-bg: rgba(248, 250, 252, 0.85);
     --glass-border: #e2e8f0;
+    --status-pending: #a1a1aa;
+    --status-approved: #16a34a;
+    --status-inProgress: #2563eb;
+    --status-done: #8b5cf6;
   }
   .dark {
     --bg-base: #0f172a;
@@ -31,13 +35,17 @@
     --accent: #fb923c;
     --glass-bg: rgba(30, 41, 59, 0.85);
     --glass-border: #475569;
+    --status-pending: #71717a;
+    --status-approved: #22c55e;
+    --status-inProgress: #3b82f6;
+    --status-done: #a78bfa;
   }
   body {
     background-color: var(--bg-base);
     color: var(--text-primary);
     @apply antialiased;
   }
-  :focus-visible {
+  :focus-visible:not(input):not(select):not(textarea):not(button):not([role="tab"]):not([role="gridcell"]) {
     @apply outline-none ring-2 ring-brand-500 ring-offset-2;
     --tw-ring-offset-color: var(--bg-base);
   }
@@ -56,6 +64,9 @@
   }
   .slide-in-from-right {
     --tw-enter-translate-x: 1rem;
+  }
+  .slide-in-from-left {
+    --tw-enter-translate-x: -15rem;
   }
   .fade-up {
     animation: fadeUp 400ms ease-out both;

@@ -24,9 +24,14 @@ export default {
         },
         accent: {
           DEFAULT: 'var(--accent)',
+          ring: lightColors.accent.ring,
         },
-        status: lightColors.status,
-        accent: lightColors.accent,
+        status: {
+          pending: 'var(--status-pending)',
+          approved: 'var(--status-approved)',
+          inProgress: 'var(--status-inProgress)',
+          done: 'var(--status-done)',
+        },
         surface: {
           base: 'var(--bg-base)',
           subtle: 'var(--bg-subtle)',
