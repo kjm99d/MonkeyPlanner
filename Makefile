@@ -32,6 +32,10 @@ build: build-frontend build-backend
 
 build-frontend:
 	cd frontend && npm run build
+	@rm -rf backend/web/dist
+	@mkdir -p backend/web/dist
+	@cp -r frontend/dist/. backend/web/dist/
+	@echo "✓ frontend bundle copied to backend/web/dist/"
 
 build-backend:
 	@mkdir -p bin

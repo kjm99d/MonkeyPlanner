@@ -2,6 +2,7 @@
 node_modules/
 frontend/dist/
 frontend/.vite/
+backend/web/dist/
 frontend/coverage/
 *.tsbuildinfo
 npm-debug.log*
