@@ -24,6 +24,7 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 	bh := &boardHandler{svc: svc}
 	ch := &calendarHandler{svc: svc}
 	ph := &propertyHandler{svc: svc}
+	wh := &webhookHandler{svc: svc}
 
 	r.Route("/api", func(api chi.Router) {
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -43,6 +44,14 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 			p.Post("/", ph.create)
 			p.Patch("/{propId}", ph.update)
 			p.Delete("/{propId}", ph.delete)
+		})
+
+		// 웹훅
+		api.Route("/boards/{boardId}/webhooks", func(w chi.Router) {
+			w.Get("/", wh.list)
+			w.Post("/", wh.create)
+			w.Patch("/{whId}", wh.update)
+			w.Delete("/{whId}", wh.delete)
 		})
 
 		api.Route("/issues", func(i chi.Router) {

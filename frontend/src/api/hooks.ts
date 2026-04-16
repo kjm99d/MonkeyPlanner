@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 import { api } from './client';
-import type { Board, BoardProperty, DayCount, DayStats, Issue, IssueStatus, PropertyType } from './types';
+import type { Board, BoardProperty, DayCount, DayStats, Issue, IssueStatus, PropertyType, Webhook, WebhookEvent } from './types';
 
 // ---- Boards ----
 
@@ -159,6 +159,38 @@ export function useUpdateIssueProperties() {
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['issue', v.id] });
       qc.invalidateQueries({ queryKey: ['issues'] });
+    },
+  });
+}
+
+// ---- Webhooks ----
+
+export function useWebhooks(boardId: string | undefined) {
+  return useQuery<Webhook[]>({
+    queryKey: ['webhooks', boardId],
+    queryFn: () => api.get<Webhook[]>(`/api/boards/${boardId}/webhooks`),
+    enabled: !!boardId,
+  });
+}
+
+export function useCreateWebhook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: { boardId: string; name: string; url: string; events: WebhookEvent[] }) =>
+      api.post<Webhook>(`/api/boards/${p.boardId}/webhooks`, p),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ['webhooks', v.boardId] });
+    },
+  });
+}
+
+export function useDeleteWebhook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ boardId, whId }: { boardId: string; whId: string }) =>
+      api.del<void>(`/api/boards/${boardId}/webhooks/${whId}`),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ['webhooks', v.boardId] });
     },
   });
 }

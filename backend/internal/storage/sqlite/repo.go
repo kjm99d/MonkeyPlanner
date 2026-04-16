@@ -16,10 +16,11 @@ import (
 
 // Repo 는 storage.Repo 구현체입니다.
 type Repo struct {
-	db     *sql.DB
-	issues *issueRepo
-	boards *boardRepo
-	props  *boardPropertyRepo
+	db       *sql.DB
+	issues   *issueRepo
+	boards   *boardRepo
+	props    *boardPropertyRepo
+	webhooks *webhookRepo
 }
 
 // Open 은 지정된 DSN(예: "./data/monkey.db")으로 SQLite를 엽니다.
@@ -38,17 +39,19 @@ func Open(dsn string) (*Repo, error) {
 		return nil, err
 	}
 	return &Repo{
-		db:     db,
-		issues: &issueRepo{db: db},
-		boards: &boardRepo{db: db},
-		props:  &boardPropertyRepo{db: db},
+		db:       db,
+		issues:   &issueRepo{db: db},
+		boards:   &boardRepo{db: db},
+		props:    &boardPropertyRepo{db: db},
+		webhooks: &webhookRepo{db: db},
 	}, nil
 }
 
 func (r *Repo) Issues() storage.IssueRepo              { return r.issues }
 func (r *Repo) Boards() storage.BoardRepo              { return r.boards }
 func (r *Repo) BoardProperties() storage.BoardPropertyRepo { return r.props }
-func (r *Repo) Close() error                            { return r.db.Close() }
+func (r *Repo) Webhooks() storage.WebhookRepo              { return r.webhooks }
+func (r *Repo) Close() error                               { return r.db.Close() }
 
 // ---- issueRepo ----
 

@@ -54,16 +54,22 @@ func (s *Service) CreateIssue(ctx context.Context, in CreateIssueInput) (domain.
 	}
 	now := s.now()
 	iss := domain.Issue{
-		ID:        uuid.NewString(),
-		BoardID:   in.BoardID,
-		ParentID:  in.ParentID,
-		Title:     in.Title,
-		Body:      in.Body,
-		Status:    domain.StatusPending,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:         uuid.NewString(),
+		BoardID:    in.BoardID,
+		ParentID:   in.ParentID,
+		Title:      in.Title,
+		Body:       in.Body,
+		Status:     domain.StatusPending,
+		Properties: map[string]any{},
+		CreatedAt:  now,
+		UpdatedAt:  now,
 	}
-	return s.repo.Issues().Create(ctx, iss)
+	created, err := s.repo.Issues().Create(ctx, iss)
+	if err != nil {
+		return domain.Issue{}, err
+	}
+	s.DispatchWebhook(created.BoardID, domain.EventIssueCreated, &created)
+	return created, nil
 }
 
 // UpdateIssueInput은 PATCH 본문입니다. nil 은 미변경.
@@ -122,7 +128,12 @@ func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInpu
 }
 
 func (s *Service) ApproveIssue(ctx context.Context, id string) (domain.Issue, error) {
-	return s.repo.Issues().Approve(ctx, id, s.now())
+	approved, err := s.repo.Issues().Approve(ctx, id, s.now())
+	if err != nil {
+		return domain.Issue{}, err
+	}
+	s.DispatchWebhook(approved.BoardID, domain.EventIssueApproved, &approved)
+	return approved, nil
 }
 
 func (s *Service) CompleteIssue(ctx context.Context, id string) (domain.Issue, error) {
@@ -130,7 +141,13 @@ func (s *Service) CompleteIssue(ctx context.Context, id string) (domain.Issue, e
 }
 
 func (s *Service) DeleteIssue(ctx context.Context, id string) error {
-	return s.repo.Issues().Delete(ctx, id)
+	iss, _ := s.repo.Issues().GetByID(ctx, id)
+	err := s.repo.Issues().Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	s.DispatchWebhook(iss.BoardID, domain.EventIssueDeleted, &iss)
+	return nil
 }
 
 func (s *Service) GetIssue(ctx context.Context, id string) (issue domain.Issue, children []domain.Issue, err error) {
