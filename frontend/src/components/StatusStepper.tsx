@@ -35,6 +35,14 @@ export function StatusStepper({ current, onSelect, disabled }: Props) {
           step.status !== 'Approved' &&
           current !== 'Pending';
 
+        const hint =
+          step.status === 'Approved'
+            ? 'Approve 버튼으로만 전환 가능'
+            : step.status === 'Pending'
+              ? '대기 상태로 되돌릴 수 없음'
+              : `${step.label}(으)로 전환`;
+        const showHint = !canClick && !isActive;
+
         return (
           <div key={step.status} className="flex items-center">
             {i > 0 && (
@@ -44,33 +52,34 @@ export function StatusStepper({ current, onSelect, disabled }: Props) {
                 }`}
               />
             )}
-            <button
-              type="button"
-              disabled={!canClick}
-              onClick={() => canClick && onSelect(step.status)}
-              aria-current={isActive ? 'step' : undefined}
-              title={
-                step.status === 'Approved'
-                  ? 'Approve 버튼으로만 전환 가능'
-                  : step.status === 'Pending'
-                    ? '대기 상태로 되돌릴 수 없음'
-                    : `${step.label}(으)로 전환`
-              }
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                isActive
-                  ? `border-current ${dotColor[step.status]} text-white`
-                  : canClick
-                    ? 'border-edge-base bg-surface-subtle text-ink-secondary hover:bg-surface-muted hover:text-ink-primary'
-                    : 'border-transparent text-ink-muted opacity-50 cursor-not-allowed'
-              }`}
-            >
-              <span
-                className={`inline-block h-2 w-2 rounded-full ${
-                  isActive ? 'bg-white' : dotColor[step.status]
+            <div className="group relative">
+              <button
+                type="button"
+                disabled={!canClick}
+                onClick={() => canClick && onSelect(step.status)}
+                aria-current={isActive ? 'step' : undefined}
+                title={hint}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? `border-current ${dotColor[step.status]} text-white`
+                    : canClick
+                      ? 'border-edge-base bg-surface-subtle text-ink-secondary hover:bg-surface-muted hover:text-ink-primary'
+                      : 'border-transparent text-ink-muted opacity-50 cursor-not-allowed'
                 }`}
-              />
-              {step.label}
-            </button>
+              >
+                <span
+                  className={`inline-block h-2 w-2 rounded-full ${
+                    isActive ? 'bg-white' : dotColor[step.status]
+                  }`}
+                />
+                {step.label}
+              </button>
+              {showHint && (
+                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-ink-primary px-2 py-0.5 text-[10px] text-surface-base opacity-0 transition-opacity group-hover:opacity-100">
+                  {hint}
+                </span>
+              )}
+            </div>
           </div>
         );
       })}
