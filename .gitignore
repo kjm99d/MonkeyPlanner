@@ -1,0 +1,42 @@
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Go / backend
+bin/
+backend/bin/
+backend/tmp/
+*.exe
+*.test
+*.prof
+coverage.out
+
+# Databases (local runtime)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+data/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OMC state (shared between sessions but not tracked)
+.omc/state/
+.omc/drafts/
