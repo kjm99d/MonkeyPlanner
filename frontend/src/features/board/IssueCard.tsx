@@ -2,7 +2,6 @@ import { useDraggable } from '@dnd-kit/core';
 import { Link } from 'react-router-dom';
 import type { Issue } from '../../api/types';
 import { StatusBadge } from '../../components/StatusBadge';
-import { Button } from '../../components/Button';
 import { useApproveIssue } from '../../api/hooks';
 
 type Props = {
@@ -43,18 +42,21 @@ export function IssueCard({ issue }: Props) {
         <StatusBadge status={issue.status} />
       </div>
       {issue.status === 'Pending' && (
-        <Button
-          size="sm"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            approve.mutate(issue.id);
-          }}
-          disabled={approve.isPending}
-          aria-label={`이슈 ${issue.title} 승인`}
-        >
-          ✓ Approve
-        </Button>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              approve.mutate(issue.id);
+            }}
+            disabled={approve.isPending}
+            aria-label={`이슈 ${issue.title} 승인`}
+            className="rounded-md bg-brand-500 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+          >
+            ✓ Approve
+          </button>
+        </div>
       )}
     </article>
   );

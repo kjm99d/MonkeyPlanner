@@ -5,16 +5,35 @@
 @layer base {
   :root {
     color-scheme: light dark;
+    --bg-base: #ffffff;
+    --bg-subtle: #fafafa;
+    --bg-muted: #f4f4f5;
+    --border-base: #e4e4e7;
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --text-muted: #a1a1aa;
+    --brand-500: #f97316;
+    --brand-600: #ea580c;
+  }
+  .dark {
+    --bg-base: #0a0a0a;
+    --bg-subtle: #18181b;
+    --bg-muted: #27272a;
+    --border-base: #3f3f46;
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --brand-500: #fb923c;
+    --brand-600: #f97316;
   }
   body {
-    @apply bg-white text-neutral-900 antialiased;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    @apply antialiased;
   }
-  .dark body {
-    @apply bg-neutral-950 text-neutral-100;
-  }
-  /* 전역 포커스 링 */
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-neutral-950;
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2;
+    --tw-ring-offset-color: var(--bg-base);
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -22,7 +41,6 @@
       transition-duration: 0.01ms !important;
     }
   }
-
 }
 
 /* @tailwindcss/typography가 인라인 코드 앞뒤에 백틱 문자를 삽입하는 기본 설정 제거.

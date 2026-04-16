@@ -15,21 +15,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: lightColors.brand,
+        brand: {
+          50: lightColors.brand[50],
+          500: 'var(--brand-500)',
+          600: 'var(--brand-600)',
+          900: lightColors.brand[900],
+        },
         status: lightColors.status,
         accent: lightColors.accent,
         surface: {
-          base: lightColors.bg.base,
-          subtle: lightColors.bg.subtle,
-          muted: lightColors.bg.muted,
+          base: 'var(--bg-base)',
+          subtle: 'var(--bg-subtle)',
+          muted: 'var(--bg-muted)',
         },
         ink: {
-          primary: lightColors.text.primary,
-          secondary: lightColors.text.secondary,
-          muted: lightColors.text.muted,
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
         },
         edge: {
-          base: lightColors.border.base,
+          base: 'var(--border-base)',
         },
       },
       fontFamily: {

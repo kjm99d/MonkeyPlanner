@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
+import { useBoards, useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { Breadcrumb } from '../../components/Breadcrumb';
 import { KanbanColumn } from './KanbanColumn';
 import type { Issue, IssueStatus } from '../../api/types';
 
@@ -16,6 +17,8 @@ const COLUMNS: { status: IssueStatus; title: string }[] = [
 
 export default function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>();
+  const boards = useBoards();
+  const board = boards.data?.find((b) => b.id === boardId);
   const issues = useIssues({ boardId });
   const createIssue = useCreateIssue();
   const updateIssue = useUpdateIssue();
@@ -65,11 +68,12 @@ export default function BoardPage() {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">보드</h1>
-          <p className="mt-1 text-sm text-ink-muted">ID: {boardId}</p>
-        </div>
+      <header className="flex flex-col gap-2">
+        <Breadcrumb items={[
+          { label: '보드', to: '/boards' },
+          { label: board?.name ?? '...' },
+        ]} />
+        <h1 className="text-3xl font-bold">{board?.name ?? '보드'}</h1>
       </header>
 
       <form onSubmit={onCreate} className="flex gap-2">

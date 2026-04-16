@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   useApproveIssue,
+  useBoards,
   useDeleteIssue,
   useIssue,
   useUpdateIssue,
 } from '../../api/hooks';
+import { Breadcrumb } from '../../components/Breadcrumb';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { MarkdownEditor } from '../../components/MarkdownEditor';
@@ -15,6 +17,7 @@ import type { IssueStatus } from '../../api/types';
 export default function IssuePage() {
   const { issueId } = useParams<{ issueId: string }>();
   const query = useIssue(issueId);
+  const boards = useBoards();
   const update = useUpdateIssue();
   const approve = useApproveIssue();
   const remove = useDeleteIssue();
@@ -65,8 +68,15 @@ export default function IssuePage() {
   if (iss.status === 'Approved') nextButtons.push({ status: 'InProgress', label: '진행' });
   if (iss.status === 'InProgress') nextButtons.push({ status: 'Done', label: '완료' });
 
+  const board = boards.data?.find((b) => b.id === iss.boardId);
+
   return (
     <section className="flex flex-col gap-6">
+      <Breadcrumb items={[
+        { label: '보드', to: '/boards' },
+        { label: board?.name ?? '...', to: `/boards/${iss.boardId}` },
+        { label: iss.title },
+      ]} />
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <StatusBadge status={iss.status} />
