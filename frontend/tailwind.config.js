@@ -1,3 +1,4 @@
+import typography from '@tailwindcss/typography';
 import {
   lightColors,
   fontFamily,
@@ -41,5 +42,5 @@ export default {
       boxShadow: shadow,
     },
   },
-  plugins: [],
+  plugins: [typography],
 };
