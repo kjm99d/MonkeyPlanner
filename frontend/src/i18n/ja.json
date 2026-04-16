@@ -109,10 +109,10 @@
     "url": "Webhook URL",
     "cancel": "キャンセル",
     "events": {
-      "issue.created": "イシュー作成",
-      "issue.approved": "イシュー承認",
-      "issue.status_changed": "ステータス変更",
-      "issue.deleted": "イシュー削除"
+      "issue_created": "イシュー作成",
+      "issue_approved": "イシュー承認",
+      "issue_status_changed": "ステータス変更",
+      "issue_deleted": "イシュー削除"
     }
   },
   "stepper": {

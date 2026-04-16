@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { IssueStatus } from '../api/types';
 
 const STEPS: { status: IssueStatus; label: string }[] = [
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function StatusStepper({ current, onSelect, disabled }: Props) {
+  const { t } = useTranslation();
   const currentIdx = STEPS.findIndex((s) => s.status === current);
 
   return (
@@ -37,10 +39,10 @@ export function StatusStepper({ current, onSelect, disabled }: Props) {
 
         const hint =
           step.status === 'Approved'
-            ? 'Approve 버튼으로만 전환 가능'
+            ? t('stepper.approveOnly')
             : step.status === 'Pending'
-              ? '대기 상태로 되돌릴 수 없음'
-              : `${step.label}(으)로 전환`;
+              ? t('stepper.noPending')
+              : t('stepper.moveTo', { label: step.label });
         const showHint = !canClick && !isActive;
 
         return (

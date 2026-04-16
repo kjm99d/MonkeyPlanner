@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   useApproveIssue,
   useBoards,
@@ -19,6 +20,7 @@ import { StatusStepper } from '../../components/StatusStepper';
 import type { IssueStatus } from '../../api/types';
 
 export default function IssuePage() {
+  const { t } = useTranslation();
   const { issueId } = useParams<{ issueId: string }>();
   const query = useIssue(issueId);
   const boards = useBoards();
@@ -105,7 +107,7 @@ export default function IssuePage() {
       <Input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        label="제목"
+        label={t('issue.title')}
         className="text-lg font-semibold"
       />
 
@@ -125,7 +127,7 @@ export default function IssuePage() {
 
       <div className="flex items-center gap-3">
         <Button onClick={onSave} disabled={update.isPending}>
-          {update.isPending ? '저장 중…' : '저장'}
+          {update.isPending ? t('issue.saving') : t('issue.save')}
         </Button>
         {saveErr && (
           <span role="alert" className="text-sm text-red-600">
@@ -135,8 +137,8 @@ export default function IssuePage() {
       </div>
 
       {query.data.children.length > 0 && (
-        <section aria-label="자식 이슈" className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">자식 이슈</h2>
+        <section aria-label={t('issue.children')} className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold">{t('issue.children')}</h2>
           <ul className="flex flex-col gap-2">
             {query.data.children.map((c) => (
               <li key={c.id}>
@@ -159,13 +161,13 @@ export default function IssuePage() {
           type="button"
           onClick={async () => {
             if (!issueId) return;
-            if (!window.confirm('이슈와 모든 자식 이슈가 삭제됩니다. 계속할까요?')) return;
+            if (!window.confirm(t('issue.deleteConfirm'))) return;
             await remove.mutateAsync(issueId);
             window.history.back();
           }}
           className="rounded-md px-3 py-1.5 text-xs text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
         >
-          이 이슈 삭제
+          {t('issue.delete')}
         </button>
       </div>
     </section>

@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Bell, MessageCircle, Hash, Send, Globe } from 'lucide-react';
 import { useWebhooks, useCreateWebhook, useDeleteWebhook } from '../api/hooks';
 import type { WebhookEvent } from '../api/types';
 
-const ALL_EVENTS: { value: WebhookEvent; label: string }[] = [
-  { value: 'issue.created', label: '이슈 생성' },
-  { value: 'issue.approved', label: '이슈 승인' },
-  { value: 'issue.status_changed', label: '상태 변경' },
-  { value: 'issue.deleted', label: '이슈 삭제' },
+const ALL_EVENT_VALUES: WebhookEvent[] = [
+  'issue.created',
+  'issue.approved',
+  'issue.status_changed',
+  'issue.deleted',
 ];
 
 type Platform = 'discord' | 'slack' | 'telegram' | 'custom';
@@ -37,6 +38,7 @@ function PlatformBadge({ url }: { url: string }) {
 }
 
 export function WebhookSettings({ boardId }: { boardId: string }) {
+  const { t } = useTranslation();
   const webhooks = useWebhooks(boardId);
   const createWh = useCreateWebhook();
   const deleteWh = useDeleteWebhook();
@@ -45,6 +47,17 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [events, setEvents] = useState<WebhookEvent[]>(['issue.approved']);
+
+  const eventKeyMap: Record<WebhookEvent, string> = {
+    'issue.created': 'webhook.events.issue_created',
+    'issue.approved': 'webhook.events.issue_approved',
+    'issue.status_changed': 'webhook.events.issue_status_changed',
+    'issue.deleted': 'webhook.events.issue_deleted',
+  };
+  const ALL_EVENTS: { value: WebhookEvent; label: string }[] = ALL_EVENT_VALUES.map((v) => ({
+    value: v,
+    label: t(eventKeyMap[v]),
+  }));
 
   const submit = () => {
     if (!name.trim() || !url.trim()) return;
@@ -63,7 +76,7 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-1.5 text-sm font-semibold text-ink-secondary">
-          <Bell size={14} /> Webhooks
+          <Bell size={14} /> {t('webhook.title')}
         </h3>
         {!open && (
           <button
@@ -71,7 +84,7 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
             onClick={() => setOpen(true)}
             className="flex items-center gap-1 rounded-lg border border-dashed border-edge-base px-2.5 py-1 text-xs text-ink-muted transition-colors hover:border-brand-500/30 hover:text-brand-500"
           >
-            <Plus size={12} /> 추가
+            <Plus size={12} /> {t('webhook.add')}
           </button>
         )}
       </div>
@@ -128,7 +141,7 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
             })}
           </div>
           <input
-            placeholder="이름"
+            placeholder={t('webhook.name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="h-9 rounded-md border-2 border-edge-base bg-surface-base px-3 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
@@ -157,10 +170,10 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
           </div>
           <div className="flex gap-2">
             <button onClick={submit} className="h-8 flex-1 rounded-md bg-brand-500 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
-              추가
+              {t('webhook.add')}
             </button>
             <button onClick={() => setOpen(false)} className="h-8 rounded-md border border-edge-base px-3 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
-              취소
+              {t('webhook.cancel')}
             </button>
           </div>
         </div>

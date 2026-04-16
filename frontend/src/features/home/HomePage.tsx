@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useBoards, useDayStats, useIssues } from '../../api/hooks';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -13,6 +14,7 @@ function todayString(): string {
 
 export default function HomePage() {
   const date = useMemo(todayString, []);
+  const { t } = useTranslation();
   const day = useDayStats(date);
   const approved = useIssues({ status: 'Approved' });
   const inProgress = useIssues({ status: 'InProgress' });
@@ -27,9 +29,9 @@ export default function HomePage() {
       <header className="flex flex-col gap-3 fade-up">
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">오늘의 코숭이</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('home.title')}</h1>
             <p className="mt-1 text-sm text-ink-secondary">
-              <time dateTime={date}>{date}</time> 활동 요약
+              {t('home.summary', { date })}
             </p>
           </div>
         </div>
@@ -46,9 +48,9 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <StatCard label="생성" value={created} hue="text-brand-500" accent="bg-brand-500" delay={0} />
-            <StatCard label="승인" value={approvedCount} hue="text-status-approved" accent="bg-status-approved" delay={1} />
-            <StatCard label="완료" value={completed} hue="text-status-done" accent="bg-status-done" delay={2} />
+            <StatCard label={t('home.created')} value={created} hue="text-brand-500" accent="bg-brand-500" delay={0} />
+            <StatCard label={t('home.approved')} value={approvedCount} hue="text-status-approved" accent="bg-status-approved" delay={1} />
+            <StatCard label={t('home.done')} value={completed} hue="text-status-done" accent="bg-status-done" delay={2} />
           </>
         )}
       </div>
@@ -59,10 +61,10 @@ export default function HomePage() {
         <section className="flex flex-col gap-4 fade-up" style={{ animationDelay: '100ms' }}>
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Clock size={18} className="text-status-inProgress" /> 진행 중인 작업
+              <Clock size={18} className="text-status-inProgress" /> {t('home.inProgress')}
             </h2>
             <span className="rounded-full bg-status-inProgress/10 px-2 py-0.5 text-xs font-medium text-status-inProgress">
-              {inProgress.data?.length ?? 0}건
+              {t('home.items', { count: inProgress.data?.length ?? 0 })}
             </span>
           </div>
           {inProgress.isLoading ? (
@@ -82,14 +84,14 @@ export default function HomePage() {
               ))}
             </ul>
           ) : (
-            <p className="py-6 text-center text-sm text-ink-muted">진행 중인 작업이 없습니다</p>
+            <p className="py-6 text-center text-sm text-ink-muted">{t('home.noInProgress')}</p>
           )}
 
           {/* 승인 대기 */}
           {approved.data && approved.data.length > 0 && (
             <div className="flex flex-col gap-2 fade-up" style={{ animationDelay: '250ms' }}>
               <h3 className="flex items-center gap-2 text-sm font-medium text-ink-secondary">
-                <CheckCircle2 size={14} className="text-status-approved" /> 승인됨 · 작업 대기
+                <CheckCircle2 size={14} className="text-status-approved" /> {t('home.approvedWaiting')}
               </h3>
               <ul className="flex flex-col gap-1.5">
                 {approved.data.slice(0, 3).map((iss) => (
@@ -111,9 +113,9 @@ export default function HomePage() {
         {/* 우: 보드 요약 */}
         <section className="flex flex-col gap-4 fade-up" style={{ animationDelay: '200ms' }}>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">보드 현황</h2>
+            <h2 className="text-lg font-semibold">{t('home.boardStatus')}</h2>
             <Link to="/boards" className="flex items-center gap-1 text-xs font-medium text-brand-500 hover:underline">
-              전체 보기 <ArrowRight size={12} />
+              {t('home.viewAll')} <ArrowRight size={12} />
             </Link>
           </div>
           {boards.isLoading ? (
@@ -141,7 +143,7 @@ export default function HomePage() {
               className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-edge-base py-8 text-center transition-colors hover:border-brand-500/30 hover:bg-brand-500/5"
             >
               <span className="text-2xl">+</span>
-              <span className="text-sm text-ink-secondary">첫 보드를 만들어보세요</span>
+              <span className="text-sm text-ink-secondary">{t('home.createFirst')}</span>
             </Link>
           )}
         </section>

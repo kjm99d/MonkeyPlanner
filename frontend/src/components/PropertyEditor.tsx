@@ -1,13 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, X, Tag, Hash, Calendar, CheckSquare, List, Type } from 'lucide-react';
 import type { BoardProperty, PropertyType } from '../api/types';
 
 const typeIcons: Record<PropertyType, typeof Type> = {
   text: Type, number: Hash, select: List, multi_select: Tag, date: Calendar, checkbox: CheckSquare,
-};
-
-const typeLabels: Record<PropertyType, string> = {
-  text: '텍스트', number: '숫자', select: '선택', multi_select: '다중 선택', date: '날짜', checkbox: '체크박스',
 };
 
 type Props = {
@@ -17,11 +14,12 @@ type Props = {
 };
 
 export function PropertyEditor({ properties, values, onChange }: Props) {
+  const { t } = useTranslation();
   if (properties.length === 0) return null;
 
   return (
     <section className="flex flex-col gap-3 rounded-xl border border-edge-base bg-surface-subtle p-4">
-      <h3 className="text-sm font-semibold text-ink-secondary">속성</h3>
+      <h3 className="text-sm font-semibold text-ink-secondary">{t('issue.properties')}</h3>
       <div className="flex flex-col gap-2.5">
         {properties.map((prop) => (
           <PropertyField key={prop.id} prop={prop} value={values[prop.id]} onChange={(v) => onChange(prop.id, v)} />
@@ -32,6 +30,7 @@ export function PropertyEditor({ properties, values, onChange }: Props) {
 }
 
 function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: unknown; onChange: (v: unknown) => void }) {
+  const { t } = useTranslation();
   const Icon = typeIcons[prop.type];
 
   return (
@@ -47,7 +46,7 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
             value={(value as string) ?? ''}
             onChange={(e) => onChange(e.target.value)}
             className="h-8 w-full rounded-md border border-edge-base bg-surface-base px-2 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
-            placeholder="입력..."
+            placeholder={t('property.input')}
           />
         )}
         {prop.type === 'number' && (
@@ -75,7 +74,7 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
               onChange={(e) => onChange(e.target.checked)}
               className="h-4 w-4 rounded border-edge-base accent-brand-500"
             />
-            <span className="text-sm text-ink-secondary">{value ? '완료' : '미완료'}</span>
+            <span className="text-sm text-ink-secondary">{value ? t('property.checked') : t('property.unchecked')}</span>
           </label>
         )}
         {prop.type === 'select' && (
@@ -84,7 +83,7 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
             onChange={(e) => onChange(e.target.value || null)}
             className="h-8 w-full rounded-md border border-edge-base bg-surface-base px-2 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
           >
-            <option value="">선택...</option>
+            <option value="">{t('property.selectPlaceholder')}</option>
             {prop.options.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
@@ -133,10 +132,20 @@ type AddPropertyProps = {
 };
 
 export function AddPropertyForm({ onAdd }: AddPropertyProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState<PropertyType>('text');
   const [optStr, setOptStr] = useState('');
+
+  const typeLabels: Record<PropertyType, string> = {
+    text: t('property.text'),
+    number: t('property.number'),
+    select: t('property.select'),
+    multi_select: t('property.multi_select'),
+    date: t('property.date'),
+    checkbox: t('property.checkbox'),
+  };
 
   const submit = () => {
     if (!name.trim()) return;
@@ -157,7 +166,7 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 rounded-lg border border-dashed border-edge-base px-3 py-2 text-xs text-ink-muted transition-colors hover:border-brand-500/30 hover:text-brand-500"
       >
-        <Plus size={14} /> 속성 추가
+        <Plus size={14} /> {t('board.addProperty')}
       </button>
     );
   }
@@ -165,13 +174,13 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-edge-base bg-surface-subtle p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-ink-secondary">새 속성</span>
+        <span className="text-xs font-medium text-ink-secondary">{t('property.newProperty')}</span>
         <button type="button" onClick={() => setOpen(false)} className="text-ink-muted hover:text-ink-primary">
           <X size={14} />
         </button>
       </div>
       <input
-        placeholder="속성 이름"
+        placeholder={t('property.name')}
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
@@ -181,13 +190,13 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
         onChange={(e) => setType(e.target.value as PropertyType)}
         className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
       >
-        {(Object.keys(typeLabels) as PropertyType[]).map((t) => (
-          <option key={t} value={t}>{typeLabels[t]}</option>
+        {(Object.keys(typeLabels) as PropertyType[]).map((k) => (
+          <option key={k} value={k}>{typeLabels[k]}</option>
         ))}
       </select>
       {(type === 'select' || type === 'multi_select') && (
         <input
-          placeholder="옵션 (쉼표 구분: P0, P1, P2)"
+          placeholder={t('property.options')}
           value={optStr}
           onChange={(e) => setOptStr(e.target.value)}
           className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
@@ -198,7 +207,7 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
         onClick={submit}
         className="h-8 rounded-md bg-brand-500 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
       >
-        추가
+        {t('property.add')}
       </button>
     </div>
   );
