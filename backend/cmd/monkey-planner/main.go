@@ -1,38 +1,45 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	mphttp "github.com/ckmdevb/monkey-planner/backend/internal/http"
+	"github.com/ckmdevb/monkey-planner/backend/internal/service"
+	"github.com/ckmdevb/monkey-planner/backend/internal/storage"
+	_ "github.com/ckmdevb/monkey-planner/backend/internal/storage/postgres"
+	_ "github.com/ckmdevb/monkey-planner/backend/internal/storage/sqlite"
 )
 
-const version = "0.0.1"
-
 func main() {
-	addr := os.Getenv("MP_ADDR")
-	if addr == "" {
-		addr = ":8080"
+	addr := getenv("MP_ADDR", ":8080")
+	dsn := getenv("MP_DSN", defaultDSN())
+
+	repo, err := storage.NewRepo(dsn)
+	if err != nil {
+		log.Fatalf("storage open: %v", err)
 	}
+	defer repo.Close()
 
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
+	svc := service.New(repo, nil)
+	router := mphttp.NewRouter(svc)
 
-	r.Get("/api/health", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"ok":      true,
-			"version": version,
-		})
-	})
-
-	log.Printf("monkey-planner listening on %s", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
+	log.Printf("monkey-planner listening on %s (dsn=%s)", addr, dsn)
+	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
+}
+
+func defaultDSN() string {
+	_ = os.MkdirAll("./data", 0o755)
+	return "sqlite://" + filepath.Join("./data", "monkey.db")
+}
+
+func getenv(k, d string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return d
 }
