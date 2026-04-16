@@ -1,4 +1,4 @@
-export type IssueStatus = 'Pending' | 'Approved' | 'InProgress' | 'Done' | 'Rejected';
+export type IssueStatus = 'Pending' | 'Approved' | 'InProgress' | 'QA' | 'Done' | 'Rejected';
 
 export type Criterion = { text: string; done: boolean };
 

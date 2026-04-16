@@ -72,6 +72,7 @@
     "pending": "대기",
     "approved": "승인됨",
     "inProgress": "진행 중",
+    "qa": "QA 검증",
     "done": "완료",
     "rejected": "거절됨",
     "dragHere": "이슈를 여기로 드래그하세요",
@@ -132,6 +133,7 @@
     "Pending": "대기",
     "Approved": "승인됨",
     "InProgress": "진행 중",
+    "QA": "QA 검증",
     "Done": "완료",
     "Rejected": "거절됨"
   },

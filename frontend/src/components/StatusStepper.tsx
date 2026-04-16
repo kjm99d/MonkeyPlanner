@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import type { IssueStatus } from '../api/types';
 
-const STEP_STATUSES: IssueStatus[] = ['Pending', 'Approved', 'InProgress', 'Done', 'Rejected'];
+const STEP_STATUSES: IssueStatus[] = ['Pending', 'Approved', 'InProgress', 'QA', 'Done', 'Rejected'];
 
 const dotColor: Record<IssueStatus, string> = {
   Pending: 'bg-status-pending',
   Approved: 'bg-status-approved',
   InProgress: 'bg-status-inProgress',
+  QA: 'bg-status-qa',
   Done: 'bg-status-done',
   Rejected: 'bg-status-rejected',
 };

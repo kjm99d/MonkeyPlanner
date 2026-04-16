@@ -20,6 +20,7 @@
     --status-pending: #a1a1aa;
     --status-approved: #16a34a;
     --status-inProgress: #2563eb;
+    --status-qa: #f59e0b;
     --status-done: #8b5cf6;
     --status-rejected: #ef4444;
   }
@@ -39,6 +40,7 @@
     --status-pending: #71717a;
     --status-approved: #22c55e;
     --status-inProgress: #3b82f6;
+    --status-qa: #fbbf24;
     --status-done: #a78bfa;
     --status-rejected: #f87171;
   }
