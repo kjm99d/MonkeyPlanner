@@ -12,6 +12,7 @@ import {
   useUpdateIssue,
   useUpdateIssueProperties,
 } from '../../api/hooks';
+import { useEventStream } from '../../api/useEventStream';
 import { Breadcrumb } from '../../components/Breadcrumb';
 import { Button } from '../../components/Button';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -35,6 +36,8 @@ export default function IssuePage() {
   const remove = useDeleteIssue();
   const updateProps = useUpdateIssueProperties();
   const boardProps = useBoardProperties(query.data?.issue.boardId);
+
+  useEventStream(query.data?.issue.boardId);
 
   const addDep = useAddDependency();
   const removeDep = useRemoveDependency();

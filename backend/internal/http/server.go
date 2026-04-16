@@ -13,7 +13,7 @@ import (
 
 // NewRouter는 /api/* 경로에 핸들러를 바인딩한 라우터를 반환합니다.
 // static 이 nil이 아니면 /api 이외 경로는 SPA fallback 으로 서빙됩니다.
-func NewRouter(svc *service.Service, static fs.FS) http.Handler {
+func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
@@ -26,10 +26,11 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 	ph := &propertyHandler{svc: svc}
 	wh := &webhookHandler{svc: svc}
 	cmh := &commentHandler{svc: svc}
+	eh := &eventsHandler{broker: svc.Broker()}
 
 	r.Route("/api", func(api chi.Router) {
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
-			writeJSON(w, http.StatusOK, map[string]any{"ok": true, "version": "0.0.1"})
+			writeJSON(w, http.StatusOK, map[string]any{"ok": true, "version": version})
 		})
 
 		api.Route("/boards", func(b chi.Router) {
@@ -80,6 +81,9 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 			c.Get("/", ch.month)
 			c.Get("/day", ch.day)
 		})
+
+		// SSE 이벤트 스트림 (실시간 업데이트)
+		api.Get("/events", eh.stream)
 	})
 
 	if static != nil {

@@ -82,7 +82,7 @@ func handleMCPRequest(ctx context.Context, svc *service.Service, req *jsonRPCReq
 			Result: map[string]any{
 				"protocolVersion": "2024-11-05",
 				"capabilities":   map[string]any{"tools": map[string]any{}},
-				"serverInfo":     map[string]any{"name": "monkey-planner", "version": "1.0.0"},
+				"serverInfo":     map[string]any{"name": "monkey-planner", "version": version},
 			},
 		}
 
@@ -112,6 +112,14 @@ func handleMCPRequest(ctx context.Context, svc *service.Service, req *jsonRPCReq
 
 func mcpToolDefinitions() []map[string]any {
 	return []map[string]any{
+		{
+			"name":        "get_version",
+			"description": "Get the MCP server version. Use this to check if the server needs a restart after an update.",
+			"inputSchema": map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
 		{
 			"name":        "list_boards",
 			"description": "List all boards",
@@ -292,6 +300,9 @@ func handleMCPToolCall(ctx context.Context, svc *service.Service, req *jsonRPCRe
 
 func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw json.RawMessage) (any, error) {
 	switch name {
+	case "get_version":
+		return map[string]any{"version": version, "name": "monkey-planner"}, nil
+
 	case "list_boards":
 		return svc.ListBoards(ctx)
 

@@ -52,23 +52,27 @@ A collaborative tool where humans create and approve issues, and AI agents consu
 
 ### Automation & Integrations
 - **Webhooks** — Discord, Slack, and Telegram support
-  - Events: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.deleted`
+  - Events: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.updated`, `issue.deleted`, `comment.created`
+- **Real-time UI sync (SSE)** — Changes via MCP/CLI automatically reflect in open browser tabs, no refresh needed
 - **JSON Export** — Export all issue data
 - **Right-click Context Menu** — Quick actions
 - **Issue Templates** — Per-board localStorage persistence
 
 ### MCP Server (AI Agent Integration)
-Ten tools for AI agent automation:
+Thirteen tools for AI agent automation:
 1. `list_boards` — List all boards
 2. `list_issues` — Query issues (filter by boardId, status)
 3. `get_issue` — Issue detail including instructions, criteria, and comments
 4. `create_issue` — Create a new issue
 5. `approve_issue` — Approve: Pending → Approved
 6. `claim_issue` — Claim: Approved → InProgress
-7. `complete_issue` — Complete: InProgress → Done (optional comment)
-8. `add_comment` — Add a comment to an issue
-9. `update_criteria` — Check or uncheck a success criterion
-10. `search_issues` — Search issues by title
+7. `submit_qa` — Submit for QA: InProgress → QA
+8. `complete_issue` — Complete: QA → Done (optional comment)
+9. `reject_issue` — Reject: QA → InProgress with required reason
+10. `add_comment` — Add a comment to an issue
+11. `update_criteria` — Check or uncheck a success criterion
+12. `search_issues` — Search issues by title
+13. `get_version` — Get the MCP server version (for diagnostics)
 
 ## Tech Stack
 
@@ -216,50 +220,74 @@ AI: List all boards
 AI: Find issues related to "authentication"
 → search_issues(query="authentication")
 
-AI: Approve the first pending issue, claim it, and complete it
-→ approve_issue() → claim_issue() → complete_issue()
+AI: Approve the first pending issue, claim it, work on it, and submit for QA
+→ approve_issue() → claim_issue() → submit_qa()
 ```
 
-## Agent Workflow
+## Workflow — Real Usage Scenario
+
+Below is a real workflow from fixing a language switcher bug, showing how a human and AI agent collaborate through Monkey Planner.
+
+### Status Flow
 
 ```
-┌────────────────┐
-│  Human creates │  Enter title, body, and instructions
-│  an issue      │
-└────────┬───────┘
-         │
-         ↓
-┌────────────────┐
-│  Approve       │  Pending → Approved
-└────────┬───────┘
-         │
-         ↓
-┌────────────────────────────┐
-│  AI Agent (MCP client)     │  list_issues or search_issues
-└────────┬───────────────────┘
-         │
-         ↓
-┌────────────────────┐
-│ claim_issue()      │  Approved → InProgress
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ Working...         │  add_comment(), update_criteria()
-│                    │  (progress report & criteria checks)
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ complete_issue()   │  InProgress → Done
-│ + final comment    │
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────┐
-│  Human reviews │  Review results and provide feedback
-└────────────────┘
+Pending → Approved → InProgress → QA → Done
+                         ↑              │ (reject with reason)
+                         └──────────────┘
 ```
+
+### Step-by-Step
+
+**1. Create Issue** — Human finds a bug, asks AI to register it
+```
+Human: "The language selector dropdown doesn't appear when clicking the button. Create an issue."
+AI:    create_issue(boardId, title, body, instructions)  →  status: Pending
+```
+
+**2. Approve** — Human reviews and approves
+```
+Human: (clicks Approve on the board or tells AI)
+AI:    approve_issue(issueId)  →  status: Approved
+```
+
+**3. Start Work** — AI claims the issue and begins coding
+```
+AI:    claim_issue(issueId)  →  status: InProgress
+       - Reads code, identifies root cause
+       - Implements fix, runs tests
+       - Commits changes
+```
+
+**4. Submit for QA** — AI finishes and submits for review
+```
+AI:    submit_qa(issueId, comment: "commit abc1234 — fixed click handler")
+       →  status: QA
+       add_comment(issueId, "Commit info: ...")
+```
+
+**5. Review** — Human tests the fix
+```
+Human: Tests in browser, finds the dropdown is clipped by sidebar
+       →  reject_issue(issueId, reason: "Dropdown is hidden behind sidebar")
+       →  status: InProgress  (back to step 3)
+
+Human: Tests again after fix, everything works
+       →  complete_issue(issueId)  →  status: Done
+```
+
+**6. Feedback Loop** — Communication via comments throughout
+```
+Human: add_comment("Dropdown is clipped on the left side, fix it")
+AI:    get_issue() → reads comment → fixes → commit → submit_qa()
+Human: Tests → complete_issue()  →  Done ✓
+```
+
+### Key Takeaways
+
+- **Human controls the gates**: Approve, QA pass/reject, Complete
+- **AI does the work**: Code analysis, implementation, testing, commits
+- **Comments are the communication channel**: Both sides use `add_comment` to exchange feedback
+- **QA loop prevents premature completion**: Issues must pass human review before Done
 
 ## API Reference
 

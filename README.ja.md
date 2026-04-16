@@ -52,23 +52,27 @@
 
 ### 自動化 & 連携
 - **Webhook** — Discord、Slack、Telegram に対応
-  - イベント: `issue.created`、`issue.approved`、`issue.status_changed`、`issue.deleted`
+  - イベント: `issue.created`、`issue.approved`、`issue.status_changed`、`issue.updated`、`issue.deleted`、`comment.created`
+- **リアルタイムUI同期（SSE）** — MCP/CLIでイシュー変更時、開いているブラウザタブに再読み込みなしで即座に反映
 - **JSONエクスポート** — 全イシューデータのエクスポート
 - **右クリックコンテキストメニュー** — クイックアクションメニュー
 - **イシューテンプレート** — ボードごとにlocalStorageへ保存
 
 ### MCPサーバー（AIエージェント連携）
-10種類のツールでAIエージェントの自動化を実現:
+13種類のツールでAIエージェントの自動化を実現:
 1. `list_boards` — 全ボードの取得
 2. `list_issues` — イシューの取得（boardId、statusでフィルタリング可能）
 3. `get_issue` — イシュー詳細の取得（指示・基準・コメントを含む）
 4. `create_issue` — 新規イシューの作成
 5. `approve_issue` — Pending → Approved への承認
 6. `claim_issue` — Approved → InProgress への遷移
-7. `complete_issue` — InProgress → Done への完了（コメント任意）
-8. `add_comment` — イシューへのコメント追加
-9. `update_criteria` — 成功基準のチェック/アンチェック
-10. `search_issues` — タイトルによるイシュー検索
+7. `submit_qa` — InProgress → QA へQA提出
+8. `complete_issue` — QA → Done への完了（コメント任意）
+9. `reject_issue` — QA → InProgress へ却下（理由必須）
+10. `add_comment` — イシューへのコメント追加
+11. `update_criteria` — 成功基準のチェック/アンチェック
+12. `search_issues` — タイトルによるイシュー検索
+13. `get_version` — MCPサーバーのバージョン確認（診断用）
 
 ## 技術スタック
 
@@ -216,49 +220,76 @@ AI: 全てのボードを一覧表示してください
 AI: "認証" に関連するイシューを検索してください
 → search_issues(query="認証") を呼び出し
 
-AI: 最初のPendingイシューを承認して進行中に変更し、完了させます
-→ approve_issue() → claim_issue() → complete_issue() を順番に呼び出し
+AI: 最初のPendingイシューを承認し、作業後QAに提出します
+→ approve_issue() → claim_issue() → submit_qa() を順番に呼び出し
 ```
 
-## エージェントのワークフロー
+## ワークフロー — 実際の使用シナリオ
+
+多言語切替バグの修正で経験した実際のワークフローです。人間とAIエージェントがMonkey Plannerを通じてどのように協業するかを示します。
+
+### ステータスフロー
 
 ```
-┌────────────────┐
-│  人間がイシュー │  タイトル、本文、指示を入力
-└────────┬───────┘
-         │
-         ↓
-┌────────────────┐
-│  Approveボタン │  Pending → Approved
-└────────┬───────┘
-         │
-         ↓
-┌────────────────────────────┐
-│  AIエージェント（MCPクライアント）│  list_issues または search_issues
-└────────┬───────────────────┘
-         │
-         ↓
-┌────────────────────┐
-│ claim_issue()      │  Approved → InProgress
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ 作業を進行中...    │  add_comment()、update_criteria()
-│                    │  （進捗報告 & 基準のチェック）
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────────┐
-│ complete_issue()   │  InProgress → Done
-│ + 最終コメント     │
-└────────┬───────────┘
-         │
-         ↓
-┌────────────────┐
-│  人間が確認    │  結果のレビューとフィードバック
-└────────────────┘
+待機 → 承認済 → 進行中 → QA検証 → 完了
+                  ↑              │（理由付きで却下）
+                  └──────────────┘
 ```
+
+### ステップバイステップ
+
+**1. イシュー作成** — 人間がバグを発見し、AIにイシュー登録を依頼
+```
+人間: 「言語切替ボタンを押してもドロップダウンが表示されない。イシューを作って。」
+AI:   create_issue(boardId, title, body, instructions)  →  ステータス: 待機
+```
+
+**2. 承認** — 人間がイシューを確認して承認
+```
+人間: （ボードでApproveをクリック、またはAIに指示）
+AI:   approve_issue(issueId)  →  ステータス: 承認済
+```
+
+**3. 作業開始** — AIがイシューをclaimしてコード修正を開始
+```
+AI:   claim_issue(issueId)  →  ステータス: 進行中
+      - コード分析、原因特定
+      - 修正実装、テスト実行
+      - 変更をコミット
+```
+
+**4. QA提出** — 作業完了後、検証を依頼
+```
+AI:   submit_qa(issueId, comment: "コミット abc1234 — クリックハンドラー修正")
+      →  ステータス: QA検証
+      add_comment(issueId, "コミット情報: ...")
+```
+
+**5. 検証** — 人間が直接テスト
+```
+人間: ブラウザでテスト、ドロップダウンがサイドバーに隠れる問題を発見
+      →  reject_issue(issueId, reason: "ドロップダウンがサイドバーに隠れる")
+      →  ステータス: 進行中（ステップ3に戻る）
+
+      または
+
+人間: 再修正後テスト、すべて正常に動作
+      →  complete_issue(issueId)  →  ステータス: 完了
+```
+
+**6. フィードバックループ** — コメントによるコミュニケーション
+```
+人間: add_comment("ドロップダウンが左側に隠れています。修正してください")
+AI:   get_issue() → コメント確認 → 修正 → コミット → submit_qa()
+人間: テスト → complete_issue()  →  完了 ✓
+```
+
+### 重要なポイント
+
+- **人間がゲートを管理**: 承認、QA通過/却下、完了の決定
+- **AIが作業を実行**: コード分析、実装、テスト、コミット
+- **コメントがコミュニケーションチャネル**: 双方が `add_comment` でフィードバック交換
+- **QAループで早期完了を防止**: 人間の検証を通過しないと完了できない
 
 ## APIドキュメント
 
