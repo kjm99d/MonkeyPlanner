@@ -12,7 +12,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export default function Layout() {
   return (
     <div className="min-h-screen bg-surface-base text-ink-primary">
-      <header className="sticky top-0 z-10 border-b border-b-brand-500/20 bg-[var(--glass-bg)] backdrop-blur-xl">
+      <header className="sticky top-0 z-10 border-b border-edge-base bg-surface-base/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
           {/* 로고 — 네비와 시각적으로 분리 */}
           <a href="/" className="flex items-center gap-2 font-bold tracking-tight text-ink-primary">

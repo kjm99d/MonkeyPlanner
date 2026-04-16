@@ -16,10 +16,11 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#F0FDFA',
+          50: '#f0fdfa',
+          100: '#ccfbf1',
           500: 'var(--brand-500)',
           600: 'var(--brand-600)',
-          900: '#134E4A',
+          900: '#134e4a',
         },
         accent: {
           DEFAULT: 'var(--accent)',
