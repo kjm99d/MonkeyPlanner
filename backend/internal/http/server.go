@@ -2,6 +2,7 @@
 package http
 
 import (
+	"io/fs"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,8 +12,8 @@ import (
 )
 
 // NewRouter는 /api/* 경로에 핸들러를 바인딩한 라우터를 반환합니다.
-// 정적 파일/SPA fallback은 호출자(main)가 바깥에서 합성합니다.
-func NewRouter(svc *service.Service) http.Handler {
+// static 이 nil이 아니면 /api 이외 경로는 SPA fallback 으로 서빙됩니다.
+func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
@@ -48,6 +49,12 @@ func NewRouter(svc *service.Service) http.Handler {
 			c.Get("/day", ch.day)
 		})
 	})
+
+	if static != nil {
+		spa := SPAHandler(static)
+		r.NotFound(spa.ServeHTTP)
+		r.MethodNotAllowed(spa.ServeHTTP)
+	}
 
 	return r
 }

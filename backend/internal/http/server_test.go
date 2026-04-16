@@ -24,7 +24,7 @@ func newTestServer(t *testing.T) *httptest.Server {
 		t.Fatalf("repo: %v", err)
 	}
 	svc := service.New(repo, func() time.Time { return time.Now().UTC() })
-	srv := httptest.NewServer(mphttp.NewRouter(svc))
+	srv := httptest.NewServer(mphttp.NewRouter(svc, nil))
 	t.Cleanup(func() {
 		srv.Close()
 		_ = repo.Close()

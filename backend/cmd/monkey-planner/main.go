@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/postgres"
 	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/sqlite"
+	"github.com/kjm99d/monkey-planner/backend/web"
 )
 
 func main() {
@@ -24,7 +26,16 @@ func main() {
 	defer repo.Close()
 
 	svc := service.New(repo, nil)
-	router := mphttp.NewRouter(svc)
+
+	var static fs.FS
+	if dist, err := web.Dist(); err == nil {
+		static = dist
+		log.Printf("monkey-planner: prod build — embedded frontend enabled")
+	} else {
+		log.Printf("monkey-planner: dev build — run Vite dev server at :5173 for UI (%v)", err)
+	}
+
+	router := mphttp.NewRouter(svc, static)
 
 	log.Printf("monkey-planner listening on %s (dsn=%s)", addr, dsn)
 	if err := http.ListenAndServe(addr, router); err != nil {
