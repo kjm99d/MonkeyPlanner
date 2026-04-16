@@ -169,6 +169,22 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 }
 ```
 
+**Windows (without bash)**: Use `update-and-run.bat` instead:
+
+```json
+{
+  "mcpServers": {
+    "monkey-planner": {
+      "command": "D:/mp/update-and-run.bat",
+      "args": ["mcp"],
+      "env": {
+        "MP_DSN": "sqlite://D:/mp/data/monkey.db"
+      }
+    }
+  }
+}
+```
+
 The wrapper script automatically checks for new releases on GitHub and updates the binary before each launch.
 
 ### Manual Setup
