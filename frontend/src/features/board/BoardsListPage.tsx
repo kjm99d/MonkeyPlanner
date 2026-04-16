@@ -41,7 +41,13 @@ export default function BoardsListPage() {
 
       {boards.isLoading && <p className="text-ink-secondary">불러오는 중…</p>}
       {boards.data && boards.data.length === 0 && (
-        <p className="text-ink-secondary">아직 보드가 없습니다. 위에서 하나 만들어 보세요.</p>
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <span className="text-5xl" aria-hidden>🐒</span>
+          <div>
+            <p className="text-lg font-semibold text-ink-primary">아직 보드가 없습니다</p>
+            <p className="mt-1 text-sm text-ink-secondary">위 입력란에 이름을 적고 "생성"을 눌러 첫 보드를 만들어 보세요.</p>
+          </div>
+        </div>
       )}
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {boards.data?.map((b) => (

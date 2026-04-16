@@ -31,7 +31,8 @@ export function IssueCard({ issue }: Props) {
         isDragging ? 'shadow-lg opacity-90 cursor-grabbing' : ''
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-2">
+        <span className="mt-0.5 cursor-grab text-ink-muted opacity-40 group-hover:opacity-80 transition-opacity" aria-hidden>⠿</span>
         <Link
           to={`/issues/${issue.id}`}
           onClick={(e) => e.stopPropagation()}
