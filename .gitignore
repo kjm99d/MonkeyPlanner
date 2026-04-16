@@ -39,7 +39,14 @@ Thumbs.db
 *.swp
 *.swo
 
-# OMC state (shared between sessions but not tracked)
-.omc/state/
-.omc/drafts/
+# OMC (all state, plans, sessions, designs, etc.)
+.omc/
+frontend/.omc/
+backend/.omc/
 .gstack/
+
+# Git hooks (project-local)
+.githooks/
+
+# Screenshots (dev only)
+d-*.png
