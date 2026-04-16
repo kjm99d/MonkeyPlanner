@@ -95,6 +95,8 @@
     "createdAt": "{{date}} 생성",
     "instructions": "에이전트 지시사항",
     "instructionsPlaceholder": "MCP 에이전트가 참조할 지시사항을 입력하세요...",
+    "criteria": "성공 기준",
+    "addCriterion": "기준 추가 (Enter)",
     "dependencies": "의존성",
     "blockedBy": "차단 중인 이슈",
     "addDependency": "의존성 추가",

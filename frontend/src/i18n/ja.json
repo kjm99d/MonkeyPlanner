@@ -95,6 +95,8 @@
     "createdAt": "{{date}} 作成",
     "instructions": "エージェント指示",
     "instructionsPlaceholder": "MCPエージェント向けの指示を入力...",
+    "criteria": "成功基準",
+    "addCriterion": "基準を追加 (Enter)",
     "dependencies": "依存関係",
     "blockedBy": "ブロック元",
     "addDependency": "依存関係を追加",

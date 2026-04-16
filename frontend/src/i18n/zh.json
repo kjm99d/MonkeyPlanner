@@ -95,6 +95,8 @@
     "createdAt": "{{date}} 创建",
     "instructions": "代理指令",
     "instructionsPlaceholder": "输入MCP代理的指令...",
+    "criteria": "成功标准",
+    "addCriterion": "添加标准 (Enter)",
     "dependencies": "依赖",
     "blockedBy": "被阻塞",
     "addDependency": "添加依赖",
