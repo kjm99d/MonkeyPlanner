@@ -1,3 +1,12 @@
+import {
+  lightColors,
+  fontFamily,
+  fontSize,
+  spacing,
+  radius,
+  shadow,
+} from './src/design/tokens.ts';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -5,14 +14,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        // tokens는 M2에서 src/design/tokens.ts로 이동 예정
-        brand: {
-          50: '#fff7ed',
-          500: '#f97316',
-          600: '#ea580c',
-          900: '#7c2d12',
+        brand: lightColors.brand,
+        status: lightColors.status,
+        accent: lightColors.accent,
+        surface: {
+          base: lightColors.bg.base,
+          subtle: lightColors.bg.subtle,
+          muted: lightColors.bg.muted,
+        },
+        ink: {
+          primary: lightColors.text.primary,
+          secondary: lightColors.text.secondary,
+          muted: lightColors.text.muted,
+        },
+        edge: {
+          base: lightColors.border.base,
         },
       },
+      fontFamily: {
+        sans: fontFamily.sans,
+        mono: fontFamily.mono,
+      },
+      fontSize,
+      spacing,
+      borderRadius: radius,
+      boxShadow: shadow,
     },
   },
   plugins: [],
