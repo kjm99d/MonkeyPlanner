@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Webhook, Plus, Trash2, Bell } from 'lucide-react';
+import { Plus, Trash2, Bell } from 'lucide-react';
 import { useWebhooks, useCreateWebhook, useDeleteWebhook } from '../api/hooks';
 import type { WebhookEvent } from '../api/types';
 
