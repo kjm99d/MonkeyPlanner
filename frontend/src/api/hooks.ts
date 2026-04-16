@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 import { api } from './client';
-import type { Board, BoardProperty, DayCount, DayStats, Issue, IssueStatus, PropertyType, Webhook, WebhookEvent } from './types';
+import type { Board, BoardProperty, Comment, DayCount, DayStats, Issue, IssueStatus, PropertyType, Webhook, WebhookEvent } from './types';
 
 // ---- Boards ----
 
@@ -24,6 +24,16 @@ export function useCreateBoard() {
   return useMutation({
     mutationFn: (p: { name: string; viewType?: 'kanban' | 'list' }) =>
       api.post<Board>('/api/boards', p),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: boardsKey });
+    },
+  });
+}
+
+export function useDeleteBoard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.del<void>(`/api/boards/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: boardsKey });
     },
@@ -209,5 +219,50 @@ export function useDayStats(date: string | undefined) {
     queryKey: ['calendar', 'day', date],
     queryFn: () => api.get<DayStats>(`/api/calendar/day?date=${date}`),
     enabled: !!date,
+  });
+}
+
+// ---- Reorder ----
+
+export function useReorderIssues() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ boardId, issueIds }: { boardId: string; issueIds: string[] }) =>
+      api.post<void>(`/api/boards/${boardId}/issues/reorder`, { issueIds }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['issues'] });
+    },
+  });
+}
+
+// ---- Comments ----
+
+export function useComments(issueId: string | undefined) {
+  return useQuery<Comment[]>({
+    queryKey: ['comments', issueId],
+    queryFn: () => api.get<Comment[]>(`/api/issues/${issueId}/comments`),
+    enabled: !!issueId,
+  });
+}
+
+export function useCreateComment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ issueId, body }: { issueId: string; body: string }) =>
+      api.post<Comment>(`/api/issues/${issueId}/comments`, { body }),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['comments', vars.issueId] });
+    },
+  });
+}
+
+export function useDeleteComment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId, issueId: _issueId }: { issueId: string; commentId: string }) =>
+      api.del<void>(`/api/comments/${commentId}`),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['comments', vars.issueId] });
+    },
   });
 }

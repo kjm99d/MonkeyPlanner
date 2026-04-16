@@ -8,10 +8,18 @@ export interface Issue {
   body: string;
   status: IssueStatus;
   properties: Record<string, unknown>;
+  position: number;
   createdAt: string;
   updatedAt: string;
   approvedAt?: string | null;
   completedAt?: string | null;
+}
+
+export interface Comment {
+  id: string;
+  issueId: string;
+  body: string;
+  createdAt: string;
 }
 
 export type PropertyType = 'text' | 'number' | 'select' | 'multi_select' | 'date' | 'checkbox';
