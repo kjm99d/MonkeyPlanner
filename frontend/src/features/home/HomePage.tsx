@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo, useEffect, useState } from 'react';
 import { useDayStats, useIssues } from '../../api/hooks';
 import { Card } from '../../components/Card';
+import Hero3DFallback from './Hero3DFallback';
+
+const Hero3D = lazy(() => import('./Hero3D'));
 
 function todayString(): string {
   const d = new Date();
@@ -20,13 +23,32 @@ export default function HomePage() {
   const approved = day.data?.approved.length ?? 0;
   const completed = day.data?.completed.length ?? 0;
 
+  const [enable3D, setEnable3D] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setEnable3D(!m.matches);
+    const handler = (e: MediaQueryListEvent) => setEnable3D(!e.matches);
+    m.addEventListener('change', handler);
+    return () => m.removeEventListener('change', handler);
+  }, []);
+
   return (
     <section className="flex flex-col gap-8">
-      <header>
-        <h1 className="text-4xl font-bold tracking-tight">오늘의 코숭이</h1>
-        <p className="mt-2 text-ink-secondary">
-          오늘 <time dateTime={date}>{date}</time> 의 활동 요약입니다.
-        </p>
+      <header className="flex flex-col gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">오늘의 코숭이</h1>
+          <p className="mt-2 text-ink-secondary">
+            오늘 <time dateTime={date}>{date}</time> 의 활동 요약입니다.
+          </p>
+        </div>
+        {enable3D ? (
+          <Suspense fallback={<Hero3DFallback />}>
+            <Hero3D />
+          </Suspense>
+        ) : (
+          <Hero3DFallback />
+        )}
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
