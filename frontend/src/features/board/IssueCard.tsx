@@ -1,10 +1,12 @@
 import { useDraggable } from '@dnd-kit/core';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { GripVertical, Check, Calendar, Tag } from 'lucide-react';
+import { GripVertical, Check, Calendar, Tag, Trash2, ExternalLink, Copy } from 'lucide-react';
 import type { Issue, BoardProperty } from '../../api/types';
 import { StatusBadge } from '../../components/StatusBadge';
-import { useApproveIssue } from '../../api/hooks';
+import { useApproveIssue, useUpdateIssue, useDeleteIssue } from '../../api/hooks';
+import { ContextMenu } from '../../components/ContextMenu';
 
 type Props = {
   issue: Issue;
@@ -17,6 +19,12 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
     id: issue.id,
   });
   const approve = useApproveIssue();
+  const updateIssue = useUpdateIssue();
+  const deleteIssue = useDeleteIssue();
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
 
   // DragOverlay handles the visual ghost — hide the original card during drag
   const style: React.CSSProperties | undefined = isDragging
@@ -38,17 +46,48 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
       className={`group flex cursor-grab flex-col gap-2 rounded-lg border border-edge-base bg-surface-base p-3 shadow-sm transition-shadow hover:shadow-md motion-reduce:transition-none ${
         isDragging ? 'cursor-grabbing' : ''
       }`}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCtxMenu({ x: e.clientX, y: e.clientY });
+      }}
     >
       <div className="flex items-start gap-2">
         <GripVertical size={14} className="mt-0.5 shrink-0 cursor-grab text-ink-muted opacity-30 group-hover:opacity-70 transition-opacity" aria-hidden />
         <div className="flex-1 min-w-0">
-          <Link
-            to={`/issues/${issue.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="font-medium text-ink-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-          >
-            {issue.title}
-          </Link>
+          {editing ? (
+            <input
+              autoFocus
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={async () => {
+                setEditing(false);
+                if (editTitle.trim() && editTitle !== issue.title) {
+                  await updateIssue.mutateAsync({ id: issue.id, patch: { title: editTitle.trim() } });
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur();
+                if (e.key === 'Escape') { setEditTitle(issue.title); setEditing(false); }
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="w-full rounded border border-brand-500 bg-surface-base px-1 py-0.5 text-sm font-medium text-ink-primary outline-none"
+            />
+          ) : (
+            <Link
+              to={`/issues/${issue.id}`}
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setEditTitle(issue.title);
+                setEditing(true);
+              }}
+              className="font-medium text-ink-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+            >
+              {issue.title}
+            </Link>
+          )}
           {/* 속성 값 인라인 표시 */}
           {propValues.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1" onPointerDown={(e) => e.stopPropagation()}>
@@ -77,6 +116,16 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
           </button>
         </div>
       )}
+      <ContextMenu
+        position={ctxMenu}
+        onClose={() => setCtxMenu(null)}
+        items={[
+          { label: t('issue.title') + '...', icon: <ExternalLink size={14} />, onClick: () => navigate(`/issues/${issue.id}`) },
+          { label: t('board.addIssue'), icon: <Copy size={14} />, onClick: () => { navigator.clipboard.writeText(issue.title); } },
+          { divider: true, label: '', onClick: () => {} },
+          { label: t('issue.delete'), icon: <Trash2 size={14} />, onClick: () => deleteIssue.mutate(issue.id), danger: true },
+        ]}
+      />
     </article>
   );
 }

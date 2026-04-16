@@ -12,6 +12,17 @@ function todayString(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function relativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = Math.floor((now - then) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
 export default function HomePage() {
   const date = useMemo(todayString, []);
   const { t } = useTranslation();
@@ -162,7 +173,7 @@ function StatCard({ label, value, hue, accent, delay }: { label: string; value: 
           <span className="text-xs font-medium text-ink-muted">{label}</span>
           <span className={`text-3xl font-bold tabular-nums tracking-tight ${hue}`}>{value}</span>
         </div>
-        <span className="text-xs text-ink-muted tabular-nums">today</span>
+        <span className="text-xs text-ink-muted tabular-nums">{relativeTime(new Date().toISOString())}</span>
       </div>
     </div>
   );
