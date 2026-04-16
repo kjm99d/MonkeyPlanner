@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
+	"time"
 
 	mphttp "github.com/kjm99d/monkey-planner/backend/internal/http"
 	"github.com/kjm99d/monkey-planner/backend/internal/service"
@@ -45,9 +50,46 @@ func main() {
 
 	router := mphttp.NewRouter(svc, static, version)
 
-	log.Printf("monkey-planner listening on %s (dsn=%s)", addr, dsn)
-	if err := http.ListenAndServe(addr, router); err != nil {
-		log.Fatalf("server error: %v", err)
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           router,
+		ReadHeaderTimeout: 10 * time.Second, // mitigates Slowloris (gosec G112)
+		ReadTimeout:       30 * time.Second,
+		// WriteTimeout is deliberately long: SSE streams hold the response
+		// open until the client disconnects or the server shuts down.
+		WriteTimeout: 0,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	// Listen for SIGINT/SIGTERM so Docker/k8s rolling updates drain in-flight
+	// requests instead of killing the process mid-response.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	serverErr := make(chan error, 1)
+	go func() {
+		log.Printf("monkey-planner listening on %s (dsn=%s)", addr, dsn)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
+		}
+		close(serverErr)
+	}()
+
+	select {
+	case err := <-serverErr:
+		if err != nil {
+			log.Fatalf("server error: %v", err)
+		}
+	case <-ctx.Done():
+		log.Printf("monkey-planner: shutdown signal received, draining...")
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("monkey-planner: graceful shutdown failed: %v", err)
+	} else {
+		log.Printf("monkey-planner: stopped cleanly")
 	}
 }
 
