@@ -21,6 +21,7 @@
     --status-approved: #16a34a;
     --status-inProgress: #2563eb;
     --status-done: #8b5cf6;
+    --status-rejected: #ef4444;
   }
   .dark {
     --bg-base: #0f172a;
@@ -39,6 +40,7 @@
     --status-approved: #22c55e;
     --status-inProgress: #3b82f6;
     --status-done: #a78bfa;
+    --status-rejected: #f87171;
   }
   body {
     background-color: var(--bg-base);
