@@ -52,23 +52,27 @@ A collaborative tool where humans create and approve issues, and AI agents consu
 
 ### Automation & Integrations
 - **Webhooks** — Discord, Slack, and Telegram support
-  - Events: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.deleted`
+  - Events: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.updated`, `issue.deleted`, `comment.created`
+- **Real-time UI sync (SSE)** — Changes via MCP/CLI automatically reflect in open browser tabs, no refresh needed
 - **JSON Export** — Export all issue data
 - **Right-click Context Menu** — Quick actions
 - **Issue Templates** — Per-board localStorage persistence
 
 ### MCP Server (AI Agent Integration)
-Ten tools for AI agent automation:
+Thirteen tools for AI agent automation:
 1. `list_boards` — List all boards
 2. `list_issues` — Query issues (filter by boardId, status)
 3. `get_issue` — Issue detail including instructions, criteria, and comments
 4. `create_issue` — Create a new issue
 5. `approve_issue` — Approve: Pending → Approved
 6. `claim_issue` — Claim: Approved → InProgress
-7. `complete_issue` — Complete: InProgress → Done (optional comment)
-8. `add_comment` — Add a comment to an issue
-9. `update_criteria` — Check or uncheck a success criterion
-10. `search_issues` — Search issues by title
+7. `submit_qa` — Submit for QA: InProgress → QA
+8. `complete_issue` — Complete: QA → Done (optional comment)
+9. `reject_issue` — Reject: QA → InProgress with required reason
+10. `add_comment` — Add a comment to an issue
+11. `update_criteria` — Check or uncheck a success criterion
+12. `search_issues` — Search issues by title
+13. `get_version` — Get the MCP server version (for diagnostics)
 
 ## Tech Stack
 

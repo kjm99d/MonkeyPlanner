@@ -52,23 +52,27 @@
 
 ### 自動化 & 連携
 - **Webhook** — Discord、Slack、Telegram に対応
-  - イベント: `issue.created`、`issue.approved`、`issue.status_changed`、`issue.deleted`
+  - イベント: `issue.created`、`issue.approved`、`issue.status_changed`、`issue.updated`、`issue.deleted`、`comment.created`
+- **リアルタイムUI同期（SSE）** — MCP/CLIでイシュー変更時、開いているブラウザタブに再読み込みなしで即座に反映
 - **JSONエクスポート** — 全イシューデータのエクスポート
 - **右クリックコンテキストメニュー** — クイックアクションメニュー
 - **イシューテンプレート** — ボードごとにlocalStorageへ保存
 
 ### MCPサーバー（AIエージェント連携）
-10種類のツールでAIエージェントの自動化を実現:
+13種類のツールでAIエージェントの自動化を実現:
 1. `list_boards` — 全ボードの取得
 2. `list_issues` — イシューの取得（boardId、statusでフィルタリング可能）
 3. `get_issue` — イシュー詳細の取得（指示・基準・コメントを含む）
 4. `create_issue` — 新規イシューの作成
 5. `approve_issue` — Pending → Approved への承認
 6. `claim_issue` — Approved → InProgress への遷移
-7. `complete_issue` — InProgress → Done への完了（コメント任意）
-8. `add_comment` — イシューへのコメント追加
-9. `update_criteria` — 成功基準のチェック/アンチェック
-10. `search_issues` — タイトルによるイシュー検索
+7. `submit_qa` — InProgress → QA へQA提出
+8. `complete_issue` — QA → Done への完了（コメント任意）
+9. `reject_issue` — QA → InProgress へ却下（理由必須）
+10. `add_comment` — イシューへのコメント追加
+11. `update_criteria` — 成功基準のチェック/アンチェック
+12. `search_issues` — タイトルによるイシュー検索
+13. `get_version` — MCPサーバーのバージョン確認（診断用）
 
 ## 技術スタック
 

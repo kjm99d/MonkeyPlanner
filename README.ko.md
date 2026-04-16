@@ -52,23 +52,27 @@
 
 ### 자동화 & 연동
 - **Webhook** — Discord, Slack, Telegram 지원
-  - 이벤트: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.deleted`
+  - 이벤트: `issue.created`, `issue.approved`, `issue.status_changed`, `issue.updated`, `issue.deleted`, `comment.created`
+- **실시간 UI 동기화 (SSE)** — MCP/CLI로 이슈 변경 시 열려있는 브라우저 탭에 새로고침 없이 즉시 반영
 - **JSON 내보내기** — 모든 이슈 데이터 내보내기
 - **우클릭 컨텍스트 메뉴** — 빠른 작업 메뉴
 - **이슈 템플릿** — 보드별 localStorage 저장
 
 ### MCP 서버 (AI 에이전트 연동)
-10가지 도구로 AI 에이전트 자동화:
+13가지 도구로 AI 에이전트 자동화:
 1. `list_boards` — 모든 보드 조회
 2. `list_issues` — 이슈 조회 (boardId, status 필터)
 3. `get_issue` — 이슈 상세 (지시사항, 기준, 댓글 포함)
 4. `create_issue` — 새 이슈 생성
 5. `approve_issue` — Pending → Approved 승인
 6. `claim_issue` — Approved → InProgress 전환
-7. `complete_issue` — InProgress → Done 완료 (선택 댓글)
-8. `add_comment` — 이슈에 댓글 추가
-9. `update_criteria` — 성공 기준 체크/언체크
-10. `search_issues` — 제목 기반 이슈 검색
+7. `submit_qa` — InProgress → QA 검증 제출
+8. `complete_issue` — QA → Done 완료 (선택 댓글)
+9. `reject_issue` — QA → InProgress 거절 (사유 필수)
+10. `add_comment` — 이슈에 댓글 추가
+11. `update_criteria` — 성공 기준 체크/언체크
+12. `search_issues` — 제목 기반 이슈 검색
+13. `get_version` — MCP 서버 버전 확인 (진단용)
 
 ## 기술 스택
 

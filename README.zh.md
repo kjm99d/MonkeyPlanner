@@ -52,23 +52,27 @@
 
 ### 自动化与集成
 - **Webhook** — 支持 Discord、Slack、Telegram
-  - 事件类型：`issue.created`、`issue.approved`、`issue.status_changed`、`issue.deleted`
+  - 事件类型：`issue.created`、`issue.approved`、`issue.status_changed`、`issue.updated`、`issue.deleted`、`comment.created`
+- **实时 UI 同步（SSE）** — 通过 MCP/CLI 修改问题时，已打开的浏览器标签无需刷新即时同步
 - **JSON 导出** — 导出所有问题数据
 - **右键上下文菜单** — 快捷操作菜单
 - **问题模板** — 按看板存储至 localStorage
 
 ### MCP 服务器（AI 智能体集成）
-10 个工具，赋能 AI 智能体自动化：
+13 个工具，赋能 AI 智能体自动化：
 1. `list_boards` — 查看所有看板
 2. `list_issues` — 查询问题（支持 boardId、status 筛选）
 3. `get_issue` — 获取问题详情（含指令、标准、评论）
 4. `create_issue` — 创建新问题
 5. `approve_issue` — 审批：Pending → Approved
 6. `claim_issue` — 认领：Approved → InProgress
-7. `complete_issue` — 完成：InProgress → Done（可附带评论）
-8. `add_comment` — 为问题添加评论
-9. `update_criteria` — 勾选/取消验收标准
-10. `search_issues` — 按标题搜索问题
+7. `submit_qa` — 提交 QA：InProgress → QA
+8. `complete_issue` — 完成：QA → Done（可附带评论）
+9. `reject_issue` — 拒绝：QA → InProgress（必须说明原因）
+10. `add_comment` — 为问题添加评论
+11. `update_criteria` — 勾选/取消验收标准
+12. `search_issues` — 按标题搜索问题
+13. `get_version` — 获取 MCP 服务器版本（用于诊断）
 
 ## 技术栈
 
