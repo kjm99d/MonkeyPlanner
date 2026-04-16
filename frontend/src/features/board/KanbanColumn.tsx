@@ -1,4 +1,5 @@
 import { useDroppable } from '@dnd-kit/core';
+import { ClipboardList } from 'lucide-react';
 import type { Issue, IssueStatus } from '../../api/types';
 import { IssueCard } from './IssueCard';
 
@@ -34,7 +35,7 @@ export function KanbanColumn({ status, title, issues }: Props) {
       <div className="flex flex-col gap-2">
         {issues.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
-            <span className="text-2xl opacity-30" aria-hidden>📋</span>
+            <ClipboardList size={28} className="text-ink-muted opacity-25" />
             <p className="text-xs text-ink-muted">이슈를 여기로 드래그하세요</p>
           </div>
         ) : (

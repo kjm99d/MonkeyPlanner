@@ -43,6 +43,32 @@
   }
 }
 
+/* 글로벌 마이크로 인터랙션 */
+@layer utilities {
+  .animate-in {
+    animation: fadeSlideIn 300ms ease-out;
+  }
+  .slide-in-from-right {
+    --tw-enter-translate-x: 1rem;
+  }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(var(--tw-enter-translate-x, 0)) translateY(var(--tw-enter-translate-y, 0));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+/* 전역 클릭 요소 cursor + 전환 */
+a, button, [role="button"], [role="tab"], [role="gridcell"] {
+  cursor: pointer;
+}
+
 .hero-banner {
   background-image:
     radial-gradient(ellipse at 20% 50%, rgba(249,115,22,0.08) 0%, transparent 60%),
