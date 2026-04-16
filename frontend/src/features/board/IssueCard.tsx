@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { GripVertical, Check, Calendar, Tag, Trash2, ExternalLink, Copy } from 'lucide-react';
 import type { Issue, BoardProperty } from '../../api/types';
-import { StatusBadge } from '../../components/StatusBadge';
 import { useApproveIssue, useUpdateIssue, useDeleteIssue } from '../../api/hooks';
 import { ContextMenu } from '../../components/ContextMenu';
 
