@@ -81,10 +81,20 @@ type BoardPropertyRepo interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// Repo 는 이슈/보드/속성 레포를 함께 제공하는 상위 인터페이스입니다.
+// WebhookRepo 는 webhook 저장소 인터페이스입니다.
+type WebhookRepo interface {
+	Create(ctx context.Context, wh domain.Webhook) (domain.Webhook, error)
+	List(ctx context.Context, boardID string) ([]domain.Webhook, error)
+	ListByEvent(ctx context.Context, boardID string, event domain.WebhookEvent) ([]domain.Webhook, error)
+	Update(ctx context.Context, id string, name *string, url *string, events *[]domain.WebhookEvent, enabled *bool) (domain.Webhook, error)
+	Delete(ctx context.Context, id string) error
+}
+
+// Repo 는 이슈/보드/속성/웹훅 레포를 함께 제공하는 상위 인터페이스입니다.
 type Repo interface {
 	Issues() IssueRepo
 	Boards() BoardRepo
 	BoardProperties() BoardPropertyRepo
+	Webhooks() WebhookRepo
 	Close() error
 }

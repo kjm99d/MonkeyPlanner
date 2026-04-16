@@ -7,6 +7,7 @@ import { Input } from '../../components/Input';
 import { Breadcrumb } from '../../components/Breadcrumb';
 import { AddPropertyForm } from '../../components/PropertyEditor';
 import { useToast } from '../../components/Toast';
+import { WebhookSettings } from '../../components/WebhookSettings';
 import { KanbanColumn } from './KanbanColumn';
 import type { Issue, IssueStatus } from '../../api/types';
 
@@ -127,6 +128,9 @@ export default function BoardPage() {
           ))}
         </div>
       </DndContext>
+
+      {/* Webhook 설정 */}
+      {boardId && <WebhookSettings boardId={boardId} />}
     </section>
   );
 }

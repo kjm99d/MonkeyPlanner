@@ -48,7 +48,8 @@ func Open(dsn string) (*Repo, error) {
 func (r *Repo) Issues() storage.IssueRepo              { return r.issues }
 func (r *Repo) Boards() storage.BoardRepo              { return r.boards }
 func (r *Repo) BoardProperties() storage.BoardPropertyRepo { return nil } // phase 2
-func (r *Repo) Close() error                            { return r.db.Close() }
+func (r *Repo) Webhooks() storage.WebhookRepo              { return nil } // phase 2
+func (r *Repo) Close() error                               { return r.db.Close() }
 
 // ---- issueRepo ----
 

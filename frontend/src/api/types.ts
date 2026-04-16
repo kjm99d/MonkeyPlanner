@@ -33,6 +33,18 @@ export interface Board {
   createdAt: string;
 }
 
+export type WebhookEvent = 'issue.created' | 'issue.approved' | 'issue.status_changed' | 'issue.deleted';
+
+export interface Webhook {
+  id: string;
+  boardId: string;
+  name: string;
+  url: string;
+  events: WebhookEvent[];
+  enabled: boolean;
+  createdAt: string;
+}
+
 export interface DayCount {
   date: string;
   created: number;
