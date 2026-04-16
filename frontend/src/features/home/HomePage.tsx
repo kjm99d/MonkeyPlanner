@@ -1,25 +1,27 @@
 import { Link } from 'react-router-dom';
 import { lazy, Suspense, useMemo, useEffect, useState } from 'react';
-import { useDayStats, useIssues } from '../../api/hooks';
+import { Clock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useBoards, useDayStats, useIssues } from '../../api/hooks';
+import { StatusBadge } from '../../components/StatusBadge';
+import { Skeleton } from '../../components/Skeleton';
 import Hero3DFallback from './Hero3DFallback';
 
 const Hero3D = lazy(() => import('./Hero3D'));
 
 function todayString(): string {
   const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export default function HomePage() {
   const date = useMemo(todayString, []);
   const day = useDayStats(date);
-  const recent = useIssues({ status: 'Approved' });
+  const approved = useIssues({ status: 'Approved' });
+  const inProgress = useIssues({ status: 'InProgress' });
+  const boards = useBoards();
 
   const created = day.data?.created.length ?? 0;
-  const approved = day.data?.approved.length ?? 0;
+  const approvedCount = day.data?.approved.length ?? 0;
   const completed = day.data?.completed.length ?? 0;
 
   const [enable3D, setEnable3D] = useState(false);
@@ -33,12 +35,13 @@ export default function HomePage() {
   }, []);
 
   return (
-    <section className="flex flex-col gap-8">
-      <header className="flex flex-col gap-4">
+    <section className="flex flex-col gap-6">
+      {/* Hero — 컴팩트 */}
+      <header className="flex flex-col gap-3 fade-up">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">오늘의 코숭이</h1>
-          <p className="mt-2 text-ink-secondary">
-            오늘 <time dateTime={date}>{date}</time> 의 활동 요약입니다.
+          <h1 className="text-3xl font-bold tracking-tight">오늘의 코숭이</h1>
+          <p className="mt-1 text-sm text-ink-secondary">
+            <time dateTime={date}>{date}</time> 활동 요약
           </p>
         </div>
         {enable3D ? (
@@ -50,43 +53,126 @@ export default function HomePage() {
         )}
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="생성" value={created} hue="text-brand-500" accent="bg-brand-500" />
-        <StatCard label="승인" value={approved} hue="text-status-approved" accent="bg-status-approved" />
-        <StatCard label="완료" value={completed} hue="text-status-done" accent="bg-status-done" />
+      {/* 통계 카드 3분할 */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        {day.isLoading ? (
+          <>
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+          </>
+        ) : (
+          <>
+            <StatCard label="생성" value={created} hue="text-brand-500" accent="bg-brand-500" delay={0} />
+            <StatCard label="승인" value={approvedCount} hue="text-status-approved" accent="bg-status-approved" delay={1} />
+            <StatCard label="완료" value={completed} hue="text-status-done" accent="bg-status-done" delay={2} />
+          </>
+        )}
       </div>
 
-      <section aria-label="최근 승인된 이슈" className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">최근 승인된 이슈</h2>
-        {recent.isLoading && <p className="text-ink-secondary">불러오는 중…</p>}
-        {recent.data && recent.data.length === 0 && (
-          <p className="text-ink-secondary">아직 승인된 이슈가 없습니다.</p>
-        )}
-        <ul className="flex flex-col gap-2">
-          {recent.data?.slice(0, 5).map((iss) => (
-            <li key={iss.id}>
-              <Link
-                to={`/issues/${iss.id}`}
-                className="block rounded-md border border-edge-base bg-surface-subtle px-4 py-3 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{iss.title}</span>
-                  <time className="text-xs text-ink-muted" dateTime={iss.approvedAt ?? iss.updatedAt}>
-                    {new Date(iss.approvedAt ?? iss.updatedAt).toLocaleString('ko-KR')}
-                  </time>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* 2열 레이아웃: 진행 중 이슈 + 보드 요약 */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* 좌: 진행 중 + 승인 대기 이슈 */}
+        <section className="flex flex-col gap-4 fade-up" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <Clock size={18} className="text-status-inProgress" /> 진행 중인 작업
+            </h2>
+            <span className="rounded-full bg-status-inProgress/10 px-2 py-0.5 text-xs font-medium text-status-inProgress">
+              {inProgress.data?.length ?? 0}건
+            </span>
+          </div>
+          {inProgress.isLoading ? (
+            <Skeleton className="h-14 rounded-lg" count={3} />
+          ) : inProgress.data && inProgress.data.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {inProgress.data.slice(0, 5).map((iss, i) => (
+                <li key={iss.id} className="fade-up" style={{ animationDelay: `${150 + i * 40}ms` }}>
+                  <Link
+                    to={`/issues/${iss.id}`}
+                    className="flex items-center justify-between rounded-lg border border-edge-base bg-surface-subtle px-4 py-3 transition-all duration-200 hover:bg-surface-muted hover:shadow-sm"
+                  >
+                    <span className="font-medium">{iss.title}</span>
+                    <StatusBadge status={iss.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-6 text-center text-sm text-ink-muted">진행 중인 작업이 없습니다</p>
+          )}
+
+          {/* 승인 대기 */}
+          {approved.data && approved.data.length > 0 && (
+            <div className="flex flex-col gap-2 fade-up" style={{ animationDelay: '250ms' }}>
+              <h3 className="flex items-center gap-2 text-sm font-medium text-ink-secondary">
+                <CheckCircle2 size={14} className="text-status-approved" /> 승인됨 · 작업 대기
+              </h3>
+              <ul className="flex flex-col gap-1.5">
+                {approved.data.slice(0, 3).map((iss) => (
+                  <li key={iss.id}>
+                    <Link
+                      to={`/issues/${iss.id}`}
+                      className="flex items-center justify-between rounded-md border border-edge-base bg-surface-base px-3 py-2 text-sm transition-colors hover:bg-surface-muted"
+                    >
+                      <span>{iss.title}</span>
+                      <StatusBadge status={iss.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* 우: 보드 요약 */}
+        <section className="flex flex-col gap-4 fade-up" style={{ animationDelay: '200ms' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">보드 현황</h2>
+            <Link to="/boards" className="flex items-center gap-1 text-xs font-medium text-brand-500 hover:underline">
+              전체 보기 <ArrowRight size={12} />
+            </Link>
+          </div>
+          {boards.isLoading ? (
+            <Skeleton className="h-20 rounded-lg" count={2} />
+          ) : boards.data && boards.data.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {boards.data.slice(0, 4).map((b, i) => (
+                <li key={b.id} className="fade-up" style={{ animationDelay: `${250 + i * 40}ms` }}>
+                  <Link
+                    to={`/boards/${b.id}`}
+                    className="flex items-center justify-between rounded-lg border border-edge-base bg-surface-subtle px-4 py-3 transition-all duration-200 hover:bg-surface-muted hover:shadow-sm"
+                  >
+                    <div>
+                      <span className="font-medium">{b.name}</span>
+                      <span className="ml-2 text-xs text-ink-muted">{b.viewType}</span>
+                    </div>
+                    <ArrowRight size={14} className="text-ink-muted" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Link
+              to="/boards"
+              className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-edge-base py-8 text-center transition-colors hover:border-brand-500/30 hover:bg-brand-500/5"
+            >
+              <span className="text-2xl">+</span>
+              <span className="text-sm text-ink-secondary">첫 보드를 만들어보세요</span>
+            </Link>
+          )}
+        </section>
+      </div>
     </section>
   );
 }
 
-function StatCard({ label, value, hue, accent }: { label: string; value: number; hue: string; accent: string }) {
+function StatCard({ label, value, hue, accent, delay }: { label: string; value: number; hue: string; accent: string; delay: number }) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-edge-base bg-gradient-to-br from-surface-subtle to-surface-muted p-4 shadow-sm transition-transform hover:[transform:perspective(800px)_rotateX(2deg)_rotateY(-2deg)] motion-reduce:hover:transform-none">
+    <div
+      className="fade-up relative overflow-hidden rounded-lg border border-edge-base bg-gradient-to-br from-surface-subtle to-surface-muted p-4 shadow-sm transition-transform hover:[transform:perspective(800px)_rotateX(2deg)_rotateY(-2deg)] motion-reduce:hover:transform-none"
+      style={{ animationDelay: `${delay * 60}ms` }}
+    >
       <div className={`absolute left-0 top-0 h-full w-1 rounded-l-lg ${accent}`} />
       <div className="flex flex-col gap-1 pl-2">
         <span className="text-sm font-medium text-ink-secondary">{label}</span>

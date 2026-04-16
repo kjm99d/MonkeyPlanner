@@ -5,6 +5,7 @@ import { useBoards, useCreateIssue, useIssues, useUpdateIssue } from '../../api/
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Breadcrumb } from '../../components/Breadcrumb';
+import { useToast } from '../../components/Toast';
 import { KanbanColumn } from './KanbanColumn';
 import type { Issue, IssueStatus } from '../../api/types';
 
@@ -23,6 +24,7 @@ export default function BoardPage() {
   const createIssue = useCreateIssue();
   const updateIssue = useUpdateIssue();
 
+  const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -46,6 +48,7 @@ export default function BoardPage() {
     if (!title.trim() || !boardId) return;
     await createIssue.mutateAsync({ boardId, title: title.trim() });
     setTitle('');
+    toast('success', '이슈가 생성되었습니다');
   }
 
   async function onDragEnd(e: DragEndEvent) {
@@ -57,12 +60,14 @@ export default function BoardPage() {
     if (!current || current.status === toStatus) return;
     try {
       await updateIssue.mutateAsync({ id: issueId, patch: { status: toStatus } });
+      toast('success', `상태가 "${toStatus}"로 변경되었습니다`);
     } catch (err) {
       const msg =
         (err as { message?: string; code?: string })?.message ??
         (err as { code?: string })?.code ??
         '상태 변경 실패';
       setErrMsg(msg);
+      toast('error', msg);
     }
   }
 

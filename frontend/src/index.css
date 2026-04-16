@@ -46,22 +46,24 @@
 /* 글로벌 마이크로 인터랙션 */
 @layer utilities {
   .animate-in {
-    animation: fadeSlideIn 300ms ease-out;
+    animation: fadeSlideIn 300ms ease-out both;
   }
   .slide-in-from-right {
     --tw-enter-translate-x: 1rem;
   }
+  .fade-up {
+    animation: fadeUp 400ms ease-out both;
+  }
 }
 
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(var(--tw-enter-translate-x, 0)) translateY(var(--tw-enter-translate-y, 0));
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) translateY(0);
-  }
+  from { opacity: 0; transform: translateX(var(--tw-enter-translate-x, 0)) translateY(var(--tw-enter-translate-y, 0)); }
+  to { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* 전역 클릭 요소 cursor + 전환 */
