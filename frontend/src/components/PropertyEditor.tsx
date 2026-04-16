@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, X, Tag, Hash, Calendar, CheckSquare, List, Type } from 'lucide-react';
 import type { BoardProperty, PropertyType } from '../api/types';
+import { Button } from './Button';
 
 const typeIcons: Record<PropertyType, typeof Type> = {
   text: Type, number: Hash, select: List, multi_select: Tag, date: Calendar, checkbox: CheckSquare,
@@ -33,6 +34,39 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
   const { t } = useTranslation();
   const Icon = typeIcons[prop.type];
 
+  const [localText, setLocalText] = useState((value as string) ?? '');
+  const [localNumber, setLocalNumber] = useState((value as string) ?? '');
+
+  useEffect(() => {
+    setLocalText((value as string) ?? '');
+  }, [value]);
+
+  useEffect(() => {
+    setLocalNumber((value as string) ?? '');
+  }, [value]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localText !== (value ?? '')) {
+        onChange(localText || null);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localText]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const numVal = localNumber !== '' ? Number(localNumber) : null;
+      const prevVal = value !== undefined && value !== null ? String(value) : '';
+      if (localNumber !== prevVal) {
+        onChange(numVal);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localNumber]);
+
   return (
     <div className="flex items-center gap-3">
       <div className="flex w-32 shrink-0 items-center gap-1.5 text-xs text-ink-muted">
@@ -43,19 +77,21 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
         {prop.type === 'text' && (
           <input
             type="text"
-            value={(value as string) ?? ''}
-            onChange={(e) => onChange(e.target.value)}
+            value={localText}
+            onChange={(e) => setLocalText(e.target.value)}
             className="h-8 w-full rounded-md border border-edge-base bg-surface-base px-2 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
             placeholder={t('property.input')}
+            aria-label={prop.name}
           />
         )}
         {prop.type === 'number' && (
           <input
             type="number"
-            value={(value as number) ?? ''}
-            onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+            value={localNumber}
+            onChange={(e) => setLocalNumber(e.target.value)}
             className="h-8 w-full rounded-md border border-edge-base bg-surface-base px-2 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
             placeholder="0"
+            aria-label={prop.name}
           />
         )}
         {prop.type === 'date' && (
@@ -64,6 +100,7 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
             value={(value as string) ?? ''}
             onChange={(e) => onChange(e.target.value || null)}
             className="h-8 w-full rounded-md border border-edge-base bg-surface-base px-2 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
+            aria-label={prop.name}
           />
         )}
         {prop.type === 'checkbox' && (
@@ -82,6 +119,7 @@ function PropertyField({ prop, value, onChange }: { prop: BoardProperty; value: 
             value={(value as string) ?? ''}
             onChange={(e) => onChange(e.target.value || null)}
             className="h-8 w-full rounded-md border border-edge-base bg-surface-base px-2 text-sm text-ink-primary focus-visible:border-brand-500 focus-visible:outline-none"
+            aria-label={prop.name}
           >
             <option value="">{t('property.selectPlaceholder')}</option>
             {prop.options.map((opt) => (
@@ -137,6 +175,7 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState<PropertyType>('text');
   const [optStr, setOptStr] = useState('');
+  const [nameError, setNameError] = useState(false);
 
   const typeLabels: Record<PropertyType, string> = {
     text: t('property.text'),
@@ -148,7 +187,11 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
   };
 
   const submit = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setNameError(true);
+      return;
+    }
+    setNameError(false);
     const options = (type === 'select' || type === 'multi_select')
       ? optStr.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
@@ -182,9 +225,12 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
       <input
         placeholder={t('property.name')}
         value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
+        onChange={(e) => { setName(e.target.value); setNameError(false); }}
+        className={`h-8 rounded-md border bg-surface-base px-2 text-sm focus-visible:outline-none ${nameError ? 'border-red-500 ring-1 ring-red-500' : 'border-edge-base focus-visible:border-brand-500'}`}
       />
+      {nameError && (
+        <span className="text-xs text-red-600">{t('property.nameRequired')}</span>
+      )}
       <select
         value={type}
         onChange={(e) => setType(e.target.value as PropertyType)}
@@ -202,13 +248,7 @@ export function AddPropertyForm({ onAdd }: AddPropertyProps) {
           className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
         />
       )}
-      <button
-        type="button"
-        onClick={submit}
-        className="h-8 rounded-md bg-brand-500 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
-      >
-        {t('property.add')}
-      </button>
+      <Button size="sm" onClick={submit}>{t('property.add')}</Button>
     </div>
   );
 }

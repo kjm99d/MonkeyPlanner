@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Bell, MessageCircle, Hash, Send, Globe } from 'lucide-react';
 import { useWebhooks, useCreateWebhook, useDeleteWebhook } from '../api/hooks';
+import { ConfirmDialog } from './ConfirmDialog';
+import { Input } from './Input';
+import { Button } from './Button';
+import { useToast } from './Toast';
 import type { WebhookEvent } from '../api/types';
 
 const ALL_EVENT_VALUES: WebhookEvent[] = [
@@ -17,7 +21,7 @@ const PLATFORMS: { value: Platform; label: string; icon: typeof Globe; color: st
   { value: 'discord', label: 'Discord', icon: MessageCircle, color: 'text-[#5865F2] bg-[#5865F2]/10', hint: 'https://discord.com/api/webhooks/...' },
   { value: 'slack', label: 'Slack', icon: Hash, color: 'text-[#E01E5A] bg-[#E01E5A]/10', hint: 'https://hooks.slack.com/services/...' },
   { value: 'telegram', label: 'Telegram', icon: Send, color: 'text-[#26A5E4] bg-[#26A5E4]/10', hint: 'https://api.telegram.org/bot.../sendMessage' },
-  { value: 'custom', label: '커스텀', icon: Globe, color: 'text-ink-secondary bg-surface-muted', hint: 'https://your-server.com/webhook' },
+  { value: 'custom', label: 'Custom', icon: Globe, color: 'text-ink-secondary bg-surface-muted', hint: 'https://your-server.com/webhook' },
 ];
 
 function detectPlatform(url: string): Platform {
@@ -39,10 +43,12 @@ function PlatformBadge({ url }: { url: string }) {
 
 export function WebhookSettings({ boardId }: { boardId: string }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const webhooks = useWebhooks(boardId);
   const createWh = useCreateWebhook();
   const deleteWh = useDeleteWebhook();
   const [open, setOpen] = useState(false);
+  const [confirmWh, setConfirmWh] = useState<string | null>(null);
   const [platform, setPlatform] = useState<Platform>('discord');
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -59,13 +65,17 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
     label: t(eventKeyMap[v]),
   }));
 
-  const submit = () => {
+  const submit = async () => {
     if (!name.trim() || !url.trim()) return;
-    createWh.mutate({ boardId, name: name.trim(), url: url.trim(), events });
-    setName('');
-    setUrl('');
-    setEvents(['issue.approved']);
-    setOpen(false);
+    try {
+      await createWh.mutateAsync({ boardId, name: name.trim(), url: url.trim(), events });
+      setName('');
+      setUrl('');
+      setEvents(['issue.approved']);
+      setOpen(false);
+    } catch {
+      toast('error', t('common.error'));
+    }
   };
 
   const toggleEvent = (e: WebhookEvent) => {
@@ -89,9 +99,9 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
         )}
       </div>
 
-      {/* 기존 webhook 목록 */}
+      {/* existing webhook list */}
       {webhooks.data?.map((wh) => (
-        <div key={wh.id} className="flex items-center justify-between rounded-lg border-2 border-edge-base bg-surface-subtle px-4 py-3 shadow-sm">
+        <div key={wh.id} className="flex items-center justify-between rounded-lg border border-edge-base bg-surface-subtle px-4 py-3 shadow-sm">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <PlatformBadge url={wh.url} />
@@ -100,7 +110,7 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
             <span className="text-xs text-ink-muted truncate max-w-[400px]">{wh.url}</span>
             <div className="flex gap-1 mt-1">
               {wh.events.map((e) => (
-                <span key={e} className="rounded bg-brand-500/10 px-1.5 py-0.5 text-[10px] text-brand-500">
+                <span key={e} className="rounded bg-brand-500/10 px-1.5 py-0.5 text-[11px] text-brand-500">
                   {ALL_EVENTS.find((a) => a.value === e)?.label ?? e}
                 </span>
               ))}
@@ -108,19 +118,34 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
           </div>
           <button
             type="button"
-            onClick={() => deleteWh.mutate({ boardId, whId: wh.id })}
+            onClick={() => setConfirmWh(wh.id)}
             className="rounded p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
-            aria-label={`${wh.name} 삭제`}
+            aria-label={t('webhook.deleteLabel', { name: wh.name })}
           >
             <Trash2 size={14} />
           </button>
         </div>
       ))}
 
-      {/* 추가 폼 */}
+      <ConfirmDialog
+        open={confirmWh !== null}
+        title={t('webhook.deleteConfirm', { name: webhooks.data?.find(w => w.id === confirmWh)?.name ?? '' })}
+        description={t('webhook.deleteConfirm', { name: webhooks.data?.find(w => w.id === confirmWh)?.name ?? '' })}
+        onConfirm={async () => {
+          try {
+            if (confirmWh) await deleteWh.mutateAsync({ boardId, whId: confirmWh });
+          } catch {
+            toast('error', t('common.error'));
+          }
+          setConfirmWh(null);
+        }}
+        onCancel={() => setConfirmWh(null)}
+      />
+
+      {/* add form */}
       {open && (
-        <div className="flex flex-col gap-2.5 rounded-lg border-2 border-edge-base bg-surface-subtle p-4 shadow-sm">
-          {/* 플랫폼 선택 */}
+        <div className="flex flex-col gap-2.5 rounded-lg border border-edge-base bg-surface-subtle p-4 shadow-sm">
+          {/* platform selector */}
           <div className="flex gap-2">
             {PLATFORMS.map((p) => {
               const Icon = p.icon;
@@ -128,8 +153,8 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => { setPlatform(p.value); setName(p.label + ' 알림'); }}
-                  className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition-all ${
+                  onClick={() => { setPlatform(p.value); setName(t('webhook.notification', { name: p.label })); }}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                     platform === p.value
                       ? `border-current ${p.color} shadow-sm`
                       : 'border-edge-base text-ink-muted hover:text-ink-secondary'
@@ -140,17 +165,15 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
               );
             })}
           </div>
-          <input
+          <Input
             placeholder={t('webhook.name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-9 rounded-md border-2 border-edge-base bg-surface-base px-3 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
           />
-          <input
+          <Input
             placeholder={PLATFORMS.find((p) => p.value === platform)?.hint ?? 'Webhook URL'}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="h-9 rounded-md border-2 border-edge-base bg-surface-base px-3 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
           />
           <div className="flex flex-wrap gap-1.5">
             {ALL_EVENTS.map((ev) => (
@@ -169,12 +192,12 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={submit} className="h-8 flex-1 rounded-md bg-brand-500 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
+            <Button onClick={submit} size="sm" className="flex-1">
               {t('webhook.add')}
-            </button>
-            <button onClick={() => setOpen(false)} className="h-8 rounded-md border border-edge-base px-3 text-sm text-ink-secondary hover:bg-surface-muted transition-colors">
+            </Button>
+            <Button onClick={() => setOpen(false)} size="sm" variant="ghost">
               {t('webhook.cancel')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
