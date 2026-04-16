@@ -153,6 +153,22 @@ func TestFullFlow(t *testing.T) {
 	}
 }
 
+func TestEmptyCalendarDayReturnsArrays(t *testing.T) {
+	// 회귀: 빈 날짜에 대한 /api/calendar/day 응답에서 created/approved/completed가
+	// null이 아닌 [] 로 직렬화되어야 한다 (프론트의 .length 접근 TypeError 방지).
+	srv := newTestServer(t)
+	resp, body := doJSON(t, http.MethodGet, srv.URL+"/api/calendar/day?date=2099-01-01", nil)
+	mustStatus(t, resp, 200, body)
+	for _, k := range []string{`"created":[]`, `"approved":[]`, `"completed":[]`} {
+		if !bytes.Contains(body, []byte(k)) {
+			t.Fatalf("expected %q in response, got %s", k, body)
+		}
+	}
+	if bytes.Contains(body, []byte("null")) {
+		t.Fatalf("response must not contain null for empty arrays: %s", body)
+	}
+}
+
 func TestCycleBlocked(t *testing.T) {
 	srv := newTestServer(t)
 
