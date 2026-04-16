@@ -22,4 +22,12 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+}
+
+/* @tailwindcss/typography가 인라인 코드 앞뒤에 백틱 문자를 삽입하는 기본 설정 제거.
+   layer 바깥에 두어 플러그인보다 우선 순위를 확보. */
+.prose code::before,
+.prose code::after {
+  content: "" !important;
 }
