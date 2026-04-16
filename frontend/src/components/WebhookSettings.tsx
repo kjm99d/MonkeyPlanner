@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Bell } from 'lucide-react';
+import { Plus, Trash2, Bell, MessageCircle, Hash, Send, Globe } from 'lucide-react';
 import { useWebhooks, useCreateWebhook, useDeleteWebhook } from '../api/hooks';
 import type { WebhookEvent } from '../api/types';
 
@@ -10,11 +10,38 @@ const ALL_EVENTS: { value: WebhookEvent; label: string }[] = [
   { value: 'issue.deleted', label: '이슈 삭제' },
 ];
 
+type Platform = 'discord' | 'slack' | 'telegram' | 'custom';
+
+const PLATFORMS: { value: Platform; label: string; icon: typeof Globe; color: string; hint: string }[] = [
+  { value: 'discord', label: 'Discord', icon: MessageCircle, color: 'text-[#5865F2] bg-[#5865F2]/10', hint: 'https://discord.com/api/webhooks/...' },
+  { value: 'slack', label: 'Slack', icon: Hash, color: 'text-[#E01E5A] bg-[#E01E5A]/10', hint: 'https://hooks.slack.com/services/...' },
+  { value: 'telegram', label: 'Telegram', icon: Send, color: 'text-[#26A5E4] bg-[#26A5E4]/10', hint: 'https://api.telegram.org/bot.../sendMessage' },
+  { value: 'custom', label: '커스텀', icon: Globe, color: 'text-ink-secondary bg-surface-muted', hint: 'https://your-server.com/webhook' },
+];
+
+function detectPlatform(url: string): Platform {
+  if (url.includes('discord.com')) return 'discord';
+  if (url.includes('slack.com')) return 'slack';
+  if (url.includes('telegram.org')) return 'telegram';
+  return 'custom';
+}
+
+function PlatformBadge({ url }: { url: string }) {
+  const p = PLATFORMS.find((pl) => pl.value === detectPlatform(url))!;
+  const Icon = p.icon;
+  return (
+    <span className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${p.color}`}>
+      <Icon size={12} /> {p.label}
+    </span>
+  );
+}
+
 export function WebhookSettings({ boardId }: { boardId: string }) {
   const webhooks = useWebhooks(boardId);
   const createWh = useCreateWebhook();
   const deleteWh = useDeleteWebhook();
   const [open, setOpen] = useState(false);
+  const [platform, setPlatform] = useState<Platform>('discord');
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [events, setEvents] = useState<WebhookEvent[]>(['issue.approved']);
@@ -51,10 +78,13 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
 
       {/* 기존 webhook 목록 */}
       {webhooks.data?.map((wh) => (
-        <div key={wh.id} className="flex items-center justify-between rounded-lg border border-edge-base bg-surface-subtle px-3 py-2">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium text-ink-primary">{wh.name}</span>
-            <span className="text-xs text-ink-muted truncate max-w-[300px]">{wh.url}</span>
+        <div key={wh.id} className="flex items-center justify-between rounded-lg border-2 border-edge-base bg-surface-subtle px-4 py-3 shadow-sm">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <PlatformBadge url={wh.url} />
+              <span className="text-sm font-semibold text-ink-primary">{wh.name}</span>
+            </div>
+            <span className="text-xs text-ink-muted truncate max-w-[400px]">{wh.url}</span>
             <div className="flex gap-1 mt-1">
               {wh.events.map((e) => (
                 <span key={e} className="rounded bg-brand-500/10 px-1.5 py-0.5 text-[10px] text-brand-500">
@@ -76,18 +106,38 @@ export function WebhookSettings({ boardId }: { boardId: string }) {
 
       {/* 추가 폼 */}
       {open && (
-        <div className="flex flex-col gap-2 rounded-lg border border-edge-base bg-surface-subtle p-3">
+        <div className="flex flex-col gap-2.5 rounded-lg border-2 border-edge-base bg-surface-subtle p-4 shadow-sm">
+          {/* 플랫폼 선택 */}
+          <div className="flex gap-2">
+            {PLATFORMS.map((p) => {
+              const Icon = p.icon;
+              return (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => { setPlatform(p.value); setName(p.label + ' 알림'); }}
+                  className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition-all ${
+                    platform === p.value
+                      ? `border-current ${p.color} shadow-sm`
+                      : 'border-edge-base text-ink-muted hover:text-ink-secondary'
+                  }`}
+                >
+                  <Icon size={14} /> {p.label}
+                </button>
+              );
+            })}
+          </div>
           <input
-            placeholder="이름 (예: Discord 알림)"
+            placeholder="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
+            className="h-9 rounded-md border-2 border-edge-base bg-surface-base px-3 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
           />
           <input
-            placeholder="Webhook URL"
+            placeholder={PLATFORMS.find((p) => p.value === platform)?.hint ?? 'Webhook URL'}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="h-8 rounded-md border border-edge-base bg-surface-base px-2 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
+            className="h-9 rounded-md border-2 border-edge-base bg-surface-base px-3 text-sm focus-visible:border-brand-500 focus-visible:outline-none"
           />
           <div className="flex flex-wrap gap-1.5">
             {ALL_EVENTS.map((ev) => (
