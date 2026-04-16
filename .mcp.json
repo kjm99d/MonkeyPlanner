@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "monkey-planner": {
+      "command": "./bin/monkey-planner.exe",
+      "args": ["mcp"],
+      "cwd": "D:/Projects/MonkeyPlanner"
+    }
+  }
+}
