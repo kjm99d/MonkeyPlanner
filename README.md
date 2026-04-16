@@ -166,7 +166,8 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
       "command": "bash",
       "args": ["/path/to/update-and-run.sh", "mcp"],
       "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db"
+        "MP_DSN": "sqlite:///path/to/data/monkey.db",
+        "MP_BASE_URL": "http://localhost:8080"
       }
     }
   }
@@ -182,7 +183,8 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
       "command": "D:/mp/update-and-run.bat",
       "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite://D:/mp/data/monkey.db"
+        "MP_DSN": "sqlite://D:/mp/data/monkey.db",
+        "MP_BASE_URL": "http://localhost:8080"
       }
     }
   }
@@ -202,7 +204,8 @@ If you prefer not to use auto-update:
       "command": "/path/to/monkey-planner",
       "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db"
+        "MP_DSN": "sqlite:///path/to/data/monkey.db",
+        "MP_BASE_URL": "http://localhost:8080"
       }
     }
   }
