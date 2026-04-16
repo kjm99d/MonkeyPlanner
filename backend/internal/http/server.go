@@ -23,6 +23,7 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 	ih := &issueHandler{svc: svc}
 	bh := &boardHandler{svc: svc}
 	ch := &calendarHandler{svc: svc}
+	ph := &propertyHandler{svc: svc}
 
 	r.Route("/api", func(api chi.Router) {
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -34,6 +35,14 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 			b.Post("/", bh.create)
 			b.Patch("/{id}", bh.patch)
 			b.Delete("/{id}", bh.delete)
+		})
+
+		// 보드 속성(커스텀 프로퍼티)
+		api.Route("/boards/{boardId}/properties", func(p chi.Router) {
+			p.Get("/", ph.list)
+			p.Post("/", ph.create)
+			p.Patch("/{propId}", ph.update)
+			p.Delete("/{propId}", ph.delete)
 		})
 
 		api.Route("/issues", func(i chi.Router) {

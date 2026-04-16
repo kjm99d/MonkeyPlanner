@@ -186,6 +186,63 @@ func (s *Service) DeleteBoard(ctx context.Context, id string) error {
 	return s.repo.Boards().Delete(ctx, id)
 }
 
+// ---- Issue Properties 유스케이스 ----
+
+// UpdateIssueProperties 는 이슈의 커스텀 속성을 merge 업데이트합니다.
+func (s *Service) UpdateIssueProperties(ctx context.Context, id string, props map[string]any) (domain.Issue, error) {
+	cur, err := s.repo.Issues().GetByID(ctx, id)
+	if err != nil {
+		return domain.Issue{}, err
+	}
+	if cur.Properties == nil {
+		cur.Properties = map[string]any{}
+	}
+	for k, v := range props {
+		if v == nil {
+			delete(cur.Properties, k)
+		} else {
+			cur.Properties[k] = v
+		}
+	}
+	merged := cur.Properties
+	return s.repo.Issues().Update(ctx, id, storage.IssuePatch{Properties: &merged})
+}
+
+// ---- Board Properties 유스케이스 ----
+
+func (s *Service) CreateBoardProperty(ctx context.Context, boardID, name string, propType domain.PropertyType, options []string) (domain.BoardProperty, error) {
+	if name == "" {
+		return domain.BoardProperty{}, errors.New("property name must not be empty")
+	}
+	if !propType.Valid() {
+		return domain.BoardProperty{}, errors.New("invalid property type")
+	}
+	if options == nil {
+		options = []string{}
+	}
+	existing, _ := s.repo.BoardProperties().List(ctx, boardID)
+	p := domain.BoardProperty{
+		BoardID:  boardID,
+		Name:     name,
+		Type:     propType,
+		Options:  options,
+		Position: len(existing),
+	}
+	return s.repo.BoardProperties().Create(ctx, p)
+}
+
+func (s *Service) ListBoardProperties(ctx context.Context, boardID string) ([]domain.BoardProperty, error) {
+	return s.repo.BoardProperties().List(ctx, boardID)
+}
+
+func (s *Service) UpdateBoardProperty(ctx context.Context, id string, name *string, options *[]string, position *int) (domain.BoardProperty, error) {
+	return s.repo.BoardProperties().Update(ctx, id, name, options, position)
+}
+
+func (s *Service) DeleteBoardProperty(ctx context.Context, id string) error {
+	return s.repo.BoardProperties().Delete(ctx, id)
+}
+
 // ---- Calendar 유스케이스 ----
 
 func (s *Service) GetMonthStats(ctx context.Context, year int, month time.Month) ([]storage.DayCount, error) {

@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -18,6 +19,7 @@ type Repo struct {
 	db     *sql.DB
 	issues *issueRepo
 	boards *boardRepo
+	props  *boardPropertyRepo
 }
 
 // Open 은 지정된 DSN(예: "./data/monkey.db")으로 SQLite를 엽니다.
@@ -39,12 +41,14 @@ func Open(dsn string) (*Repo, error) {
 		db:     db,
 		issues: &issueRepo{db: db},
 		boards: &boardRepo{db: db},
+		props:  &boardPropertyRepo{db: db},
 	}, nil
 }
 
-func (r *Repo) Issues() storage.IssueRepo { return r.issues }
-func (r *Repo) Boards() storage.BoardRepo { return r.boards }
-func (r *Repo) Close() error              { return r.db.Close() }
+func (r *Repo) Issues() storage.IssueRepo              { return r.issues }
+func (r *Repo) Boards() storage.BoardRepo              { return r.boards }
+func (r *Repo) BoardProperties() storage.BoardPropertyRepo { return r.props }
+func (r *Repo) Close() error                            { return r.db.Close() }
 
 // ---- issueRepo ----
 
@@ -53,10 +57,14 @@ type issueRepo struct{ db *sql.DB }
 var _ storage.IssueRepo = (*issueRepo)(nil)
 
 func (r *issueRepo) Create(ctx context.Context, i domain.Issue) (domain.Issue, error) {
+	if i.Properties == nil {
+		i.Properties = map[string]any{}
+	}
+	propsJSON, _ := json.Marshal(i.Properties)
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO issues (id, board_id, parent_id, title, body, status, created_at, updated_at, approved_at, completed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		i.ID, i.BoardID, i.ParentID, i.Title, i.Body, i.Status,
+		INSERT INTO issues (id, board_id, parent_id, title, body, status, properties, created_at, updated_at, approved_at, completed_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		i.ID, i.BoardID, i.ParentID, i.Title, i.Body, i.Status, string(propsJSON),
 		i.CreatedAt.UTC(), i.UpdatedAt.UTC(), utcPtr(i.ApprovedAt), utcPtr(i.CompletedAt))
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: create issue: %w", err)
@@ -127,6 +135,9 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	if p.Status != nil {
 		cur.Status = *p.Status
 	}
+	if p.Properties != nil {
+		cur.Properties = *p.Properties
+	}
 	if p.ParentID != nil {
 		newParent := *p.ParentID
 		if newParent != nil {
@@ -148,10 +159,11 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	}
 	cur.UpdatedAt = time.Now().UTC()
 
+	propsJSON, _ := json.Marshal(cur.Properties)
 	_, err = tx.ExecContext(ctx, `
-		UPDATE issues SET title=?, body=?, status=?, parent_id=?, updated_at=?, completed_at=?
+		UPDATE issues SET title=?, body=?, status=?, parent_id=?, properties=?, updated_at=?, completed_at=?
 		WHERE id=?`,
-		cur.Title, cur.Body, cur.Status, cur.ParentID, cur.UpdatedAt, utcPtr(cur.CompletedAt), id)
+		cur.Title, cur.Body, cur.Status, cur.ParentID, string(propsJSON), cur.UpdatedAt, utcPtr(cur.CompletedAt), id)
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: update issue: %w", err)
 	}
@@ -285,19 +297,26 @@ func (r *issueRepo) GetDayStats(ctx context.Context, day time.Time) (storage.Day
 // ---- 공통 helpers ----
 
 const selectIssueCols = `
-SELECT id, board_id, parent_id, title, body, status, created_at, updated_at, approved_at, completed_at
+SELECT id, board_id, parent_id, title, body, status, properties, created_at, updated_at, approved_at, completed_at
 FROM issues`
 
 func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
 	var i domain.Issue
 	var parent sql.NullString
+	var propsStr string
 	var approvedAt, completedAt sql.NullTime
-	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
+	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsStr, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Issue{}, storage.ErrNotFound
 		}
 		return domain.Issue{}, fmt.Errorf("sqlite: scan issue: %w", err)
+	}
+	if propsStr != "" {
+		_ = json.Unmarshal([]byte(propsStr), &i.Properties)
+	}
+	if i.Properties == nil {
+		i.Properties = map[string]any{}
 	}
 	if parent.Valid {
 		p := parent.String
