@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
 
 type Variant = 'primary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -26,11 +26,14 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: Size;
 };
 
-export function Button({ variant = 'primary', size = 'md', className = '', ...rest }: Props) {
-  return (
-    <button
-      {...rest}
-      className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
-    />
-  );
-}
+export const Button = forwardRef<HTMLButtonElement, Props>(
+  function Button({ variant = 'primary', size = 'md', className = '', ...rest }, ref) {
+    return (
+      <button
+        ref={ref}
+        {...rest}
+        className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
+      />
+    );
+  },
+);

@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react';
+import { useId, type InputHTMLAttributes } from 'react';
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
@@ -6,7 +6,8 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 };
 
 export function Input({ label, error, id, className = '', ...rest }: Props) {
-  const inputId = id ?? `input-${Math.random().toString(36).slice(2, 9)}`;
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   return (
     <div className="flex flex-col gap-1">
       {label && (

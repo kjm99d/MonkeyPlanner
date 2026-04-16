@@ -1,12 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { IssueStatus } from '../api/types';
 
-const STEPS: { status: IssueStatus; label: string }[] = [
-  { status: 'Pending', label: '대기' },
-  { status: 'Approved', label: '승인됨' },
-  { status: 'InProgress', label: '진행 중' },
-  { status: 'Done', label: '완료' },
-];
+const STEP_STATUSES: IssueStatus[] = ['Pending', 'Approved', 'InProgress', 'Done'];
 
 const dotColor: Record<IssueStatus, string> = {
   Pending: 'bg-status-pending',
@@ -23,30 +18,31 @@ type Props = {
 
 export function StatusStepper({ current, onSelect, disabled }: Props) {
   const { t } = useTranslation();
-  const currentIdx = STEPS.findIndex((s) => s.status === current);
+  const currentIdx = STEP_STATUSES.indexOf(current);
 
   return (
     <nav aria-label={t('stepper.moveTo', { label: '' }).trim()} className="flex items-center gap-1">
-      {STEPS.map((step, i) => {
-        const isActive = step.status === current;
+      {STEP_STATUSES.map((status, i) => {
+        const label = t(`status.${status}`);
+        const isActive = status === current;
         const isPast = i < currentIdx;
         const canClick =
           !disabled &&
           !isActive &&
-          step.status !== 'Pending' &&
-          step.status !== 'Approved' &&
+          status !== 'Pending' &&
+          status !== 'Approved' &&
           current !== 'Pending';
 
         const hint =
-          step.status === 'Approved'
+          status === 'Approved'
             ? t('stepper.approveOnly')
-            : step.status === 'Pending'
+            : status === 'Pending'
               ? t('stepper.noPending')
-              : t('stepper.moveTo', { label: step.label });
+              : t('stepper.moveTo', { label });
         const showHint = !canClick && !isActive;
 
         return (
-          <div key={step.status} className="flex items-center">
+          <div key={status} className="flex items-center">
             {i > 0 && (
               <div
                 className={`mx-1 h-0.5 w-6 rounded ${
@@ -58,12 +54,12 @@ export function StatusStepper({ current, onSelect, disabled }: Props) {
               <button
                 type="button"
                 disabled={!canClick}
-                onClick={() => canClick && onSelect(step.status)}
+                onClick={() => canClick && onSelect(status)}
                 aria-current={isActive ? 'step' : undefined}
                 title={hint}
                 className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                   isActive
-                    ? `border-current ${dotColor[step.status]} text-white`
+                    ? `border-current ${dotColor[status]} text-white`
                     : canClick
                       ? 'border-edge-base bg-surface-subtle text-ink-secondary hover:bg-surface-muted hover:text-ink-primary'
                       : 'border-transparent text-ink-muted opacity-50 cursor-not-allowed'
@@ -71,13 +67,13 @@ export function StatusStepper({ current, onSelect, disabled }: Props) {
               >
                 <span
                   className={`inline-block h-2 w-2 rounded-full ${
-                    isActive ? 'bg-white' : dotColor[step.status]
+                    isActive ? 'bg-white' : dotColor[status]
                   }`}
                 />
-                {step.label}
+                {label}
               </button>
               {showHint && (
-                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-ink-primary px-2 py-0.5 text-[10px] text-surface-base opacity-0 transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-ink-primary px-2 py-0.5 text-[11px] text-surface-base opacity-0 transition-opacity group-hover:opacity-100">
                   {hint}
                 </span>
               )}
