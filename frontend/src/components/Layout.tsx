@@ -11,7 +11,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export default function Layout() {
   return (
     <div className="min-h-screen bg-surface-base text-ink-primary">
-      <header className="sticky top-0 z-10 border-b border-edge-base bg-surface-base/80 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-b-brand-500/15 bg-surface-base/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-6">
             <a href="/" className="font-bold tracking-tight">

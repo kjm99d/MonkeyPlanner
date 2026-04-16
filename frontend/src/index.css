@@ -43,6 +43,19 @@
   }
 }
 
+.hero-banner {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(249,115,22,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(251,191,36,0.06) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+.dark .hero-banner {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(251,146,60,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(251,191,36,0.08) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
 /* @tailwindcss/typography가 인라인 코드 앞뒤에 백틱 문자를 삽입하는 기본 설정 제거.
    layer 바깥에 두어 플러그인보다 우선 순위를 확보. */
 .prose code::before,
