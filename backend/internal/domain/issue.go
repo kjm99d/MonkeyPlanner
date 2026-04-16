@@ -47,9 +47,11 @@ var (
 	ErrUnknownTransition   = errors.New("unknown status transition")
 )
 
-// ValidateTransition 은 PATCH 경로로 허용되는 상태 전이만 승인합니다.
-// Pending→Approved 직접 전이는 차단됩니다 (Approve 전용 엔드포인트 사용 강제).
-// 역행(Done→InProgress 등)은 모두 차단됩니다.
+// ValidateTransition 은 PATCH 경로로 허용되는 상태 전이를 검증합니다.
+// 규칙:
+//   - Pending→Approved 직접 전이는 차단 (Approve 전용 엔드포인트 사용 강제)
+//   - Pending→(InProgress|Done) 직접 전이는 차단 (반드시 Approve를 거쳐야 함)
+//   - Approved ⇄ InProgress ⇄ Done 사이는 자유 이동 허용 (단일 사용자 유연성)
 func ValidateTransition(from, to Status) error {
 	if !from.Valid() || !to.Valid() {
 		return ErrInvalidStatus
@@ -57,30 +59,19 @@ func ValidateTransition(from, to Status) error {
 	if from == to {
 		return ErrSelfSameTransition
 	}
-	switch from {
-	case StatusPending:
+	// Pending에서는 Approve 버튼만 사용 가능
+	if from == StatusPending {
 		if to == StatusApproved {
 			return ErrDirectApproval
 		}
 		return ErrUnknownTransition
-	case StatusApproved:
-		if to == StatusInProgress {
-			return nil
-		}
-		if to == StatusPending {
-			return ErrBackwardTransition
-		}
-		return ErrUnknownTransition
-	case StatusInProgress:
-		if to == StatusDone {
-			return nil
-		}
-		if to == StatusPending || to == StatusApproved {
-			return ErrBackwardTransition
-		}
-		return ErrUnknownTransition
-	case StatusDone:
-		return ErrBackwardTransition
 	}
-	return ErrUnknownTransition
+	// Approved/InProgress/Done 사이는 자유 이동
+	if to == StatusPending {
+		return ErrUnknownTransition // Pending으로 되돌리기는 불가
+	}
+	if to == StatusApproved {
+		return ErrDirectApproval // Approved로 가려면 Approve 버튼 사용
+	}
+	return nil
 }

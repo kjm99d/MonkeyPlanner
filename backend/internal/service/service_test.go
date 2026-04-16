@@ -101,7 +101,32 @@ func TestCompleteFlow(t *testing.T) {
 	}
 }
 
-func TestBackwardTransitionBlocked(t *testing.T) {
+func TestBackwardTransitionAllowed(t *testing.T) {
+	ctx := context.Background()
+	s := newService(t)
+	_, iss := seed(t, s)
+	_, _ = s.ApproveIssue(ctx, iss.ID)
+
+	// Approved → InProgress
+	ip := domain.StatusInProgress
+	got, err := s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &ip})
+	if err != nil || got.Status != domain.StatusInProgress {
+		t.Fatalf("forward: err=%v status=%s", err, got.Status)
+	}
+	// InProgress → Done
+	done := domain.StatusDone
+	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &done})
+	if err != nil || got.Status != domain.StatusDone {
+		t.Fatalf("to done: err=%v status=%s", err, got.Status)
+	}
+	// Done → InProgress (역행 허용)
+	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &ip})
+	if err != nil || got.Status != domain.StatusInProgress {
+		t.Fatalf("backward done→inProgress should be allowed: err=%v status=%s", err, got.Status)
+	}
+}
+
+func TestPendingTransitionBlocked(t *testing.T) {
 	ctx := context.Background()
 	s := newService(t)
 	_, iss := seed(t, s)
@@ -109,7 +134,7 @@ func TestBackwardTransitionBlocked(t *testing.T) {
 
 	pending := domain.StatusPending
 	_, err := s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &pending})
-	if !errors.Is(err, service.ErrBackwardTransition) {
-		t.Fatalf("expected ErrBackwardTransition, got %v", err)
+	if err == nil {
+		t.Fatalf("expected error for Approved→Pending, got nil")
 	}
 }
