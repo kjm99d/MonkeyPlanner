@@ -12,6 +12,7 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { MarkdownEditor } from '../../components/MarkdownEditor';
 import { StatusBadge } from '../../components/StatusBadge';
+import { StatusStepper } from '../../components/StatusStepper';
 import type { IssueStatus } from '../../api/types';
 
 export default function IssuePage() {
@@ -63,11 +64,6 @@ export default function IssuePage() {
     }
   }
 
-  const nextButtons: Array<{ status: IssueStatus; label: string }> = [];
-  if (iss.status === 'Pending') nextButtons.push({ status: 'Approved', label: '승인' });
-  if (iss.status === 'Approved') nextButtons.push({ status: 'InProgress', label: '진행' });
-  if (iss.status === 'InProgress') nextButtons.push({ status: 'Done', label: '완료' });
-
   const board = boards.data?.find((b) => b.id === iss.boardId);
 
   return (
@@ -77,32 +73,40 @@ export default function IssuePage() {
         { label: board?.name ?? '...', to: `/boards/${iss.boardId}` },
         { label: iss.title },
       ]} />
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <StatusBadge status={iss.status} />
-          <span className="text-xs text-ink-muted">
-            {new Date(iss.createdAt).toLocaleString('ko-KR')} 생성
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {nextButtons.map((b) => (
-            <Button key={b.status} size="sm" onClick={() => setStatus(b.status)}>
-              {b.label}
+
+      <header className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <StatusBadge status={iss.status} />
+            <span className="text-xs text-ink-muted">
+              {new Date(iss.createdAt).toLocaleString('ko-KR')} 생성
+            </span>
+          </div>
+          <div className="flex gap-2">
+            {iss.status === 'Pending' && (
+              <Button size="sm" onClick={() => setStatus('Approved')}>
+                ✓ Approve
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={async () => {
+                if (!issueId) return;
+                if (!window.confirm('이슈와 모든 자식 이슈가 삭제됩니다. 계속할까요?')) return;
+                await remove.mutateAsync(issueId);
+                window.history.back();
+              }}
+            >
+              삭제
             </Button>
-          ))}
-          <Button
-            size="sm"
-            variant="danger"
-            onClick={async () => {
-              if (!issueId) return;
-              if (!window.confirm('이슈와 모든 자식 이슈가 삭제됩니다. 계속할까요?')) return;
-              await remove.mutateAsync(issueId);
-              window.history.back();
-            }}
-          >
-            삭제
-          </Button>
+          </div>
         </div>
+        <StatusStepper
+          current={iss.status}
+          onSelect={setStatus}
+          disabled={update.isPending || approve.isPending}
+        />
       </header>
 
       <Input

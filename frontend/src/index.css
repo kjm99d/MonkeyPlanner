@@ -16,9 +16,9 @@
     --brand-600: #ea580c;
   }
   .dark {
-    --bg-base: #0a0a0a;
-    --bg-subtle: #18181b;
-    --bg-muted: #27272a;
+    --bg-base: #09090b;
+    --bg-subtle: #1a1a1f;
+    --bg-muted: #2a2a30;
     --border-base: #3f3f46;
     --text-primary: #fafafa;
     --text-secondary: #a1a1aa;
