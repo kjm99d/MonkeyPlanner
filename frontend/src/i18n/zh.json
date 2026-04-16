@@ -68,6 +68,7 @@
     "approved": "已审批",
     "inProgress": "进行中",
     "done": "已完成",
+    "rejected": "已拒绝",
     "dragHere": "将问题拖到这里",
     "approve": "审批",
     "columnLabel": "{{title}} 列",
@@ -86,7 +87,13 @@
     "properties": "属性",
     "saveFailed": "无法保存更改，请稍后重试。",
     "statusChangeFailed": "无法更新状态，请重试。",
-    "createdAt": "{{date}} 创建"
+    "createdAt": "{{date}} 创建",
+    "instructions": "代理指令",
+    "instructionsPlaceholder": "输入MCP代理的指令...",
+    "dependencies": "依赖",
+    "blockedBy": "被阻塞",
+    "addDependency": "添加依赖",
+    "removeDependency": "移除"
   },
   "editor": {
     "edit": "编辑",
@@ -118,7 +125,8 @@
     "Pending": "待处理",
     "Approved": "已审批",
     "InProgress": "进行中",
-    "Done": "已完成"
+    "Done": "已完成",
+    "Rejected": "已拒绝"
   },
   "property": {
     "newProperty": "新属性",
@@ -159,6 +167,36 @@
     "approveOnly": "仅通过审批按钮切换",
     "noPending": "无法恢复到待处理状态",
     "moveTo": "移至{{label}}"
+  },
+  "comments": {
+    "section": "评论",
+    "title": "评论",
+    "empty": "暂无评论",
+    "placeholder": "添加评论…",
+    "submit": "评论",
+    "submitting": "发布中…",
+    "delete": "删除评论"
+  },
+  "approval": {
+    "title": "审批队列",
+    "description": "审核并批准所有看板中待处理的问题。",
+    "empty": "没有待审批的问题",
+    "emptyHint": "所有问题已审核完毕，请稍后再查看。",
+    "selectAll": "全选",
+    "selectIssue": "选择{{title}}",
+    "approveIssue": "审批{{title}}",
+    "approve": "审批",
+    "approveSelected": "审批已选 {{count}} 项",
+    "selectedCount": "已选 {{count}} 项",
+    "clearSelection": "清除选择",
+    "queueLabel": "待处理问题"
+  },
+  "template": {
+    "title": "模板",
+    "empty": "没有保存的模板",
+    "save": "保存为模板",
+    "name": "模板名称",
+    "delete": "删除模板"
   },
   "common": {
     "loading": "加载中…",
