@@ -8,6 +8,14 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { useApproveIssue, useUpdateIssue, useDeleteIssue } from '../../api/hooks';
 import { ContextMenu } from '../../components/ContextMenu';
 
+function elapsedTime(dateStr: string): string {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
+}
+
 type Props = {
   issue: Issue;
   boardProperties?: BoardProperty[];
@@ -87,6 +95,15 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
             >
               {issue.title}
             </Link>
+          )}
+          {issue.status === 'InProgress' && (
+            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-status-inProgress">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-status-inProgress opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-status-inProgress" />
+              </span>
+              <span>{elapsedTime(issue.updatedAt)}</span>
+            </div>
           )}
           {/* 속성 값 인라인 표시 */}
           {propValues.length > 0 && (

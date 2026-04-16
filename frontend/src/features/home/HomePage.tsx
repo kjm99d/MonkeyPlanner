@@ -6,6 +6,7 @@ import { useBoards, useDayStats, useIssues } from '../../api/hooks';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Skeleton } from '../../components/Skeleton';
 import { WeeklyChart } from './WeeklyChart';
+import { AgentMetrics } from './AgentMetrics';
 
 function todayString(): string {
   const d = new Date();
@@ -63,6 +64,9 @@ export default function HomePage() {
 
       {/* 주간 차트 */}
       <WeeklyChart />
+
+      {/* 에이전트 메트릭 */}
+      <AgentMetrics />
 
       {/* 2열 레이아웃: 진행 중 이슈 + 보드 요약 */}
       <div className="grid gap-6 lg:grid-cols-2">

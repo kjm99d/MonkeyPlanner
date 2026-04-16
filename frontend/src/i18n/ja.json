@@ -29,7 +29,12 @@
     "createFirst": "最初のボードを作成しましょう",
     "weeklyActivity": "週間アクティビティ",
     "chartNoData": "まだ活動データがありません",
-    "today": "今日"
+    "today": "今日",
+    "agentMetrics": "エージェントメトリクス",
+    "completionRate": "完了率",
+    "approvalRate": "承認率",
+    "avgCycleTime": "平均処理時間",
+    "pipeline": "パイプライン"
   },
   "board": {
     "title": "ボード",
