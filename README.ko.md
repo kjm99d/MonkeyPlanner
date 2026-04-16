@@ -6,7 +6,7 @@
 
 사람이 이슈를 생성하고 승인하면, AI 에이전트가 MCP(Model Context Protocol) 클라이언트를 통해 작업을 소비하는 협업 도구입니다.
 
-![Monkey Planner](./d-home-l.png)
+![Monkey Planner](./docs/screenshots/d-home-l.png)
 
 ## 주요 기능
 

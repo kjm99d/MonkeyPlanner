@@ -6,7 +6,7 @@
 
 一款协作工具，由人工创建并审批任务，AI 智能体通过 MCP（模型上下文协议）客户端来消费和执行任务。
 
-![Monkey Planner](./d-home-l.png)
+![Monkey Planner](./docs/screenshots/d-home-l.png)
 
 ## 核心功能
 

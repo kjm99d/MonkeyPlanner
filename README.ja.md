@@ -6,7 +6,7 @@
 
 人間がイシューを作成・承認し、AIエージェントがMCP（Model Context Protocol）クライアント経由でタスクを処理する協働ツールです。
 
-![Monkey Planner](./d-home-l.png)
+![Monkey Planner](./docs/screenshots/d-home-l.png)
 
 ## 主な機能
 
