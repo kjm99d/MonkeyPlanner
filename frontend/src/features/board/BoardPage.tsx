@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { useBoards, useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
+import { useBoards, useBoardProperties, useCreateBoardProperty, useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Breadcrumb } from '../../components/Breadcrumb';
+import { AddPropertyForm } from '../../components/PropertyEditor';
 import { useToast } from '../../components/Toast';
 import { KanbanColumn } from './KanbanColumn';
 import type { Issue, IssueStatus } from '../../api/types';
@@ -22,6 +23,8 @@ export default function BoardPage() {
   const board = boards.data?.find((b) => b.id === boardId);
   const issues = useIssues({ boardId });
   const createIssue = useCreateIssue();
+  const boardPropsQuery = useBoardProperties(boardId);
+  const createProp = useCreateBoardProperty();
   const updateIssue = useUpdateIssue();
 
   const { toast } = useToast();
@@ -80,6 +83,23 @@ export default function BoardPage() {
         ]} />
         <h1 className="text-3xl font-bold">{board?.name ?? '보드'}</h1>
       </header>
+
+      {/* 속성 관리 */}
+      <div className="flex flex-wrap items-center gap-2">
+        {boardPropsQuery.data?.map((p) => (
+          <span key={p.id} className="rounded-full border border-edge-base bg-surface-subtle px-2.5 py-0.5 text-xs text-ink-secondary">
+            {p.name} · {p.type}
+          </span>
+        ))}
+        {boardId && (
+          <AddPropertyForm
+            onAdd={(name, type, options) => {
+              createProp.mutate({ boardId: boardId!, name, type, options });
+              toast('success', `속성 "${name}" 추가됨`);
+            }}
+          />
+        )}
+      </div>
 
       <form onSubmit={onCreate} className="flex gap-2">
         <Input

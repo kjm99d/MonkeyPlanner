@@ -26,16 +26,17 @@ func (s Status) Valid() bool {
 
 // Issue 는 에이전트 작업 기억의 기본 단위입니다.
 type Issue struct {
-	ID          string     `json:"id"`
-	BoardID     string     `json:"boardId"`
-	ParentID    *string    `json:"parentId,omitempty"`
-	Title       string     `json:"title"`
-	Body        string     `json:"body"`
-	Status      Status     `json:"status"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	ApprovedAt  *time.Time `json:"approvedAt,omitempty"`
-	CompletedAt *time.Time `json:"completedAt,omitempty"`
+	ID          string            `json:"id"`
+	BoardID     string            `json:"boardId"`
+	ParentID    *string           `json:"parentId,omitempty"`
+	Title       string            `json:"title"`
+	Body        string            `json:"body"`
+	Status      Status            `json:"status"`
+	Properties  map[string]any    `json:"properties"`
+	CreatedAt   time.Time         `json:"createdAt"`
+	UpdatedAt   time.Time         `json:"updatedAt"`
+	ApprovedAt  *time.Time        `json:"approvedAt,omitempty"`
+	CompletedAt *time.Time        `json:"completedAt,omitempty"`
 }
 
 // 전이 규칙 에러

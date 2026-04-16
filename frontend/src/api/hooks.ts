@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 import { api } from './client';
-import type { Board, DayCount, DayStats, Issue, IssueStatus } from './types';
+import type { Board, BoardProperty, DayCount, DayStats, Issue, IssueStatus, PropertyType } from './types';
 
 // ---- Boards ----
 
@@ -115,6 +115,50 @@ export function useDeleteIssue() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['issues'] });
       qc.invalidateQueries({ queryKey: ['calendar'] });
+    },
+  });
+}
+
+// ---- Board Properties ----
+
+export function useBoardProperties(boardId: string | undefined) {
+  return useQuery<BoardProperty[]>({
+    queryKey: ['boardProperties', boardId],
+    queryFn: () => api.get<BoardProperty[]>(`/api/boards/${boardId}/properties`),
+    enabled: !!boardId,
+  });
+}
+
+export function useCreateBoardProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: { boardId: string; name: string; type: PropertyType; options?: string[] }) =>
+      api.post<BoardProperty>(`/api/boards/${p.boardId}/properties`, p),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ['boardProperties', v.boardId] });
+    },
+  });
+}
+
+export function useDeleteBoardProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ boardId, propId }: { boardId: string; propId: string }) =>
+      api.del<void>(`/api/boards/${boardId}/properties/${propId}`),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ['boardProperties', v.boardId] });
+    },
+  });
+}
+
+export function useUpdateIssueProperties() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, properties }: { id: string; properties: Record<string, unknown> }) =>
+      api.patch<Issue>(`/api/issues/${id}`, { properties }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ['issue', v.id] });
+      qc.invalidateQueries({ queryKey: ['issues'] });
     },
   });
 }

@@ -3,14 +3,17 @@ import { Link, useParams } from 'react-router-dom';
 import {
   useApproveIssue,
   useBoards,
+  useBoardProperties,
   useDeleteIssue,
   useIssue,
   useUpdateIssue,
+  useUpdateIssueProperties,
 } from '../../api/hooks';
 import { Breadcrumb } from '../../components/Breadcrumb';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { MarkdownEditor } from '../../components/MarkdownEditor';
+import { PropertyEditor } from '../../components/PropertyEditor';
 import { StatusBadge } from '../../components/StatusBadge';
 import { StatusStepper } from '../../components/StatusStepper';
 import type { IssueStatus } from '../../api/types';
@@ -22,6 +25,8 @@ export default function IssuePage() {
   const update = useUpdateIssue();
   const approve = useApproveIssue();
   const remove = useDeleteIssue();
+  const updateProps = useUpdateIssueProperties();
+  const boardProps = useBoardProperties(query.data?.issue.boardId);
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -105,6 +110,18 @@ export default function IssuePage() {
       />
 
       <MarkdownEditor value={body} onChange={setBody} />
+
+      {/* 커스텀 속성 */}
+      {boardProps.data && boardProps.data.length > 0 && (
+        <PropertyEditor
+          properties={boardProps.data}
+          values={query.data?.issue.properties ?? {}}
+          onChange={(propId, value) => {
+            if (!issueId) return;
+            updateProps.mutate({ id: issueId, properties: { [propId]: value } });
+          }}
+        />
+      )}
 
       <div className="flex items-center gap-3">
         <Button onClick={onSave} disabled={update.isPending}>

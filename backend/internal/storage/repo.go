@@ -39,10 +39,11 @@ type DayStats struct {
 
 // IssuePatch 는 PATCH 요청에서 변경할 필드만 담습니다 (nil = 미변경).
 type IssuePatch struct {
-	Title    *string
-	Body     *string
-	ParentID **string        // 이중 포인터: nil(미변경) vs *nil(=NULL로 설정)
-	Status   *domain.Status  // Approved로 전이 시도 시 서비스 계층이 409 응답
+	Title      *string
+	Body       *string
+	ParentID   **string         // 이중 포인터: nil(미변경) vs *nil(=NULL로 설정)
+	Status     *domain.Status   // Approved로 전이 시도 시 서비스 계층이 409 응답
+	Properties *map[string]any  // nil이면 미변경, 값이면 전체 교체(merge는 서비스 계층)
 }
 
 // IssueRepo 는 이슈 저장소 인터페이스입니다.
@@ -72,9 +73,18 @@ type BoardRepo interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// Repo 는 이슈/보드 레포를 함께 제공하는 상위 인터페이스입니다.
+// BoardPropertyRepo 는 보드별 커스텀 속성 저장소 인터페이스입니다.
+type BoardPropertyRepo interface {
+	Create(ctx context.Context, prop domain.BoardProperty) (domain.BoardProperty, error)
+	List(ctx context.Context, boardID string) ([]domain.BoardProperty, error)
+	Update(ctx context.Context, id string, name *string, options *[]string, position *int) (domain.BoardProperty, error)
+	Delete(ctx context.Context, id string) error
+}
+
+// Repo 는 이슈/보드/속성 레포를 함께 제공하는 상위 인터페이스입니다.
 type Repo interface {
 	Issues() IssueRepo
 	Boards() BoardRepo
+	BoardProperties() BoardPropertyRepo
 	Close() error
 }

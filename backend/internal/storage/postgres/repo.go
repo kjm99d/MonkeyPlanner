@@ -6,6 +6,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -44,9 +45,10 @@ func Open(dsn string) (*Repo, error) {
 	}, nil
 }
 
-func (r *Repo) Issues() storage.IssueRepo { return r.issues }
-func (r *Repo) Boards() storage.BoardRepo { return r.boards }
-func (r *Repo) Close() error              { return r.db.Close() }
+func (r *Repo) Issues() storage.IssueRepo              { return r.issues }
+func (r *Repo) Boards() storage.BoardRepo              { return r.boards }
+func (r *Repo) BoardProperties() storage.BoardPropertyRepo { return nil } // phase 2
+func (r *Repo) Close() error                            { return r.db.Close() }
 
 // ---- issueRepo ----
 
@@ -283,19 +285,26 @@ func (r *issueRepo) GetDayStats(ctx context.Context, day time.Time) (storage.Day
 // ---- 공통 helpers ----
 
 const selectIssueCols = `
-SELECT id, board_id, parent_id, title, body, status, created_at, updated_at, approved_at, completed_at
+SELECT id, board_id, parent_id, title, body, status, properties, created_at, updated_at, approved_at, completed_at
 FROM issues`
 
 func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
 	var i domain.Issue
 	var parent sql.NullString
+	var propsBytes []byte
 	var approvedAt, completedAt sql.NullTime
-	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
+	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsBytes, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Issue{}, storage.ErrNotFound
 		}
 		return domain.Issue{}, fmt.Errorf("postgres: scan issue: %w", err)
+	}
+	if len(propsBytes) > 0 {
+		_ = json.Unmarshal(propsBytes, &i.Properties)
+	}
+	if i.Properties == nil {
+		i.Properties = map[string]any{}
 	}
 	if parent.Valid {
 		p := parent.String

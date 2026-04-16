@@ -119,6 +119,21 @@ func (h *issueHandler) patch(w http.ResponseWriter, r *http.Request) {
 		}
 		in.Status = &s
 	}
+	if v, ok := raw["properties"]; ok {
+		var props map[string]any
+		if err := json.Unmarshal(v, &props); err != nil {
+			writeErr(w, http.StatusBadRequest, "invalid_properties", err.Error())
+			return
+		}
+		// properties는 merge 방식으로 서비스 계층에서 처리
+		updated, err := h.svc.UpdateIssueProperties(r.Context(), id, props)
+		if err != nil {
+			mapError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, updated)
+		return
+	}
 	if v, ok := raw["parentId"]; ok {
 		if string(v) == "null" {
 			var np *string // nil → root
