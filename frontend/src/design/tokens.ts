@@ -27,6 +27,7 @@ export const lightColors = {
     approved: '#16a34a',
     inProgress: '#2563eb',
     done: '#8b5cf6',
+    rejected: '#ef4444',
   },
   accent: {
     ring: '#fbbf24',
@@ -58,6 +59,7 @@ export const darkColors = {
     approved: '#22c55e',
     inProgress: '#3b82f6',
     done: '#a78bfa',
+    rejected: '#f87171',
   },
   accent: {
     ring: '#facc15',
@@ -133,6 +135,7 @@ export const statusColor = {
   Approved: lightColors.status.approved,
   InProgress: lightColors.status.inProgress,
   Done: lightColors.status.done,
+  Rejected: lightColors.status.rejected,
 } as const;
 
 export type StatusKey = keyof typeof statusColor;

@@ -31,6 +31,7 @@ export default {
           approved: 'var(--status-approved)',
           inProgress: 'var(--status-inProgress)',
           done: 'var(--status-done)',
+          rejected: 'var(--status-rejected)',
         },
         surface: {
           base: 'var(--bg-base)',

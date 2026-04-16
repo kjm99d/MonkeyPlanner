@@ -94,7 +94,7 @@ export function useUpdateIssue() {
       patch,
     }: {
       id: string;
-      patch: Partial<Pick<Issue, 'title' | 'body' | 'status'>> & {
+      patch: Partial<Pick<Issue, 'title' | 'body' | 'instructions' | 'status' | 'criteria'>> & {
         parentId?: string | null;
       };
     }) => api.patch<Issue>(`/api/issues/${id}`, patch),
@@ -219,6 +219,30 @@ export function useDayStats(date: string | undefined) {
     queryKey: ['calendar', 'day', date],
     queryFn: () => api.get<DayStats>(`/api/calendar/day?date=${date}`),
     enabled: !!date,
+  });
+}
+
+// ---- Dependencies ----
+
+export function useAddDependency() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ issueId, blockerId }: { issueId: string; blockerId: string }) =>
+      api.post<void>(`/api/issues/${issueId}/dependencies`, { blockerId }),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['issue', vars.issueId] });
+    },
+  });
+}
+
+export function useRemoveDependency() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ issueId, blockerId }: { issueId: string; blockerId: string }) =>
+      api.del<void>(`/api/issues/${issueId}/dependencies/${blockerId}`),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['issue', vars.issueId] });
+    },
   });
 }
 

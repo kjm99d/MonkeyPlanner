@@ -6,6 +6,7 @@ const classes: Record<IssueStatus, string> = {
   Approved: 'bg-status-approved/15 text-status-approved border-status-approved/30',
   InProgress: 'bg-status-inProgress/15 text-status-inProgress border-status-inProgress/40',
   Done: 'bg-status-done/15 text-status-done border-status-done/40',
+  Rejected: 'bg-status-rejected/15 text-status-rejected border-status-rejected/30',
 };
 
 export function StatusBadge({ status }: { status: IssueStatus }) {

@@ -1,4 +1,6 @@
-export type IssueStatus = 'Pending' | 'Approved' | 'InProgress' | 'Done';
+export type IssueStatus = 'Pending' | 'Approved' | 'InProgress' | 'Done' | 'Rejected';
+
+export type Criterion = { text: string; done: boolean };
 
 export interface Issue {
   id: string;
@@ -6,13 +8,16 @@ export interface Issue {
   parentId?: string | null;
   title: string;
   body: string;
+  instructions: string;
   status: IssueStatus;
   properties: Record<string, unknown>;
+  criteria: Criterion[];
   position: number;
   createdAt: string;
   updatedAt: string;
   approvedAt?: string | null;
   completedAt?: string | null;
+  blockedBy?: string[];
 }
 
 export interface Comment {
