@@ -5,7 +5,7 @@
     "description": "이슈를 만들고, 승인하고, 완료하세요. 캘린더에서 실적을 확인할 수 있습니다."
   },
   "nav": {
-    "home": "홈",
+    "home": "대시보드",
     "boards": "보드",
     "calendar": "캘린더",
     "menu": "주 메뉴"
@@ -26,7 +26,10 @@
     "approvedWaiting": "승인됨 · 작업 대기",
     "boardStatus": "보드 현황",
     "viewAll": "전체 보기",
-    "createFirst": "첫 보드를 만들어보세요"
+    "createFirst": "첫 보드를 만들어보세요",
+    "weeklyActivity": "주간 활동",
+    "chartNoData": "아직 활동 데이터가 없습니다",
+    "today": "오늘"
   },
   "board": {
     "title": "보드",
@@ -39,7 +42,26 @@
     "newIssueTitle": "새 이슈 제목",
     "issueCreated": "이슈가 생성되었습니다",
     "statusChanged": "상태가 \"{{status}}\"로 변경되었습니다",
-    "addProperty": "속성 추가"
+    "addProperty": "속성 추가",
+    "noIssues": "이슈 없음",
+    "progress": "{{done}}/{{total}} 완료",
+    "inProgressCount": "진행 중 {{count}}건",
+    "deleteConfirm": "\"{{name}}\" 보드와 모든 이슈를 삭제합니다. 계속할까요?",
+    "deleted": "보드가 삭제되었습니다",
+    "delete": "보드 삭제",
+    "propertyDeleteConfirm": "속성 \"{{name}}\"을(를) 삭제하시겠습니까? 모든 이슈에서 이 속성 값이 사라집니다.",
+    "propertyDeleted": "속성 \"{{name}}\" 삭제됨",
+    "propertyAdded": "속성 \"{{name}}\" 추가됨",
+    "deletePropertyLabel": "{{name}} 속성 삭제",
+    "statusChangeFailed": "상태를 변경하지 못했습니다. 다시 시도해 주세요.",
+    "issueCreateFailed": "이슈를 생성하지 못했습니다. 다시 시도해 주세요.",
+    "deleteFailed": "보드를 삭제하지 못했습니다. 다시 시도해 주세요.",
+    "filterPlaceholder": "이슈 검색...",
+    "allStatuses": "전체",
+    "noIssuesFound": "조건에 맞는 이슈가 없습니다.",
+    "colTitle": "제목",
+    "colStatus": "상태",
+    "colCreated": "생성일"
   },
   "kanban": {
     "pending": "대기",
@@ -47,7 +69,9 @@
     "inProgress": "진행 중",
     "done": "완료",
     "dragHere": "이슈를 여기로 드래그하세요",
-    "approve": "Approve"
+    "approve": "Approve",
+    "columnLabel": "{{title}} 컬럼",
+    "approveLabel": "{{title}} 승인"
   },
   "issue": {
     "title": "제목",
@@ -59,7 +83,10 @@
     "children": "자식 이슈",
     "noPreview": "미리볼 내용이 없습니다.",
     "created": "생성",
-    "properties": "속성"
+    "properties": "속성",
+    "saveFailed": "변경 내용을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "statusChangeFailed": "상태를 변경하지 못했습니다. 다시 시도해 주세요.",
+    "createdAt": "{{date}} 생성"
   },
   "editor": {
     "edit": "편집",
@@ -77,7 +104,15 @@
     "approved": "승인",
     "done": "완료",
     "none": "없음",
-    "selectDate": "{{date}} 날짜 선택"
+    "selectDate": "{{date}} 날짜 선택",
+    "sun": "일",
+    "mon": "월",
+    "tue": "화",
+    "wed": "수",
+    "thu": "목",
+    "fri": "금",
+    "sat": "토",
+    "issuesLabel": "{{title}} 이슈"
   },
   "status": {
     "Pending": "대기",
@@ -100,7 +135,8 @@
     "input": "입력...",
     "checked": "완료",
     "unchecked": "미완료",
-    "selectPlaceholder": "선택..."
+    "selectPlaceholder": "선택...",
+    "nameRequired": "속성 이름을 입력해 주세요."
   },
   "webhook": {
     "title": "Webhooks",
@@ -108,6 +144,10 @@
     "name": "이름",
     "url": "Webhook URL",
     "cancel": "취소",
+    "custom": "커스텀",
+    "notification": "{{name}} 알림",
+    "deleteLabel": "{{name}} 삭제",
+    "deleteConfirm": "\"{{name}}\" 웹훅을 삭제하시겠습니까?",
     "events": {
       "issue_created": "이슈 생성",
       "issue_approved": "이슈 승인",
@@ -123,6 +163,11 @@
   "common": {
     "loading": "불러오는 중…",
     "close": "닫기",
-    "location": "위치"
+    "location": "위치",
+    "closeToast": "닫기",
+    "confirm": "확인",
+    "error": "오류가 발생했습니다.",
+    "retry": "다시 시도",
+    "errorLoad": "데이터를 불러오지 못했습니다."
   }
 }

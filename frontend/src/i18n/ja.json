@@ -5,7 +5,7 @@
     "description": "イシューを作成し、承認し、完了しましょう。カレンダーで実績を確認できます。"
   },
   "nav": {
-    "home": "ホーム",
+    "home": "ダッシュボード",
     "boards": "ボード",
     "calendar": "カレンダー",
     "menu": "メインメニュー"
@@ -26,7 +26,10 @@
     "approvedWaiting": "承認済み・作業待ち",
     "boardStatus": "ボード状況",
     "viewAll": "すべて表示",
-    "createFirst": "最初のボードを作成しましょう"
+    "createFirst": "最初のボードを作成しましょう",
+    "weeklyActivity": "週間アクティビティ",
+    "chartNoData": "まだ活動データがありません",
+    "today": "今日"
   },
   "board": {
     "title": "ボード",
@@ -39,7 +42,26 @@
     "newIssueTitle": "新しいイシュータイトル",
     "issueCreated": "イシューが作成されました",
     "statusChanged": "ステータスが「{{status}}」に変更されました",
-    "addProperty": "属性追加"
+    "addProperty": "属性追加",
+    "noIssues": "イシューなし",
+    "progress": "{{done}}/{{total}} 完了",
+    "inProgressCount": "進行中 {{count}}件",
+    "deleteConfirm": "ボード「{{name}}」とすべてのイシューを削除します。続けますか？",
+    "deleted": "ボードが削除されました",
+    "delete": "ボードを削除",
+    "propertyDeleteConfirm": "属性「{{name}}」を削除しますか？すべてのイシューからこの属性値が削除されます。",
+    "propertyDeleted": "属性「{{name}}」が削除されました",
+    "propertyAdded": "属性「{{name}}」が追加されました",
+    "deletePropertyLabel": "属性{{name}}を削除",
+    "statusChangeFailed": "ステータスを変更できませんでした。もう一度お試しください。",
+    "issueCreateFailed": "イシューを作成できませんでした。もう一度お試しください。",
+    "deleteFailed": "ボードを削除できませんでした。もう一度お試しください。",
+    "filterPlaceholder": "イシューを検索...",
+    "allStatuses": "すべて",
+    "noIssuesFound": "条件に一致するイシューがありません。",
+    "colTitle": "タイトル",
+    "colStatus": "ステータス",
+    "colCreated": "作成日"
   },
   "kanban": {
     "pending": "待機",
@@ -47,7 +69,9 @@
     "inProgress": "進行中",
     "done": "完了",
     "dragHere": "ここにイシューをドラッグ",
-    "approve": "承認"
+    "approve": "承認",
+    "columnLabel": "{{title}} カラム",
+    "approveLabel": "{{title}} を承認"
   },
   "issue": {
     "title": "タイトル",
@@ -59,7 +83,10 @@
     "children": "子イシュー",
     "noPreview": "プレビューする内容がありません。",
     "created": "作成",
-    "properties": "属性"
+    "properties": "属性",
+    "saveFailed": "変更を保存できませんでした。しばらくしてからお試しください。",
+    "statusChangeFailed": "ステータスを更新できませんでした。もう一度お試しください。",
+    "createdAt": "{{date}} 作成"
   },
   "editor": {
     "edit": "編集",
@@ -77,7 +104,15 @@
     "approved": "承認",
     "done": "完了",
     "none": "なし",
-    "selectDate": "{{date}} を選択"
+    "selectDate": "{{date}} を選択",
+    "sun": "日",
+    "mon": "月",
+    "tue": "火",
+    "wed": "水",
+    "thu": "木",
+    "fri": "金",
+    "sat": "土",
+    "issuesLabel": "{{title}} のイシュー"
   },
   "status": {
     "Pending": "待機",
@@ -100,7 +135,8 @@
     "input": "入力...",
     "checked": "完了",
     "unchecked": "未完了",
-    "selectPlaceholder": "選択..."
+    "selectPlaceholder": "選択...",
+    "nameRequired": "属性名を入力してください。"
   },
   "webhook": {
     "title": "Webhooks",
@@ -108,6 +144,10 @@
     "name": "名前",
     "url": "Webhook URL",
     "cancel": "キャンセル",
+    "custom": "カスタム",
+    "notification": "{{name}} 通知",
+    "deleteLabel": "{{name}} を削除",
+    "deleteConfirm": "Webhook「{{name}}」を削除しますか？",
     "events": {
       "issue_created": "イシュー作成",
       "issue_approved": "イシュー承認",
@@ -123,6 +163,11 @@
   "common": {
     "loading": "読み込み中…",
     "close": "閉じる",
-    "location": "場所"
+    "location": "場所",
+    "closeToast": "閉じる",
+    "confirm": "確認",
+    "error": "エラーが発生しました。",
+    "retry": "再試行",
+    "errorLoad": "データを読み込めませんでした。"
   }
 }

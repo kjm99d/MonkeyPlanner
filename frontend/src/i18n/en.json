@@ -5,7 +5,7 @@
     "description": "Create issues, approve them, and mark as done. Check your progress on the calendar."
   },
   "nav": {
-    "home": "Home",
+    "home": "Dashboard",
     "boards": "Boards",
     "calendar": "Calendar",
     "menu": "Main menu"
@@ -26,7 +26,10 @@
     "approvedWaiting": "Approved · Waiting",
     "boardStatus": "Board Status",
     "viewAll": "View All",
-    "createFirst": "Create your first board"
+    "createFirst": "Create your first board",
+    "weeklyActivity": "Weekly Activity",
+    "chartNoData": "No activity data yet",
+    "today": "Today"
   },
   "board": {
     "title": "Boards",
@@ -39,7 +42,26 @@
     "newIssueTitle": "New issue title",
     "issueCreated": "Issue created",
     "statusChanged": "Status changed to \"{{status}}\"",
-    "addProperty": "Add Property"
+    "addProperty": "Add Property",
+    "noIssues": "No issues",
+    "progress": "{{done}}/{{total}} done",
+    "inProgressCount": "{{count}} in progress",
+    "deleteConfirm": "Delete board \"{{name}}\" and all its issues. Continue?",
+    "deleted": "Board deleted",
+    "delete": "Delete board",
+    "propertyDeleteConfirm": "Delete property \"{{name}}\"? This will remove the value from all issues.",
+    "propertyDeleted": "Property \"{{name}}\" deleted",
+    "propertyAdded": "Property \"{{name}}\" added",
+    "deletePropertyLabel": "Delete property {{name}}",
+    "statusChangeFailed": "Couldn't change the status. Please try again.",
+    "issueCreateFailed": "Couldn't create the issue. Please try again.",
+    "deleteFailed": "Couldn't delete the board. Please try again.",
+    "filterPlaceholder": "Filter issues...",
+    "allStatuses": "All",
+    "noIssuesFound": "No issues match your filter.",
+    "colTitle": "Title",
+    "colStatus": "Status",
+    "colCreated": "Created"
   },
   "kanban": {
     "pending": "Pending",
@@ -47,7 +69,9 @@
     "inProgress": "In Progress",
     "done": "Done",
     "dragHere": "Drag issues here",
-    "approve": "Approve"
+    "approve": "Approve",
+    "columnLabel": "{{title}} column",
+    "approveLabel": "Approve {{title}}"
   },
   "issue": {
     "title": "Title",
@@ -59,7 +83,10 @@
     "children": "Child Issues",
     "noPreview": "Nothing to preview.",
     "created": "Created",
-    "properties": "Properties"
+    "properties": "Properties",
+    "saveFailed": "Couldn't save your changes. Please try again shortly.",
+    "statusChangeFailed": "Couldn't update the status. Please try again.",
+    "createdAt": "Created {{date}}"
   },
   "editor": {
     "edit": "Edit",
@@ -77,7 +104,15 @@
     "approved": "Approved",
     "done": "Done",
     "none": "None",
-    "selectDate": "Select {{date}}"
+    "selectDate": "Select {{date}}",
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "issuesLabel": "{{title}} issues"
   },
   "status": {
     "Pending": "Pending",
@@ -100,7 +135,8 @@
     "input": "Enter...",
     "checked": "Done",
     "unchecked": "Not done",
-    "selectPlaceholder": "Select..."
+    "selectPlaceholder": "Select...",
+    "nameRequired": "Please enter a property name."
   },
   "webhook": {
     "title": "Webhooks",
@@ -108,6 +144,10 @@
     "name": "Name",
     "url": "Webhook URL",
     "cancel": "Cancel",
+    "custom": "Custom",
+    "notification": "{{name}} notification",
+    "deleteLabel": "Delete {{name}}",
+    "deleteConfirm": "Delete webhook \"{{name}}\"?",
     "events": {
       "issue_created": "Issue Created",
       "issue_approved": "Issue Approved",
@@ -123,6 +163,11 @@
   "common": {
     "loading": "Loading…",
     "close": "Close",
-    "location": "Location"
+    "location": "Location",
+    "closeToast": "Close",
+    "confirm": "Confirm",
+    "error": "An error occurred.",
+    "retry": "Retry",
+    "errorLoad": "Failed to load data."
   }
 }
