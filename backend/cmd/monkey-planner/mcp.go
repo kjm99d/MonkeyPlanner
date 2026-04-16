@@ -2,16 +2,15 @@ package main
 
 import (
 	"bufio"
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strings"
-
-	"github.com/ckmdevb/monkey-planner/backend/internal/domain"
-	"github.com/ckmdevb/monkey-planner/backend/internal/service"
-	"github.com/ckmdevb/monkey-planner/backend/internal/storage"
 )
 
 // runMCP starts the MCP server communicating via stdio JSON-RPC.
@@ -19,16 +18,8 @@ func runMCP() {
 	// All logging to stderr; stdout is reserved for JSON-RPC protocol.
 	log.SetOutput(os.Stderr)
 
-	dsn := getenv("MP_DSN", defaultDSN())
-
-	repo, err := storage.NewRepo(dsn)
-	if err != nil {
-		log.Fatalf("mcp: storage open: %v", err)
-	}
-	defer repo.Close()
-
-	svc := service.New(repo, nil)
-	ctx := context.Background()
+	baseURL := strings.TrimRight(getenv("MP_BASE_URL", "http://localhost:8080"), "/")
+	client := &mcpHTTPClient{base: baseURL, hc: &http.Client{}}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Buffer(make([]byte, 1024*1024), 1024*1024) // 1MB buffer
@@ -44,7 +35,7 @@ func runMCP() {
 			continue
 		}
 
-		resp := handleMCPRequest(ctx, svc, &req)
+		resp := handleMCPRequest(client, &req)
 		if resp == nil {
 			// Notification: no response needed.
 			continue
@@ -53,6 +44,60 @@ func runMCP() {
 		out, _ := json.Marshal(resp)
 		fmt.Fprintln(os.Stdout, string(out))
 	}
+}
+
+// mcpHTTPClient forwards MCP tool calls to the running HTTP server.
+// This ensures SSE events are published through the server's broker.
+type mcpHTTPClient struct {
+	base string
+	hc   *http.Client
+}
+
+func (c *mcpHTTPClient) get(path string, q url.Values) (json.RawMessage, error) {
+	u := c.base + path
+	if len(q) > 0 {
+		u += "?" + q.Encode()
+	}
+	resp, err := c.hc.Get(u)
+	if err != nil {
+		return nil, fmt.Errorf("GET %s: %w", path, err)
+	}
+	defer resp.Body.Close()
+	return readHTTPBody(resp)
+}
+
+func (c *mcpHTTPClient) post(path string, body any) (json.RawMessage, error) {
+	return c.doJSON("POST", path, body)
+}
+
+func (c *mcpHTTPClient) patch(path string, body any) (json.RawMessage, error) {
+	return c.doJSON("PATCH", path, body)
+}
+
+func (c *mcpHTTPClient) doJSON(method, path string, body any) (json.RawMessage, error) {
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(method, c.base+path, bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%s %s: %w", method, path, err)
+	}
+	defer resp.Body.Close()
+	return readHTTPBody(resp)
+}
+
+func readHTTPBody(resp *http.Response) (json.RawMessage, error) {
+	b, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(b)))
+	}
+	return json.RawMessage(b), nil
 }
 
 // ---- JSON-RPC types ----
@@ -73,7 +118,7 @@ type jsonRPCResponse struct {
 
 // ---- Request router ----
 
-func handleMCPRequest(ctx context.Context, svc *service.Service, req *jsonRPCRequest) *jsonRPCResponse {
+func handleMCPRequest(client *mcpHTTPClient, req *jsonRPCRequest) *jsonRPCResponse {
 	switch req.Method {
 	case "initialize":
 		return &jsonRPCResponse{
@@ -81,8 +126,8 @@ func handleMCPRequest(ctx context.Context, svc *service.Service, req *jsonRPCReq
 			ID:      req.ID,
 			Result: map[string]any{
 				"protocolVersion": "2024-11-05",
-				"capabilities":   map[string]any{"tools": map[string]any{}},
-				"serverInfo":     map[string]any{"name": "monkey-planner", "version": version},
+				"capabilities":    map[string]any{"tools": map[string]any{}},
+				"serverInfo":      map[string]any{"name": "monkey-planner", "version": version},
 			},
 		}
 
@@ -97,7 +142,7 @@ func handleMCPRequest(ctx context.Context, svc *service.Service, req *jsonRPCReq
 		}
 
 	case "tools/call":
-		return handleMCPToolCall(ctx, svc, req)
+		return handleMCPToolCall(client, req)
 
 	default:
 		return &jsonRPCResponse{
@@ -263,7 +308,7 @@ func mcpToolDefinitions() []map[string]any {
 
 // ---- Tool call handler ----
 
-func handleMCPToolCall(ctx context.Context, svc *service.Service, req *jsonRPCRequest) *jsonRPCResponse {
+func handleMCPToolCall(client *mcpHTTPClient, req *jsonRPCRequest) *jsonRPCResponse {
 	var params struct {
 		Name      string          `json:"name"`
 		Arguments json.RawMessage `json:"arguments"`
@@ -276,7 +321,7 @@ func handleMCPToolCall(ctx context.Context, svc *service.Service, req *jsonRPCRe
 		}
 	}
 
-	result, err := mcpCallTool(ctx, svc, params.Name, params.Arguments)
+	result, err := mcpCallTool(client, params.Name, params.Arguments)
 	if err != nil {
 		return &jsonRPCResponse{
 			JSONRPC: "2.0",
@@ -298,13 +343,19 @@ func handleMCPToolCall(ctx context.Context, svc *service.Service, req *jsonRPCRe
 	}
 }
 
-func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw json.RawMessage) (any, error) {
+func mcpCallTool(c *mcpHTTPClient, name string, argsRaw json.RawMessage) (any, error) {
 	switch name {
 	case "get_version":
 		return map[string]any{"version": version, "name": "monkey-planner"}, nil
 
 	case "list_boards":
-		return svc.ListBoards(ctx)
+		raw, err := c.get("/api/boards", nil)
+		if err != nil {
+			return nil, err
+		}
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "list_issues":
 		var args struct {
@@ -312,16 +363,20 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 			Status  string `json:"status"`
 		}
 		_ = json.Unmarshal(argsRaw, &args)
-
-		var f storage.IssueFilter
+		q := url.Values{}
 		if args.BoardID != "" {
-			f.BoardID = &args.BoardID
+			q.Set("board_id", args.BoardID)
 		}
 		if args.Status != "" {
-			st := domain.Status(args.Status)
-			f.Status = &st
+			q.Set("status", args.Status)
 		}
-		return svc.ListIssues(ctx, f)
+		raw, err := c.get("/api/issues", q)
+		if err != nil {
+			return nil, err
+		}
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "get_issue":
 		var args struct {
@@ -330,16 +385,21 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
 			return nil, fmt.Errorf("issueId is required")
 		}
-		issue, children, err := svc.GetIssue(ctx, args.IssueID)
+		issueRaw, err := c.get("/api/issues/"+args.IssueID, nil)
 		if err != nil {
 			return nil, err
 		}
-		comments, _ := svc.ListComments(ctx, args.IssueID)
-		return map[string]any{
-			"issue":    issue,
-			"children": children,
-			"comments": comments,
-		}, nil
+		commentsRaw, err := c.get("/api/issues/"+args.IssueID+"/comments", nil)
+		if err != nil {
+			return nil, err
+		}
+		// issueRaw is {"issue": {...}, "children": [...]}
+		var issueData map[string]any
+		var comments any
+		_ = json.Unmarshal(issueRaw, &issueData)
+		_ = json.Unmarshal(commentsRaw, &comments)
+		issueData["comments"] = comments
+		return issueData, nil
 
 	case "create_issue":
 		var args struct {
@@ -351,24 +411,30 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil {
 			return nil, fmt.Errorf("invalid arguments: %w", err)
 		}
-		issue, err := svc.CreateIssue(ctx, service.CreateIssueInput{
-			BoardID: args.BoardID,
-			Title:   args.Title,
-			Body:    args.Body,
+		issueRaw, err := c.post("/api/issues", map[string]any{
+			"boardId": args.BoardID,
+			"title":   args.Title,
+			"body":    args.Body,
 		})
 		if err != nil {
 			return nil, err
 		}
-		// If instructions were provided, update them separately since CreateIssueInput doesn't have Instructions.
 		if args.Instructions != "" {
-			issue, err = svc.UpdateIssue(ctx, issue.ID, service.UpdateIssueInput{
-				Instructions: &args.Instructions,
-			})
-			if err != nil {
-				return nil, err
+			var issue struct {
+				ID string `json:"id"`
+			}
+			if err := json.Unmarshal(issueRaw, &issue); err == nil && issue.ID != "" {
+				issueRaw, err = c.patch("/api/issues/"+issue.ID, map[string]any{
+					"instructions": args.Instructions,
+				})
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
-		return issue, nil
+		var result any
+		_ = json.Unmarshal(issueRaw, &result)
+		return result, nil
 
 	case "approve_issue":
 		var args struct {
@@ -377,7 +443,13 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
 			return nil, fmt.Errorf("issueId is required")
 		}
-		return svc.ApproveIssue(ctx, args.IssueID)
+		raw, err := c.post("/api/issues/"+args.IssueID+"/approve", map[string]any{})
+		if err != nil {
+			return nil, err
+		}
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "claim_issue":
 		var args struct {
@@ -386,10 +458,13 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
 			return nil, fmt.Errorf("issueId is required")
 		}
-		st := domain.StatusInProgress
-		return svc.UpdateIssue(ctx, args.IssueID, service.UpdateIssueInput{
-			Status: &st,
-		})
+		raw, err := c.patch("/api/issues/"+args.IssueID, map[string]any{"status": "InProgress"})
+		if err != nil {
+			return nil, err
+		}
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "submit_qa":
 		var args struct {
@@ -399,17 +474,16 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
 			return nil, fmt.Errorf("issueId is required")
 		}
-		st := domain.StatusQA
-		issue, err := svc.UpdateIssue(ctx, args.IssueID, service.UpdateIssueInput{
-			Status: &st,
-		})
+		raw, err := c.patch("/api/issues/"+args.IssueID, map[string]any{"status": "QA"})
 		if err != nil {
 			return nil, err
 		}
 		if args.Comment != "" {
-			_, _ = svc.CreateComment(ctx, args.IssueID, args.Comment)
+			_, _ = c.post("/api/issues/"+args.IssueID+"/comments", map[string]any{"body": args.Comment})
 		}
-		return issue, nil
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "complete_issue":
 		var args struct {
@@ -419,14 +493,16 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
 			return nil, fmt.Errorf("issueId is required")
 		}
-		issue, err := svc.CompleteIssue(ctx, args.IssueID)
+		raw, err := c.patch("/api/issues/"+args.IssueID, map[string]any{"status": "Done"})
 		if err != nil {
 			return nil, err
 		}
 		if args.Comment != "" {
-			_, _ = svc.CreateComment(ctx, args.IssueID, args.Comment)
+			_, _ = c.post("/api/issues/"+args.IssueID+"/comments", map[string]any{"body": args.Comment})
 		}
-		return issue, nil
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "reject_issue":
 		var args struct {
@@ -439,15 +515,14 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if args.Reason == "" {
 			return nil, fmt.Errorf("reason is required for rejection")
 		}
-		st := domain.StatusInProgress
-		issue, err := svc.UpdateIssue(ctx, args.IssueID, service.UpdateIssueInput{
-			Status: &st,
-		})
+		raw, err := c.patch("/api/issues/"+args.IssueID, map[string]any{"status": "InProgress"})
 		if err != nil {
 			return nil, err
 		}
-		_, _ = svc.CreateComment(ctx, args.IssueID, "❌ QA 거절: "+args.Reason)
-		return issue, nil
+		_, _ = c.post("/api/issues/"+args.IssueID+"/comments", map[string]any{"body": "❌ QA 거절: " + args.Reason})
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "add_comment":
 		var args struct {
@@ -457,7 +532,13 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" || args.Body == "" {
 			return nil, fmt.Errorf("issueId and body are required")
 		}
-		return svc.CreateComment(ctx, args.IssueID, args.Body)
+		raw, err := c.post("/api/issues/"+args.IssueID+"/comments", map[string]any{"body": args.Body})
+		if err != nil {
+			return nil, err
+		}
+		var result any
+		_ = json.Unmarshal(raw, &result)
+		return result, nil
 
 	case "update_criteria":
 		var args struct {
@@ -468,23 +549,31 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.IssueID == "" {
 			return nil, fmt.Errorf("issueId, index, and done are required")
 		}
-		// Get current issue to read existing criteria
-		issue, _, err := svc.GetIssue(ctx, args.IssueID)
+		issueRaw, err := c.get("/api/issues/"+args.IssueID, nil)
 		if err != nil {
 			return nil, err
 		}
-		if args.Index < 0 || args.Index >= len(issue.Criteria) {
-			return nil, fmt.Errorf("index %d out of range (issue has %d criteria)", args.Index, len(issue.Criteria))
+		var issueResp struct {
+			Issue struct {
+				Criteria []map[string]any `json:"criteria"`
+			} `json:"issue"`
 		}
-		criteria := make([]domain.Criterion, len(issue.Criteria))
-		copy(criteria, issue.Criteria)
-		criteria[args.Index].Done = args.Done
-		updated, err := svc.UpdateIssue(ctx, args.IssueID, service.UpdateIssueInput{
-			Criteria: &criteria,
-		})
+		if err := json.Unmarshal(issueRaw, &issueResp); err != nil {
+			return nil, fmt.Errorf("failed to parse issue: %w", err)
+		}
+		criteria := issueResp.Issue.Criteria
+		if args.Index < 0 || args.Index >= len(criteria) {
+			return nil, fmt.Errorf("index %d out of range (issue has %d criteria)", args.Index, len(criteria))
+		}
+		criteria[args.Index]["done"] = args.Done
+		raw, err := c.patch("/api/issues/"+args.IssueID, map[string]any{"criteria": criteria})
 		if err != nil {
 			return nil, err
 		}
+		var updated struct {
+			Criteria any `json:"criteria"`
+		}
+		_ = json.Unmarshal(raw, &updated)
 		return updated.Criteria, nil
 
 	case "search_issues":
@@ -494,15 +583,18 @@ func mcpCallTool(ctx context.Context, svc *service.Service, name string, argsRaw
 		if err := json.Unmarshal(argsRaw, &args); err != nil || args.Query == "" {
 			return nil, fmt.Errorf("query is required")
 		}
-		// List all issues and filter by title substring match.
-		all, err := svc.ListIssues(ctx, storage.IssueFilter{})
+		raw, err := c.get("/api/issues", nil)
 		if err != nil {
 			return nil, err
 		}
+		var all []map[string]any
+		if err := json.Unmarshal(raw, &all); err != nil {
+			return nil, err
+		}
 		q := strings.ToLower(args.Query)
-		var matched []domain.Issue
+		var matched []map[string]any
 		for _, iss := range all {
-			if strings.Contains(strings.ToLower(iss.Title), q) {
+			if title, ok := iss["title"].(string); ok && strings.Contains(strings.ToLower(title), q) {
 				matched = append(matched, iss)
 			}
 		}

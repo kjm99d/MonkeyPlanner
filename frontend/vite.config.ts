@@ -6,6 +6,17 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // SSE 전용: 버퍼링 방지 + keep-alive
+      '/api/events': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            proxyRes.headers['cache-control'] = 'no-cache, no-transform';
+            proxyRes.headers['x-accel-buffering'] = 'no';
+          });
+        },
+      },
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
