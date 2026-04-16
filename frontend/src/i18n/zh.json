@@ -29,7 +29,12 @@
     "createFirst": "创建你的第一个看板",
     "weeklyActivity": "每周活动",
     "chartNoData": "暂无活动数据",
-    "today": "今天"
+    "today": "今天",
+    "agentMetrics": "代理指标",
+    "completionRate": "完成率",
+    "approvalRate": "审批率",
+    "avgCycleTime": "平均周期",
+    "pipeline": "流水线"
   },
   "board": {
     "title": "看板",

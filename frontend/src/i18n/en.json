@@ -29,7 +29,12 @@
     "createFirst": "Create your first board",
     "weeklyActivity": "Weekly Activity",
     "chartNoData": "No activity data yet",
-    "today": "Today"
+    "today": "Today",
+    "agentMetrics": "Agent Metrics",
+    "completionRate": "Completion Rate",
+    "approvalRate": "Approval Rate",
+    "avgCycleTime": "Avg Cycle Time",
+    "pipeline": "Pipeline"
   },
   "board": {
     "title": "Boards",

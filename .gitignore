@@ -48,5 +48,5 @@ backend/.omc/
 # Git hooks (project-local)
 .githooks/
 
-# Screenshots (dev only)
-d-*.png
+# Screenshots (root only - docs/screenshots/ is tracked)
+/d-*.png

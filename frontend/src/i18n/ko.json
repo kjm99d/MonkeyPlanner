@@ -29,7 +29,12 @@
     "createFirst": "첫 보드를 만들어보세요",
     "weeklyActivity": "주간 활동",
     "chartNoData": "아직 활동 데이터가 없습니다",
-    "today": "오늘"
+    "today": "오늘",
+    "agentMetrics": "에이전트 메트릭",
+    "completionRate": "완료율",
+    "approvalRate": "승인율",
+    "avgCycleTime": "평균 처리 시간",
+    "pipeline": "파이프라인"
   },
   "board": {
     "title": "보드",
