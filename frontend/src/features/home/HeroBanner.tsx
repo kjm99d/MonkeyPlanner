@@ -1,0 +1,33 @@
+import { Banana, Brain, Zap } from 'lucide-react';
+
+export default function HeroBanner() {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-[var(--glass-border)] bg-gradient-to-br from-brand-500/10 via-surface-subtle to-accent/5 px-6 py-8 dark:from-brand-500/20 dark:via-surface-subtle dark:to-accent/10">
+      {/* 배경 장식 원 */}
+      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brand-500/10 blur-2xl" />
+      <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-accent/10 blur-2xl" />
+
+      <div className="relative flex items-center justify-between gap-6">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold text-ink-primary">
+            코숭이들이 일하고 있어요
+          </h2>
+          <p className="text-sm text-ink-secondary">
+            이슈를 만들고, 승인하고, 완료하세요. 캘린더에서 실적을 확인할 수 있습니다.
+          </p>
+        </div>
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500/15 text-brand-500">
+            <Brain size={24} />
+          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/15 text-accent">
+            <Banana size={24} />
+          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-status-inProgress/15 text-status-inProgress">
+            <Zap size={24} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

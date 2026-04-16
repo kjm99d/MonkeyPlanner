@@ -42,3 +42,4 @@ Thumbs.db
 # OMC state (shared between sessions but not tracked)
 .omc/state/
 .omc/drafts/
+.gstack/
