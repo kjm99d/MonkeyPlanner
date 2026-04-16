@@ -5,7 +5,7 @@
     "description": "创建问题、审批并完成。在日历中查看工作成果。"
   },
   "nav": {
-    "home": "首页",
+    "home": "仪表盘",
     "boards": "看板",
     "calendar": "日历",
     "menu": "主菜单"
@@ -26,7 +26,10 @@
     "approvedWaiting": "已审批·等待处理",
     "boardStatus": "看板状态",
     "viewAll": "查看全部",
-    "createFirst": "创建你的第一个看板"
+    "createFirst": "创建你的第一个看板",
+    "weeklyActivity": "每周活动",
+    "chartNoData": "暂无活动数据",
+    "today": "今天"
   },
   "board": {
     "title": "看板",
@@ -39,7 +42,26 @@
     "newIssueTitle": "新问题标题",
     "issueCreated": "问题已创建",
     "statusChanged": "状态已变更为\"{{status}}\"",
-    "addProperty": "添加属性"
+    "addProperty": "添加属性",
+    "noIssues": "暂无问题",
+    "progress": "{{done}}/{{total}} 已完成",
+    "inProgressCount": "进行中 {{count}}项",
+    "deleteConfirm": "删除看板\"{{name}}\"及其所有问题。是否继续？",
+    "deleted": "看板已删除",
+    "delete": "删除看板",
+    "propertyDeleteConfirm": "删除属性\"{{name}}\"？所有问题中的该属性值将被移除。",
+    "propertyDeleted": "属性\"{{name}}\"已删除",
+    "propertyAdded": "属性\"{{name}}\"已添加",
+    "deletePropertyLabel": "删除属性{{name}}",
+    "statusChangeFailed": "无法变更状态，请重试。",
+    "issueCreateFailed": "无法创建问题，请重试。",
+    "deleteFailed": "无法删除看板，请重试。",
+    "filterPlaceholder": "搜索问题...",
+    "allStatuses": "全部",
+    "noIssuesFound": "没有匹配的问题。",
+    "colTitle": "标题",
+    "colStatus": "状态",
+    "colCreated": "创建日期"
   },
   "kanban": {
     "pending": "待处理",
@@ -47,7 +69,9 @@
     "inProgress": "进行中",
     "done": "已完成",
     "dragHere": "将问题拖到这里",
-    "approve": "审批"
+    "approve": "审批",
+    "columnLabel": "{{title}} 列",
+    "approveLabel": "审批{{title}}"
   },
   "issue": {
     "title": "标题",
@@ -59,7 +83,10 @@
     "children": "子问题",
     "noPreview": "没有可预览的内容。",
     "created": "创建",
-    "properties": "属性"
+    "properties": "属性",
+    "saveFailed": "无法保存更改，请稍后重试。",
+    "statusChangeFailed": "无法更新状态，请重试。",
+    "createdAt": "{{date}} 创建"
   },
   "editor": {
     "edit": "编辑",
@@ -77,7 +104,15 @@
     "approved": "审批",
     "done": "完成",
     "none": "无",
-    "selectDate": "选择 {{date}}"
+    "selectDate": "选择 {{date}}",
+    "sun": "日",
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "issuesLabel": "{{title}} 的问题"
   },
   "status": {
     "Pending": "待处理",
@@ -100,7 +135,8 @@
     "input": "输入...",
     "checked": "已完成",
     "unchecked": "未完成",
-    "selectPlaceholder": "选择..."
+    "selectPlaceholder": "选择...",
+    "nameRequired": "请输入属性名称。"
   },
   "webhook": {
     "title": "Webhooks",
@@ -108,6 +144,10 @@
     "name": "名称",
     "url": "Webhook URL",
     "cancel": "取消",
+    "custom": "自定义",
+    "notification": "{{name}} 通知",
+    "deleteLabel": "删除{{name}}",
+    "deleteConfirm": "删除Webhook\"{{name}}\"？",
     "events": {
       "issue_created": "问题创建",
       "issue_approved": "问题审批",
@@ -123,6 +163,11 @@
   "common": {
     "loading": "加载中…",
     "close": "关闭",
-    "location": "位置"
+    "location": "位置",
+    "closeToast": "关闭",
+    "confirm": "确认",
+    "error": "发生错误。",
+    "retry": "重试",
+    "errorLoad": "无法加载数据。"
   }
 }
