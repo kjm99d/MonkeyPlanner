@@ -27,10 +27,17 @@ type Repo struct {
 // Open 은 지정된 DSN(예: "./data/monkey.db")으로 SQLite를 엽니다.
 // modernc.org/sqlite 드라이버는 "sqlite" 이름으로 등록됩니다.
 func Open(dsn string) (*Repo, error) {
-	db, err := sql.Open("sqlite", dsn+"?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)")
+	// busy_timeout(5000): block up to 5s on SQLITE_BUSY instead of failing immediately.
+	// _txlock=immediate: BeginTx acquires a write lock up front, avoiding deferred-upgrade deadlocks
+	// when multiple MCP clients (Claude Code, Cursor, etc.) concurrently mutate the same DB.
+	params := "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)&_txlock=immediate"
+	db, err := sql.Open("sqlite", dsn+params)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite open: %w", err)
 	}
+	// SQLite allows one writer at a time; a single connection avoids spurious BUSY errors
+	// from concurrent write attempts within this process. Readers still scale via WAL.
+	db.SetMaxOpenConns(1)
 	if err := db.Ping(); err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("sqlite ping: %w", err)
