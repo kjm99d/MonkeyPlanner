@@ -16,6 +16,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "mcp" {
+		runMCP()
+		return
+	}
+
 	addr := getenv("MP_ADDR", ":8080")
 	dsn := getenv("MP_DSN", defaultDSN())
 
