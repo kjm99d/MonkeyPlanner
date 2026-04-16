@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { useBoards, useBoardProperties, useCreateBoardProperty, useDeleteBoardProperty, useCreateIssue, useDeleteIssue, useIssues, useUpdateIssue } from '../../api/hooks';
+import { useBoards, useBoardProperties, useCreateBoardProperty, useDeleteBoardProperty, useCreateIssue, useIssues, useUpdateIssue } from '../../api/hooks';
 import { api } from '../../api/client';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
