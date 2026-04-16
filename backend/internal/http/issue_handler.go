@@ -107,6 +107,14 @@ func (h *issueHandler) patch(w http.ResponseWriter, r *http.Request) {
 		}
 		in.Body = &s
 	}
+	if v, ok := raw["instructions"]; ok {
+		var s string
+		if err := json.Unmarshal(v, &s); err != nil {
+			writeErr(w, http.StatusBadRequest, "invalid_instructions", err.Error())
+			return
+		}
+		in.Instructions = &s
+	}
 	if v, ok := raw["status"]; ok {
 		var s domain.Status
 		if err := json.Unmarshal(v, &s); err != nil {
@@ -133,6 +141,14 @@ func (h *issueHandler) patch(w http.ResponseWriter, r *http.Request) {
 		}
 		writeJSON(w, http.StatusOK, updated)
 		return
+	}
+	if v, ok := raw["criteria"]; ok {
+		var criteria []domain.Criterion
+		if err := json.Unmarshal(v, &criteria); err != nil {
+			writeErr(w, http.StatusBadRequest, "invalid_criteria", err.Error())
+			return
+		}
+		in.Criteria = &criteria
 	}
 	if v, ok := raw["parentId"]; ok {
 		if string(v) == "null" {
@@ -169,6 +185,36 @@ func (h *issueHandler) approve(w http.ResponseWriter, r *http.Request) {
 func (h *issueHandler) delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if err := h.svc.DeleteIssue(r.Context(), id); err != nil {
+		mapError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *issueHandler) addDependency(w http.ResponseWriter, r *http.Request) {
+	issueID := chi.URLParam(r, "issueId")
+	var in struct {
+		BlockerID string `json:"blockerId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeErr(w, http.StatusBadRequest, "invalid_json", err.Error())
+		return
+	}
+	if in.BlockerID == "" {
+		writeErr(w, http.StatusBadRequest, "missing_blocker_id", "blockerId is required")
+		return
+	}
+	if err := h.svc.AddDependency(r.Context(), in.BlockerID, issueID); err != nil {
+		mapError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *issueHandler) removeDependency(w http.ResponseWriter, r *http.Request) {
+	issueID := chi.URLParam(r, "issueId")
+	blockerID := chi.URLParam(r, "blockerId")
+	if err := h.svc.RemoveDependency(r.Context(), blockerID, issueID); err != nil {
 		mapError(w, err)
 		return
 	}

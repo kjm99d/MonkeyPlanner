@@ -65,6 +65,9 @@ func NewRouter(svc *service.Service, static fs.FS) http.Handler {
 			i.Patch("/{id}", ih.patch)
 			i.Delete("/{id}", ih.delete)
 			i.Post("/{id}/approve", ih.approve)
+			// 이슈 의존성
+			i.Post("/{issueId}/dependencies", ih.addDependency)
+			i.Delete("/{issueId}/dependencies/{blockerId}", ih.removeDependency)
 			// 이슈 댓글
 			i.Get("/{issueId}/comments", cmh.list)
 			i.Post("/{issueId}/comments", cmh.create)

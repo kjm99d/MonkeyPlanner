@@ -74,10 +74,12 @@ func (s *Service) CreateIssue(ctx context.Context, in CreateIssueInput) (domain.
 
 // UpdateIssueInput은 PATCH 본문입니다. nil 은 미변경.
 type UpdateIssueInput struct {
-	Title    *string
-	Body     *string
-	ParentID **string        // 이중 포인터로 "미변경" vs "NULL로" 구분
-	Status   *domain.Status
+	Title        *string
+	Body         *string
+	Instructions *string
+	ParentID     **string              // 이중 포인터로 "미변경" vs "NULL로" 구분
+	Status       *domain.Status
+	Criteria     *[]domain.Criterion   // nil이면 미변경
 }
 
 // UpdateIssue는 PATCH 전이 규칙을 강제합니다. Approved 전이는 차단(409).
@@ -119,10 +121,12 @@ func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInpu
 	}
 
 	patch := storage.IssuePatch{
-		Title:    in.Title,
-		Body:     in.Body,
-		ParentID: in.ParentID,
-		Status:   patchStatus,
+		Title:        in.Title,
+		Body:         in.Body,
+		Instructions: in.Instructions,
+		ParentID:     in.ParentID,
+		Status:       patchStatus,
+		Criteria:     in.Criteria,
 	}
 	return s.repo.Issues().Update(ctx, id, patch)
 }
@@ -165,6 +169,18 @@ func (s *Service) ListIssues(ctx context.Context, f storage.IssueFilter) ([]doma
 
 func (s *Service) ReorderIssues(ctx context.Context, issueIDs []string) error {
 	return s.repo.Issues().ReorderIssues(ctx, issueIDs)
+}
+
+func (s *Service) AddDependency(ctx context.Context, blockerID, blockedID string) error {
+	return s.repo.Issues().AddDependency(ctx, blockerID, blockedID)
+}
+
+func (s *Service) RemoveDependency(ctx context.Context, blockerID, blockedID string) error {
+	return s.repo.Issues().RemoveDependency(ctx, blockerID, blockedID)
+}
+
+func (s *Service) GetBlockedBy(ctx context.Context, issueID string) ([]string, error) {
+	return s.repo.Issues().GetBlockedBy(ctx, issueID)
 }
 
 // ---- Comment 유스케이스 ----

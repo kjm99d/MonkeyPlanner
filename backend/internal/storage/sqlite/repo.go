@@ -66,11 +66,15 @@ func (r *issueRepo) Create(ctx context.Context, i domain.Issue) (domain.Issue, e
 	if i.Properties == nil {
 		i.Properties = map[string]any{}
 	}
+	if i.Criteria == nil {
+		i.Criteria = []domain.Criterion{}
+	}
 	propsJSON, _ := json.Marshal(i.Properties)
+	criteriaJSON, _ := json.Marshal(i.Criteria)
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO issues (id, board_id, parent_id, title, body, status, properties, position, created_at, updated_at, approved_at, completed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		i.ID, i.BoardID, i.ParentID, i.Title, i.Body, i.Status, string(propsJSON), i.Position,
+		INSERT INTO issues (id, board_id, parent_id, title, body, instructions, status, properties, criteria, position, created_at, updated_at, approved_at, completed_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		i.ID, i.BoardID, i.ParentID, i.Title, i.Body, i.Instructions, i.Status, string(propsJSON), string(criteriaJSON), i.Position,
 		i.CreatedAt.UTC(), i.UpdatedAt.UTC(), utcPtr(i.ApprovedAt), utcPtr(i.CompletedAt))
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: create issue: %w", err)
@@ -144,6 +148,12 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	if p.Properties != nil {
 		cur.Properties = *p.Properties
 	}
+	if p.Instructions != nil {
+		cur.Instructions = *p.Instructions
+	}
+	if p.Criteria != nil {
+		cur.Criteria = *p.Criteria
+	}
 	if p.ParentID != nil {
 		newParent := *p.ParentID
 		if newParent != nil {
@@ -166,10 +176,11 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	cur.UpdatedAt = time.Now().UTC()
 
 	propsJSON, _ := json.Marshal(cur.Properties)
+	criteriaJSON, _ := json.Marshal(cur.Criteria)
 	_, err = tx.ExecContext(ctx, `
-		UPDATE issues SET title=?, body=?, status=?, parent_id=?, properties=?, updated_at=?, completed_at=?
+		UPDATE issues SET title=?, body=?, instructions=?, status=?, parent_id=?, properties=?, criteria=?, updated_at=?, completed_at=?
 		WHERE id=?`,
-		cur.Title, cur.Body, cur.Status, cur.ParentID, string(propsJSON), cur.UpdatedAt, utcPtr(cur.CompletedAt), id)
+		cur.Title, cur.Body, cur.Instructions, cur.Status, cur.ParentID, string(propsJSON), string(criteriaJSON), cur.UpdatedAt, utcPtr(cur.CompletedAt), id)
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: update issue: %w", err)
 	}
@@ -314,18 +325,56 @@ func (r *issueRepo) ReorderIssues(ctx context.Context, issueIDs []string) error 
 	return tx.Commit()
 }
 
+func (r *issueRepo) AddDependency(ctx context.Context, blockerID, blockedID string) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT OR IGNORE INTO issue_dependencies (blocker_id, blocked_id) VALUES (?, ?)`,
+		blockerID, blockedID)
+	if err != nil {
+		return fmt.Errorf("sqlite: add dependency: %w", err)
+	}
+	return nil
+}
+
+func (r *issueRepo) RemoveDependency(ctx context.Context, blockerID, blockedID string) error {
+	_, err := r.db.ExecContext(ctx,
+		`DELETE FROM issue_dependencies WHERE blocker_id = ? AND blocked_id = ?`,
+		blockerID, blockedID)
+	if err != nil {
+		return fmt.Errorf("sqlite: remove dependency: %w", err)
+	}
+	return nil
+}
+
+func (r *issueRepo) GetBlockedBy(ctx context.Context, issueID string) ([]string, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT blocker_id FROM issue_dependencies WHERE blocked_id = ?`, issueID)
+	if err != nil {
+		return nil, fmt.Errorf("sqlite: get blocked by: %w", err)
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, rows.Err()
+}
+
 // ---- 공통 helpers ----
 
 const selectIssueCols = `
-SELECT id, board_id, parent_id, title, body, status, properties, position, created_at, updated_at, approved_at, completed_at
+SELECT id, board_id, parent_id, title, body, instructions, status, properties, criteria, position, created_at, updated_at, approved_at, completed_at
 FROM issues`
 
 func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
 	var i domain.Issue
 	var parent sql.NullString
-	var propsStr string
+	var propsStr, criteriaStr string
 	var approvedAt, completedAt sql.NullTime
-	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Status, &propsStr, &i.Position, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
+	err := row.Scan(&i.ID, &i.BoardID, &parent, &i.Title, &i.Body, &i.Instructions, &i.Status, &propsStr, &criteriaStr, &i.Position, &i.CreatedAt, &i.UpdatedAt, &approvedAt, &completedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Issue{}, storage.ErrNotFound
@@ -334,6 +383,12 @@ func scanIssue(row interface{ Scan(...any) error }) (domain.Issue, error) {
 	}
 	if propsStr != "" {
 		_ = json.Unmarshal([]byte(propsStr), &i.Properties)
+	}
+	if criteriaStr != "" {
+		_ = json.Unmarshal([]byte(criteriaStr), &i.Criteria)
+	}
+	if i.Criteria == nil {
+		i.Criteria = []domain.Criterion{}
 	}
 	if i.Properties == nil {
 		i.Properties = map[string]any{}
