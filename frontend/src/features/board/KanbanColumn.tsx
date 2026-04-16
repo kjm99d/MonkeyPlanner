@@ -1,7 +1,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList } from 'lucide-react';
-import type { Issue, IssueStatus } from '../../api/types';
+import type { Issue, IssueStatus, BoardProperty } from '../../api/types';
 import { IssueCard } from './IssueCard';
 
 const topAccent: Record<IssueStatus, string> = {
@@ -15,9 +15,10 @@ type Props = {
   status: IssueStatus;
   title: string;
   issues: Issue[];
+  boardProperties?: BoardProperty[];
 };
 
-export function KanbanColumn({ status, title, issues }: Props) {
+export function KanbanColumn({ status, title, issues, boardProperties }: Props) {
   const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
@@ -41,7 +42,7 @@ export function KanbanColumn({ status, title, issues }: Props) {
             <p className="text-xs text-ink-muted">{t('kanban.dragHere')}</p>
           </div>
         ) : (
-          issues.map((iss) => <IssueCard key={iss.id} issue={iss} />)
+          issues.map((iss) => <IssueCard key={iss.id} issue={iss} boardProperties={boardProperties} />)
         )}
       </div>
     </section>

@@ -126,7 +126,7 @@ export default function BoardPage() {
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
           {COLUMN_KEYS.map((c) => (
-            <KanbanColumn key={c.status} status={c.status} title={t(c.key)} issues={grouped[c.status]} />
+            <KanbanColumn key={c.status} status={c.status} title={t(c.key)} issues={grouped[c.status]} boardProperties={boardPropsQuery.data} />
           ))}
         </div>
       </DndContext>
