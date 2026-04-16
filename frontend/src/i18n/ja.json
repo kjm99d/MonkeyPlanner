@@ -68,6 +68,7 @@
     "approved": "承認済",
     "inProgress": "進行中",
     "done": "完了",
+    "rejected": "却下",
     "dragHere": "ここにイシューをドラッグ",
     "approve": "承認",
     "columnLabel": "{{title}} カラム",
@@ -86,7 +87,13 @@
     "properties": "属性",
     "saveFailed": "変更を保存できませんでした。しばらくしてからお試しください。",
     "statusChangeFailed": "ステータスを更新できませんでした。もう一度お試しください。",
-    "createdAt": "{{date}} 作成"
+    "createdAt": "{{date}} 作成",
+    "instructions": "エージェント指示",
+    "instructionsPlaceholder": "MCPエージェント向けの指示を入力...",
+    "dependencies": "依存関係",
+    "blockedBy": "ブロック元",
+    "addDependency": "依存関係を追加",
+    "removeDependency": "削除"
   },
   "editor": {
     "edit": "編集",
@@ -118,7 +125,8 @@
     "Pending": "待機",
     "Approved": "承認済",
     "InProgress": "進行中",
-    "Done": "完了"
+    "Done": "完了",
+    "Rejected": "却下"
   },
   "property": {
     "newProperty": "新しい属性",
@@ -159,6 +167,36 @@
     "approveOnly": "承認ボタンのみで切替可能",
     "noPending": "待機状態に戻せません",
     "moveTo": "{{label}}に変更"
+  },
+  "comments": {
+    "section": "コメント",
+    "title": "コメント",
+    "empty": "まだコメントはありません",
+    "placeholder": "コメントを追加…",
+    "submit": "コメント",
+    "submitting": "投稿中…",
+    "delete": "コメントを削除"
+  },
+  "approval": {
+    "title": "承認キュー",
+    "description": "すべてのボードの保留中のイシューを確認して承認します。",
+    "empty": "保留中のイシューはありません",
+    "emptyHint": "すべてのイシューが確認されました。後でまた確認してください。",
+    "selectAll": "すべて選択",
+    "selectIssue": "{{title}} を選択",
+    "approveIssue": "{{title}} を承認",
+    "approve": "承認",
+    "approveSelected": "選択した {{count}} 件を承認",
+    "selectedCount": "{{count}} 件選択中",
+    "clearSelection": "選択を解除",
+    "queueLabel": "保留中のイシュー"
+  },
+  "template": {
+    "title": "テンプレート",
+    "empty": "保存されたテンプレートはありません",
+    "save": "テンプレートとして保存",
+    "name": "テンプレート名",
+    "delete": "テンプレートを削除"
   },
   "common": {
     "loading": "読み込み中…",

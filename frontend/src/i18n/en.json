@@ -68,6 +68,7 @@
     "approved": "Approved",
     "inProgress": "In Progress",
     "done": "Done",
+    "rejected": "Rejected",
     "dragHere": "Drag issues here",
     "approve": "Approve",
     "columnLabel": "{{title}} column",
@@ -86,7 +87,15 @@
     "properties": "Properties",
     "saveFailed": "Couldn't save your changes. Please try again shortly.",
     "statusChangeFailed": "Couldn't update the status. Please try again.",
-    "createdAt": "Created {{date}}"
+    "createdAt": "Created {{date}}",
+    "instructions": "Agent Instructions",
+    "instructionsPlaceholder": "Instructions for the MCP agent...",
+    "dependencies": "Dependencies",
+    "blockedBy": "Blocked by",
+    "addDependency": "Add dependency",
+    "removeDependency": "Remove",
+    "criteria": "Success Criteria",
+    "addCriterion": "Add criterion (Enter)"
   },
   "editor": {
     "edit": "Edit",
@@ -118,7 +127,8 @@
     "Pending": "Pending",
     "Approved": "Approved",
     "InProgress": "In Progress",
-    "Done": "Done"
+    "Done": "Done",
+    "Rejected": "Rejected"
   },
   "property": {
     "newProperty": "New Property",
@@ -159,6 +169,36 @@
     "approveOnly": "Use Approve button only",
     "noPending": "Cannot revert to Pending",
     "moveTo": "Move to {{label}}"
+  },
+  "comments": {
+    "section": "Comments",
+    "title": "Comments",
+    "empty": "No comments yet",
+    "placeholder": "Add a comment…",
+    "submit": "Comment",
+    "submitting": "Posting…",
+    "delete": "Delete comment"
+  },
+  "approval": {
+    "title": "Approval Queue",
+    "description": "Review and approve pending issues across all boards.",
+    "empty": "No pending issues",
+    "emptyHint": "All issues have been reviewed. Check back later.",
+    "selectAll": "Select all",
+    "selectIssue": "Select {{title}}",
+    "approveIssue": "Approve {{title}}",
+    "approve": "Approve",
+    "approveSelected": "Approve {{count}} selected",
+    "selectedCount": "{{count}} selected",
+    "clearSelection": "Clear selection",
+    "queueLabel": "Pending issues"
+  },
+  "template": {
+    "title": "Templates",
+    "empty": "No saved templates",
+    "save": "Save as Template",
+    "name": "Template name",
+    "delete": "Delete template"
   },
   "common": {
     "loading": "Loading…",

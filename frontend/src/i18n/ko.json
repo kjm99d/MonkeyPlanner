@@ -68,6 +68,7 @@
     "approved": "승인됨",
     "inProgress": "진행 중",
     "done": "완료",
+    "rejected": "거절됨",
     "dragHere": "이슈를 여기로 드래그하세요",
     "approve": "Approve",
     "columnLabel": "{{title}} 컬럼",
@@ -86,7 +87,13 @@
     "properties": "속성",
     "saveFailed": "변경 내용을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     "statusChangeFailed": "상태를 변경하지 못했습니다. 다시 시도해 주세요.",
-    "createdAt": "{{date}} 생성"
+    "createdAt": "{{date}} 생성",
+    "instructions": "에이전트 지시사항",
+    "instructionsPlaceholder": "MCP 에이전트가 참조할 지시사항을 입력하세요...",
+    "dependencies": "의존성",
+    "blockedBy": "차단 중인 이슈",
+    "addDependency": "의존성 추가",
+    "removeDependency": "의존성 제거"
   },
   "editor": {
     "edit": "편집",
@@ -118,7 +125,8 @@
     "Pending": "대기",
     "Approved": "승인됨",
     "InProgress": "진행 중",
-    "Done": "완료"
+    "Done": "완료",
+    "Rejected": "거절됨"
   },
   "property": {
     "newProperty": "새 속성",
@@ -159,6 +167,36 @@
     "approveOnly": "Approve 버튼으로만 전환 가능",
     "noPending": "대기 상태로 되돌릴 수 없음",
     "moveTo": "{{label}}(으)로 전환"
+  },
+  "comments": {
+    "section": "댓글",
+    "title": "댓글",
+    "empty": "아직 댓글이 없습니다",
+    "placeholder": "댓글을 입력하세요…",
+    "submit": "댓글 작성",
+    "submitting": "게시 중…",
+    "delete": "댓글 삭제"
+  },
+  "approval": {
+    "title": "승인 대기열",
+    "description": "모든 보드의 대기 중인 이슈를 검토하고 승인하세요.",
+    "empty": "대기 중인 이슈가 없습니다",
+    "emptyHint": "모든 이슈가 검토되었습니다. 나중에 다시 확인하세요.",
+    "selectAll": "전체 선택",
+    "selectIssue": "{{title}} 선택",
+    "approveIssue": "{{title}} 승인",
+    "approve": "승인",
+    "approveSelected": "선택한 {{count}}건 승인",
+    "selectedCount": "{{count}}건 선택됨",
+    "clearSelection": "선택 해제",
+    "queueLabel": "대기 중인 이슈"
+  },
+  "template": {
+    "title": "템플릿",
+    "empty": "저장된 템플릿이 없습니다",
+    "save": "템플릿으로 저장",
+    "name": "템플릿 이름",
+    "delete": "템플릿 삭제"
   },
   "common": {
     "loading": "불러오는 중…",
