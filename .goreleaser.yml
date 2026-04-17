@@ -54,7 +54,9 @@ checksum:
   algorithm: sha256
 
 changelog:
-  use: conventional-commits
+  # `use: git` is the default. goreleaser v2 accepts git / github /
+  # github-native / gitea — `conventional-commits` is not a valid value.
+  # Conventional-Commit sections below are driven by the regexp groups.
   sort: asc
   filters:
     exclude:
