@@ -105,26 +105,21 @@ release:
   footer: |
     **Full Changelog**: https://github.com/kjm99d/MonkeyPlanner/blob/main/CHANGELOG.md
 
-brews:
-  - name: monkey-planner
-    # Skip when HOMEBREW_TAP_TOKEN is unset. Set the secret in GitHub →
-    # Settings → Secrets → HOMEBREW_TAP_TOKEN (fine-grained PAT with push
-    # access to kjm99d/homebrew-tap) to enable formula auto-push.
-    skip: "{{ if not .Env.HOMEBREW_TAP_TOKEN }}true{{ end }}"
-    repository:
-      owner: kjm99d
-      name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    commit_author:
-      name: goreleaserbot
-      email: bot@goreleaser.com
-    homepage: https://github.com/kjm99d/MonkeyPlanner
-    description: "Local-first task memory for your AI coding agents. MCP server for Claude Code, Cursor, and Continue."
-    license: MIT
-    install: |
-      bin.install "monkey-planner"
-    test: |
-      system "#{bin}/monkey-planner", "--version"
+# brews formula push will be enabled once kjm99d/homebrew-tap exists and
+# HOMEBREW_TAP_TOKEN secret is added in GitHub Settings → Secrets.
+# brews:
+#   - name: monkey-planner
+#     repository:
+#       owner: kjm99d
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+#     commit_author:
+#       name: goreleaserbot
+#       email: bot@goreleaser.com
+#     homepage: https://github.com/kjm99d/MonkeyPlanner
+#     description: "Local-first task memory for your AI coding agents."
+#     license: MIT
+#     install: bin.install "monkey-planner"
 
 nfpms:
   - id: packages
