@@ -18,6 +18,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { TemplateDialog } from '../../components/TemplateDialog';
 import { StatusBadge } from '../../components/StatusBadge';
 import { KanbanColumn } from './KanbanColumn';
+import { AgentPresenceBar } from './AgentPresenceBar';
 import type { Issue, IssueStatus } from '../../api/types';
 
 const COLUMN_KEYS: { status: IssueStatus; key: string }[] = [
@@ -249,6 +250,9 @@ export default function BoardPage() {
           </div>
         )}
       </header>
+
+      {/* Agent activity — shows InProgress/QA issues in real time */}
+      <AgentPresenceBar issues={issues.data ?? []} />
 
       {/* 속성 관리 */}
       <div className="flex flex-wrap items-center gap-2">
