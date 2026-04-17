@@ -2,11 +2,43 @@ package http
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"io"
 	"net/http"
 	"strings"
 	"unicode/utf8"
 )
+
+// RequireBearerToken returns a middleware that enforces a shared-secret
+// Authorization header on every /api/* request. When token is empty the
+// middleware returns the next handler unchanged (off-by-default stays the
+// default — local single-user installs keep working without auth).
+//
+// When enabled, requests must carry `Authorization: Bearer <token>`. The
+// comparison uses subtle.ConstantTimeCompare so rejection does not leak
+// byte-by-byte timing.
+//
+// Health and SSE endpoints still require the token — they run under the
+// same /api/* tree. Use a dedicated proxy if a subset needs to stay open.
+func RequireBearerToken(token string) func(http.Handler) http.Handler {
+	if token == "" {
+		return func(next http.Handler) http.Handler { return next }
+	}
+	expected := []byte("Bearer " + token)
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			got := r.Header.Get("Authorization")
+			if len(got) != len(expected) ||
+				subtle.ConstantTimeCompare([]byte(got), expected) != 1 {
+				w.Header().Set("WWW-Authenticate", `Bearer realm="monkey-planner"`)
+				writeErr(w, http.StatusUnauthorized, "unauthorized",
+					"this MonkeyPlanner requires an Authorization: Bearer token")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
 // SecurityHeaders sets a conservative set of response headers on every
 // response. The values are deliberately strict but compatible with a

@@ -4,6 +4,7 @@ package http
 import (
 	"io/fs"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,7 +30,14 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 	cmh := &commentHandler{svc: svc}
 	eh := &eventsHandler{broker: svc.Broker()}
 
+	// Optional shared-secret auth. Empty MP_API_TOKEN = no auth (default,
+	// backward compatible for local single-user installs). Setting the var
+	// forces every /api/* request to carry `Authorization: Bearer <token>`.
+	apiToken := os.Getenv("MP_API_TOKEN")
+
 	r.Route("/api", func(api chi.Router) {
+		api.Use(RequireBearerToken(apiToken))
+
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 			writeJSON(w, http.StatusOK, map[string]any{"ok": true, "version": version})
 		})
