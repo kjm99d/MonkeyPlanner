@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, LayoutDashboard, Calendar, CheckCircle2, Squirrel, Plus, Menu, X, PanelLeftClose, PanelLeft, Search } from 'lucide-react';
+import { Home, LayoutDashboard, Calendar, CheckCircle2, Plus, Menu, X, PanelLeftClose, PanelLeft, Search } from 'lucide-react';
+import { MonkeyLogo } from './MonkeyLogo';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useBoards, useIssues } from '../api/hooks';
@@ -49,7 +50,7 @@ function Sidebar({ onNavigate, hideHeader, collapsed }: { onNavigate?: () => voi
       {!hideHeader && (
         <div className={`flex h-14 items-center border-b border-edge-base ${collapsed ? 'justify-center px-2' : 'gap-2.5 px-4'}`}>
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white">
-            <Squirrel size={16} />
+            <MonkeyLogo size={16} />
           </div>
           {!collapsed && (
             <span className="font-semibold text-ink-primary">{t('app.name')}</span>
@@ -266,7 +267,7 @@ export default function Layout() {
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-edge-base px-4">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-white">
-                  <Squirrel size={16} />
+                  <MonkeyLogo size={16} />
                 </div>
                 <span className="font-semibold text-ink-primary">{t('app.name')}</span>
               </div>
