@@ -1,0 +1,40 @@
+.git
+.github
+.vscode
+.idea
+.omc
+.claude
+.gstack
+
+# Build output
+bin/
+backend/bin/
+backend/web/dist/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+release/
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Runtime data — never bake user data into the image
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Editor / OS cruft
+*.log
+*.swp
+.DS_Store
+
+# Docs do not belong in the image
+docs/
+*.md
+
+# Local env
+.env
+.env.*
+!.env.example

@@ -1,0 +1,17 @@
+services:
+  monkey-planner:
+    # Pull the published image when available; fall back to local build.
+    image: ghcr.io/kjm99d/monkey-planner:latest
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-dev}
+    container_name: monkey-planner
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      MP_ADDR: ":8080"
+      MP_DSN: "sqlite:///data/monkey.db"
