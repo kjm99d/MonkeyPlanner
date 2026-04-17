@@ -7,46 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-04-17
+
 ### Added
-- **Docker** — `Dockerfile` (multi-stage, distroless/static, ~20 MB) and
-  `docker-compose.yml` for one-command setup, plus a multi-arch (amd64+arm64)
-  GHCR publish workflow at `.github/workflows/docker.yml`.
-- **`monkey-planner mcp install`** subcommand that writes a MonkeyPlanner
-  MCP server entry into Claude Code, Claude Desktop, or Cursor — no more
-  hand-editing `.mcp.json` paths. `--dry-run`, `--force`, `--scope user`,
-  `--base-url`, and `--name` are supported.
-- **First-run bootstrap** — new DBs get a "Welcome" board and a single
-  demo issue that teaches the approve-then-agent flow. Idempotent.
-- **SSE heartbeat** — 30-second comment lines keep streams alive through
-  reverse proxies (nginx / CloudFront / Cloudflare idle timeouts).
-- **Graceful shutdown** — SIGINT/SIGTERM now triggers `http.Server.Shutdown`
-  with a 15-second drain window. Safe for Docker/k8s rolling updates.
+- **Docker** — `Dockerfile` (multi-stage, distroless/static, ~20 MB),
+  `docker-compose.yml`, and a multi-arch (amd64+arm64) GHCR publish workflow.
+  Run the whole stack with one command: `docker run -p 8080:8080 ghcr.io/kjm99d/monkeyplanner`.
+- **`monkey-planner mcp install`** — writes the correct `.mcp.json` entry for
+  Claude Code, Claude Desktop, or Cursor automatically. Supports `--dry-run`,
+  `--force`, `--scope user`, `--base-url`, and `--name`.
+- **First-run Welcome board** — new databases are seeded with a Welcome board
+  and a demo issue that walks through the approve-then-agent flow. Idempotent.
+- **Agent Presence Bar** — the board page now shows a real-time strip that
+  lists which issues are currently InProgress or in QA review, updated via SSE.
+- **⌘↵ / Ctrl+↵ approve shortcut** — pressing ⌘↵ on a focused Pending issue
+  card triggers approval. Success shows a brief "Approved ✓" green flash.
+- **Security headers** — every response now carries `X-Content-Type-Options`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, and a
+  Content-Security-Policy on non-API paths.
+- **Optional API token auth** — set `MP_API_TOKEN` to require
+  `Authorization: Bearer <token>` on all `/api/*` requests. Unset = no auth
+  (default, backward compatible).
+- **CORS** — strict localhost-only policy by default; override via
+  `MP_CORS_ORIGINS`.
+- **Webhook SSRF defense** — `validateWebhookURL` blocks cloud metadata
+  endpoints (169.254.169.254, metadata.google.internal, etc.) and
+  RFC1918/loopback addresses. Opt out with `MP_WEBHOOK_ALLOW_PRIVATE=1`.
+- **SSE heartbeat** — 30-second comment line keeps connections alive through
+  reverse proxies. `onerror` now triggers an immediate refetch; a 5-minute
+  fallback interval handles silent drops.
+- **Graceful shutdown** — SIGINT/SIGTERM drains in-flight requests with a
+  15-second window.
 - **Server timeouts** — `ReadHeaderTimeout: 10s`, `ReadTimeout: 30s`,
-  `IdleTimeout: 120s` (Slowloris mitigation, gosec G112).
-- **Atomic properties merge** — new `IssueRepo.MergeProperties` uses SQLite
-  `json_patch()` / Postgres `jsonb || patch + jsonb_strip_nulls` at the SQL
-  level. Concurrent MCP clients writing different property keys no longer
-  race.
-- **SQLite concurrency** — `busy_timeout=5000ms` and `_txlock=immediate` on
-  the DSN; `MaxOpenConns=1` at the pool. Multi-client MCP setups (Claude
-  Code + Cursor + Claude Desktop) no longer hit spurious `SQLITE_BUSY`.
-- **Custom Monkey brand** — replaced the Lucide `Squirrel` icon with an
-  inline `MonkeyLogo` SVG that inherits `currentColor`.
-- **`CONTRIBUTING.md`**, **`CODE_OF_CONDUCT.md`**, **`SECURITY.md`**.
+  `IdleTimeout: 120s` (Slowloris mitigation).
+- **Atomic properties merge** — `IssueRepo.MergeProperties` uses SQLite
+  `json_patch()` / Postgres `jsonb || jsonb_strip_nulls` so concurrent MCP
+  clients no longer race on property updates.
+- **SQLite concurrency** — `busy_timeout=5000ms` + `_txlock=immediate` +
+  `MaxOpenConns=1`. Multi-client MCP setups (Claude Code + Cursor + Desktop)
+  no longer hit `SQLITE_BUSY`.
+- **CI workflow** — `.github/workflows/ci.yml` runs `go test -race`,
+  `govulncheck`, `golangci-lint`, and TypeScript check on every push and PR.
+- **`CONTRIBUTING.md`**, **`CODE_OF_CONDUCT.md`**, **`SECURITY.md`**,
+  **`CHANGELOG.md`** (this file), goreleaser config.
 
 ### Changed
-- English display name unified to **`MonkeyPlanner`** (was "Monkey Planner"
-  with a space in some surfaces). Kebab form `monkey-planner` stays for the
-  repo slug, Go module path, binary, and Docker image. Localized names in
-  `ko/ja/zh` are kept.
-- All Go-layer comments translated from Korean to English (domain → storage
-  → service → http → events → web → cmd). Korean test-data strings
-  (`한글`, `첫 작업`, `내용`, `테스트`, `새 제목`, `본문 수정`) are preserved
-  because they exercise multibyte UTF-8 round-trips.
+- `mcp.go` (606 lines) split into 7 focused files: `mcp_jsonrpc.go`,
+  `mcp_client.go`, `mcp_tools_registry.go`, `mcp_tools_issues.go`,
+  `mcp_tools_comments.go`, `mcp_helpers.go` + slimmed `mcp.go` (38 lines).
+- English display name unified to `MonkeyPlanner` across all READMEs, OpenAPI
+  spec, HTML title, and i18n. Kebab form `monkey-planner` kept for binary,
+  repo slug, and Docker image.
+- All Go source comments translated from Korean to English.
+- `useEventStream` issue invalidation scoped to `{ boardId }` (was global).
+- recharts lazy-loaded with `React.lazy()` to reduce initial bundle by ~400 KB.
+- `.mcp.json` removed from version control (personal paths); `.mcp.json.example`
+  added as a reference template.
+- OpenAPI `Status` enum updated to include `QA` and `Rejected` (added in
+  migration 0009 but missing from the spec).
 
 ### Fixed
-- `issue.criteria` / `issue.addCriterion` and four `board.*` / `chart.*` i18n
-  keys now exist in all four locales (en/ko/ja/zh).
+- **ON DELETE CASCADE not working** — migration 0009 accidentally dropped the
+  `REFERENCES issues(id) ON DELETE CASCADE` constraint from `parent_id`.
+  Restored; `TestCascadeDelete` now passes.
+- **SSE invalidation scope** — events for board A no longer invalidated board B.
+- Missing i18n keys (`board.showDone`, `board.hideDone`, `board.fullscreen`,
+  `board.exitFullscreen`, `chart.noData`) added to all four locales.
+- Status-transition tests updated to route through QA (migration 0009 inserted
+  QA between InProgress and Done).
+- Server test `NewRouter` call updated to match the 3-arg signature.
 
 ## [1.3.1] — 2026-04-17
 
@@ -109,7 +138,8 @@ Initial public release.
 - Webhooks (Discord / Slack / Telegram compatible).
 - Full-text issue search (Cmd+K), keyboard shortcuts, dark mode.
 
-[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.1.1...v1.2.0

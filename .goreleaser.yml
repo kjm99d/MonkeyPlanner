@@ -107,6 +107,10 @@ release:
 
 brews:
   - name: monkey-planner
+    # Skip when HOMEBREW_TAP_TOKEN is unset. Set the secret in GitHub →
+    # Settings → Secrets → HOMEBREW_TAP_TOKEN (fine-grained PAT with push
+    # access to kjm99d/homebrew-tap) to enable formula auto-push.
+    skip: "{{ if not .Env.HOMEBREW_TAP_TOKEN }}true{{ end }}"
     repository:
       owner: kjm99d
       name: homebrew-tap
