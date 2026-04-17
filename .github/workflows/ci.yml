@@ -40,10 +40,6 @@ jobs:
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
-    # Non-blocking — the pre-built golangci-lint binary is tied to an older
-    # Go version than the one in our go.mod (1.26.1). Re-enable as required
-    # once golangci-lint catches up.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -55,6 +51,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          install-mode: goinstall
           working-directory: backend
           args: --timeout 5m
 
