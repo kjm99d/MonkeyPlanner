@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-04-17
+
+### Added
+- **Homebrew tap** — every tagged release now auto-pushes a formula to
+  [`kjm99d/homebrew-tap`](https://github.com/kjm99d/homebrew-tap). Install
+  with `brew tap kjm99d/tap && brew install monkey-planner`. See
+  [`docs/HOMEBREW_SETUP.md`](./docs/HOMEBREW_SETUP.md) for the one-time
+  maintainer PAT setup.
+- **Go Report Card badge** in README; link surface to the tool's analysis page.
+- `LICENSE` file (MIT) — previously referenced everywhere but never
+  committed; goreleaser now includes it in every archive.
+- **One-shot `fix-lockfile` workflow** to regenerate `package-lock.json`
+  on demand whenever Dependabot leaves it out of sync.
+
+### Changed
+- **All four READMEs** (en/ko/ja/zh) lead with `monkey-planner mcp install
+  --for <client>` instead of the old `update-and-run.sh/bat` wrappers —
+  downloading extra scripts is no longer necessary.
+- `golangci-lint` + `govulncheck` jobs in CI are non-blocking until the
+  upstream tools catch up to Go 1.26.
+- goreleaser pipeline moved the frontend build to explicit GitHub Actions
+  steps (visible npm errors) and fixed an invalid `changelog.use` value.
+
+### Fixed
+- `@vitejs/plugin-react` downgraded from 6→4.7 — v6 requires `vite@^8` and
+  would break `npm ci` on a fresh clone. Merged Dependabot PR #11 was too
+  aggressive; now pinned to the v4 track compatible with our Vite 6.
+
 ## [1.4.0] — 2026-04-17
 
 ### Added
@@ -138,7 +166,8 @@ Initial public release.
 - Webhooks (Discord / Slack / Telegram compatible).
 - Full-text issue search (Cmd+K), keyboard shortcuts, dark mode.
 
-[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.2.0...v1.3.0
