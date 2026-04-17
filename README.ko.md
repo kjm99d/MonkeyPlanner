@@ -174,49 +174,26 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 
 ## MCP 서버 설정
 
-### 빠른 설정 (자동 업데이트)
+### 권장: CLI로 자동 설정
 
-1. [Releases](https://github.com/kjm99d/MonkeyPlanner/releases)에서 최신 바이너리를 다운로드 (예: `D:/mp/`)
-2. 같은 디렉토리에 `update-and-run.sh` 다운로드
-3. `.mcp.json` 또는 Claude Code 설정에 추가:
+```bash
+# Claude Code (현재 디렉토리에 .mcp.json 생성)
+monkey-planner mcp install --for claude-code
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "bash",
-      "args": ["/path/to/update-and-run.sh", "mcp"],
-      "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
+# Claude Desktop (OS 네이티브 config 파일에 기록)
+monkey-planner mcp install --for claude-desktop
+
+# Cursor (.cursor/mcp.json 생성)
+monkey-planner mcp install --for cursor
 ```
 
-**Windows (bash 없는 환경)**: `update-and-run.bat` 사용:
+플래그: `--dry-run`으로 미리보기, `--scope user`로 전역 설치(`~/.mcp.json`), `--force`로 덮어쓰기, `--base-url <url>`로 기본 서버 주소 변경.
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "D:/mp/update-and-run.bat",
-      "args": ["mcp"],
-      "env": {
-        "MP_DSN": "sqlite://D:/mp/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
-```
-
-래퍼 스크립트가 실행 시 GitHub 최신 릴리즈를 자동으로 체크하고 바이너리를 업데이트합니다.
+이후 클라이언트를 재시작하면 적용됩니다.
 
 ### 수동 설정
 
-자동 업데이트 없이 직접 설정:
+Claude Code(`.mcp.json`), Claude Desktop(OS 네이티브 config), Cursor(`.cursor/mcp.json`) 모두 동일 포맷:
 
 ```json
 {
@@ -225,7 +202,6 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
       "command": "/path/to/monkey-planner",
       "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
         "MP_BASE_URL": "http://localhost:8080"
       }
     }
@@ -233,7 +209,7 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 }
 ```
 
-Claude Code(`.mcp.json`)와 Claude Desktop(`~/.claude/claude_desktop_config.json`) 모두 동일한 형식입니다. 변경 후 재시작하세요.
+바이너리가 HTTP 서버에 접근할 수 있어야 합니다(`MP_BASE_URL`). 같은 머신에서 실행한다면 기본값 그대로 두세요.
 
 ### MCP 도구 사용 예시
 

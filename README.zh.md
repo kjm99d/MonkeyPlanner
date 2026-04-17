@@ -174,49 +174,26 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 
 ## MCP 服务器配置
 
-### 快速设置（自动更新）
+### 推荐：通过 CLI 自动配置
 
-1. 从 [Releases](https://github.com/kjm99d/MonkeyPlanner/releases) 下载最新二进制文件（例如 `D:/mp/`）
-2. 将 `update-and-run.sh` 下载到同一目录
-3. 添加到 `.mcp.json` 或 Claude Code 设置中:
+```bash
+# Claude Code（在当前目录写入 .mcp.json）
+monkey-planner mcp install --for claude-code
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "bash",
-      "args": ["/path/to/update-and-run.sh", "mcp"],
-      "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
+# Claude Desktop（写入 OS 原生配置文件）
+monkey-planner mcp install --for claude-desktop
+
+# Cursor（写入 .cursor/mcp.json）
+monkey-planner mcp install --for cursor
 ```
 
-**Windows（无 bash）**: 使用 `update-and-run.bat`:
+参数：`--dry-run` 预览，`--scope user` 安装到 `~/.mcp.json`，`--force` 覆盖现有条目，`--base-url <url>` 指向非默认服务器。
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "D:/mp/update-and-run.bat",
-      "args": ["mcp"],
-      "env": {
-        "MP_DSN": "sqlite://D:/mp/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
-```
+完成后请重启客户端以加载新配置。
 
-包装脚本会在每次启动时自动检查 GitHub 最新版本并更新二进制文件。
+### 手动配置
 
-### 手动设置
-
-不使用自动更新，直接配置:
+Claude Code（`.mcp.json`）、Claude Desktop（OS 原生配置）、Cursor（`.cursor/mcp.json`）均为相同格式:
 
 ```json
 {
@@ -225,7 +202,6 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
       "command": "/path/to/monkey-planner",
       "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
         "MP_BASE_URL": "http://localhost:8080"
       }
     }
@@ -233,7 +209,7 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 }
 ```
 
-Claude Code（`.mcp.json`）和 Claude Desktop（`~/.claude/claude_desktop_config.json`）使用相同格式。更改后请重启。
+二进制文件需能访问 HTTP 服务器（`MP_BASE_URL`）。若两者在同一台机器上运行，使用默认值即可。
 
 ### MCP 工具使用示例
 

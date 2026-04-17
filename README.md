@@ -175,49 +175,26 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 
 ## MCP Server Setup
 
-### Quick Setup (Auto-Update)
+### Recommended: auto-configure via CLI
 
-1. Download the latest binary from [Releases](https://github.com/kjm99d/MonkeyPlanner/releases) to a directory (e.g. `D:/mp/`)
-2. Download `update-and-run.sh` from the repo to the same directory
-3. Add to `.mcp.json` or Claude Code settings:
+```bash
+# Claude Code (writes .mcp.json in the current directory)
+monkey-planner mcp install --for claude-code
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "bash",
-      "args": ["/path/to/update-and-run.sh", "mcp"],
-      "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
+# Claude Desktop (writes the OS-native config file)
+monkey-planner mcp install --for claude-desktop
+
+# Cursor (writes .cursor/mcp.json)
+monkey-planner mcp install --for cursor
 ```
 
-**Windows (without bash)**: Use `update-and-run.bat` instead:
+Flags: `--dry-run` to preview, `--scope user` for a global entry (`~/.mcp.json`), `--force` to overwrite, `--base-url <url>` to point at a non-default server.
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "D:/mp/update-and-run.bat",
-      "args": ["mcp"],
-      "env": {
-        "MP_DSN": "sqlite://D:/mp/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
-```
+Restart the client afterwards so it re-reads the config.
 
-The wrapper script automatically checks for new releases on GitHub and updates the binary before each launch.
+### Manual configuration
 
-### Manual Setup
-
-If you prefer not to use auto-update:
+Works identically for Claude Code (`.mcp.json`), Claude Desktop (OS-native config), and Cursor (`.cursor/mcp.json`):
 
 ```json
 {
@@ -226,7 +203,6 @@ If you prefer not to use auto-update:
       "command": "/path/to/monkey-planner",
       "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
         "MP_BASE_URL": "http://localhost:8080"
       }
     }
@@ -234,7 +210,7 @@ If you prefer not to use auto-update:
 }
 ```
 
-This config works for both Claude Code (`.mcp.json`) and Claude Desktop (`~/.claude/claude_desktop_config.json`). Restart after changes.
+The binary must be able to reach the HTTP server (set with `MP_BASE_URL`). Leave it at the default when running both on the same machine.
 
 ### MCP Tool Usage Examples
 

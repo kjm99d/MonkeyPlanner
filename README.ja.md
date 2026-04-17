@@ -174,49 +174,26 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 
 ## MCPサーバーの設定
 
-### クイックセットアップ（自動更新）
+### 推奨: CLIで自動設定
 
-1. [Releases](https://github.com/kjm99d/MonkeyPlanner/releases)から最新バイナリをダウンロード（例: `D:/mp/`）
-2. 同じディレクトリに `update-and-run.sh` をダウンロード
-3. `.mcp.json` または Claude Code 設定に追加:
+```bash
+# Claude Code（カレントディレクトリに .mcp.json を作成）
+monkey-planner mcp install --for claude-code
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "bash",
-      "args": ["/path/to/update-and-run.sh", "mcp"],
-      "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
+# Claude Desktop（OSネイティブのconfigファイルに書き込み）
+monkey-planner mcp install --for claude-desktop
+
+# Cursor（.cursor/mcp.json を作成）
+monkey-planner mcp install --for cursor
 ```
 
-**Windows（bashなし）**: `update-and-run.bat` を使用:
+フラグ: `--dry-run` でプレビュー、`--scope user` でグローバル設定（`~/.mcp.json`）、`--force` で上書き、`--base-url <url>` でサーバーアドレスを変更。
 
-```json
-{
-  "mcpServers": {
-    "monkey-planner": {
-      "command": "D:/mp/update-and-run.bat",
-      "args": ["mcp"],
-      "env": {
-        "MP_DSN": "sqlite://D:/mp/data/monkey.db",
-        "MP_BASE_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
-```
+設定後、クライアントを再起動してください。
 
-ラッパースクリプトが起動時にGitHubの最新リリースを自動チェックし、バイナリを更新します。
+### 手動設定
 
-### 手動セットアップ
-
-自動更新なしで直接設定:
+Claude Code（`.mcp.json`）、Claude Desktop（OSネイティブconfig）、Cursor（`.cursor/mcp.json`）すべて同じ形式:
 
 ```json
 {
@@ -225,7 +202,6 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
       "command": "/path/to/monkey-planner",
       "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite:///path/to/data/monkey.db",
         "MP_BASE_URL": "http://localhost:8080"
       }
     }
@@ -233,7 +209,7 @@ export MP_DSN="postgres://user:password@localhost:5432/monkey_planner"
 }
 ```
 
-Claude Code（`.mcp.json`）と Claude Desktop（`~/.claude/claude_desktop_config.json`）の両方で同じ形式が使えます。変更後に再起動してください。
+バイナリがHTTPサーバーに接続できる必要があります（`MP_BASE_URL`）。同じマシンで実行する場合はデフォルト値のままで構いません。
 
 ### MCPツールの使用例
 
