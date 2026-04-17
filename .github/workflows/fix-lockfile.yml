@@ -1,0 +1,33 @@
+name: Fix package-lock.json
+
+on:
+  workflow_dispatch:  # run manually once to update the lockfile
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Regenerate package-lock.json from package.json
+        working-directory: frontend
+        run: npm install
+
+      - name: Commit updated lockfile if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet frontend/package-lock.json || (
+            git add frontend/package-lock.json &&
+            git commit -m "chore(deps): regenerate package-lock.json to match package.json" &&
+            git push
+          )
