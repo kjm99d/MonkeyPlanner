@@ -1,6 +1,7 @@
-// Package postgres는 PostgreSQL 어댑터 스켈레톤입니다.
-// MVP 단계에서는 인터페이스 컴플라이언스 + 방언별 마이그레이션을 보장하며,
-// 실사용 튜닝(인덱스 EXPLAIN, 쿼리 플랜 점검 등)은 phase 2에서 승격합니다.
+// Package postgres is the PostgreSQL adapter skeleton.
+// At the MVP stage it only guarantees interface compliance and dialect-
+// specific migrations; production tuning (index EXPLAIN, query plan review)
+// is deferred to phase 2.
 package postgres
 
 import (
@@ -17,14 +18,14 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 )
 
-// Repo 는 storage.Repo 의 PostgreSQL 구현체입니다.
+// Repo is the PostgreSQL implementation of storage.Repo.
 type Repo struct {
 	db     *sql.DB
 	issues *issueRepo
 	boards *boardRepo
 }
 
-// Open 은 pgx/v5 stdlib 드라이버로 PostgreSQL 연결을 엽니다.
+// Open connects to PostgreSQL via the pgx/v5 stdlib driver.
 func Open(dsn string) (*Repo, error) {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -374,7 +375,7 @@ func (r *issueRepo) GetBlockedBy(ctx context.Context, issueID string) ([]string,
 	return out, rows.Err()
 }
 
-// ---- 공통 helpers ----
+// ---- shared helpers ----
 
 const selectIssueCols = `
 SELECT id, board_id, parent_id, title, body, instructions, status, properties, criteria, position, created_at, updated_at, approved_at, completed_at
