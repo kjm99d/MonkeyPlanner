@@ -37,6 +37,9 @@ jobs:
       - name: Copy frontend dist for Go embed
         run: cp -r frontend/dist backend/web/dist
 
+      - name: Restore lockfile (npm install may have updated it; goreleaser requires clean working tree)
+        run: git checkout -- frontend/package-lock.json
+
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v6
         with:
