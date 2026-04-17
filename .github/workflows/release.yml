@@ -1,4 +1,4 @@
-name: Auto Release
+name: Release
 
 on:
   push:
@@ -7,131 +7,35 @@ on:
 
 permissions:
   contents: write
+  packages: write   # for GHCR Docker push triggered by the same tag
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            suffix: linux-amd64
-          - goos: linux
-            goarch: arm64
-            suffix: linux-arm64
-          - goos: darwin
-            goarch: amd64
-            suffix: darwin-amd64
-          - goos: darwin
-            goarch: arm64
-            suffix: darwin-arm64
-          - goos: windows
-            goarch: amd64
-            suffix: windows-amd64
-            ext: .exe
-
+  goreleaser:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm ci
-          npm run build
-          cp -r dist ../backend/web/dist
+          fetch-depth: 0   # goreleaser needs full history for changelog
 
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
-
-      - name: Build backend (with embedded frontend)
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
-        run: |
-          cd backend
-          go build -tags prod -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
-            -o ../monkey-planner-${{ matrix.suffix }}${{ matrix.ext }} \
-            ./cmd/monkey-planner
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: monkey-planner-${{ matrix.suffix }}
-          path: monkey-planner-${{ matrix.suffix }}${{ matrix.ext }}
-
-  frontend-dist:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          cache-dependency-path: backend/go.sum
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm ci
-          npm run build
-          tar -czf ../frontend-dist.tar.gz -C dist .
-
-      - uses: actions/upload-artifact@v4
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          name: frontend-dist
-          path: frontend-dist.tar.gz
-
-  release:
-    needs: [build, frontend-dist]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: Generate changelog
-        id: changelog
-        run: |
-          PREV_TAG=$(git tag --sort=-v:refname | sed -n '2p')
-          if [ -z "$PREV_TAG" ]; then
-            LOGS=$(git log --pretty=format:"- %s (%h)" HEAD)
-          else
-            LOGS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD")
-          fi
-          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$LOGS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body: |
-            ## Changes
-
-            ${{ steps.changelog.outputs.changelog }}
-
-            ## Assets
-
-            | File | Description |
-            |------|-------------|
-            | `monkey-planner-linux-amd64` | Linux x86_64 (frontend embedded) |
-            | `monkey-planner-linux-arm64` | Linux ARM64 (frontend embedded) |
-            | `monkey-planner-darwin-amd64` | macOS Intel (frontend embedded) |
-            | `monkey-planner-darwin-arm64` | macOS Apple Silicon (frontend embedded) |
-            | `monkey-planner-windows-amd64.exe` | Windows x86_64 (frontend embedded) |
-            | `frontend-dist.tar.gz` | Frontend build (standalone) |
-          files: artifacts/*
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') }}
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: only needed when the brews section is active.
+          # Create a fine-grained PAT with write access to the homebrew-tap repo.
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

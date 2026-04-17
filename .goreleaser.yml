@@ -1,0 +1,137 @@
+version: 2
+
+project_name: monkey-planner
+
+before:
+  hooks:
+    # Build the frontend bundle before goreleaser starts compiling Go.
+    # The dist/ output is embedded via embed.FS when built with -tags prod.
+    - npm ci --prefix frontend --silent
+    - npm run build --prefix frontend
+    - cp -r frontend/dist backend/web/dist
+
+builds:
+  - id: monkey-planner
+    main: ./cmd/monkey-planner
+    dir: backend
+    binary: monkey-planner
+    flags:
+      - -tags=prod
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macOS{{ else }}{{ .Os }}{{ end }}_
+      {{- .Arch }}
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  use: conventional-commits
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+      - "Merge pull request"
+      - "Merge branch"
+  groups:
+    - title: "🚀 Features"
+      regexp: "^feat"
+      order: 0
+    - title: "🐛 Bug Fixes"
+      regexp: "^fix"
+      order: 1
+    - title: "🔒 Security"
+      regexp: "^feat\\(security\\)|^fix\\(security\\)"
+      order: 2
+    - title: "⚡ Performance"
+      regexp: "^perf"
+      order: 3
+    - title: Other
+      order: 999
+
+release:
+  github:
+    owner: kjm99d
+    name: MonkeyPlanner
+  name_template: "{{.ProjectName}} {{.Tag}}"
+  header: |
+    ## MonkeyPlanner {{.Tag}}
+
+    Local-first task memory for your AI coding agents.
+
+    ### Docker
+
+    ```bash
+    docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkeyplanner:{{.Tag}}
+    ```
+
+    ### Install via Homebrew (macOS / Linux)
+
+    ```bash
+    brew install kjm99d/tap/monkey-planner
+    ```
+
+  footer: |
+    **Full Changelog**: https://github.com/kjm99d/MonkeyPlanner/blob/main/CHANGELOG.md
+
+brews:
+  - name: monkey-planner
+    repository:
+      owner: kjm99d
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    homepage: https://github.com/kjm99d/MonkeyPlanner
+    description: "Local-first task memory for your AI coding agents. MCP server for Claude Code, Cursor, and Continue."
+    license: MIT
+    install: |
+      bin.install "monkey-planner"
+    test: |
+      system "#{bin}/monkey-planner", "--version"
+
+nfpms:
+  - id: packages
+    package_name: monkey-planner
+    homepage: https://github.com/kjm99d/MonkeyPlanner
+    description: Local-first task memory for AI coding agents with native MCP server
+    maintainer: Jungmin Kim <kjm99d@naver.com>
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    contents:
+      - src: README.md
+        dst: /usr/share/doc/monkey-planner/README.md
