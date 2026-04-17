@@ -125,7 +125,7 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("postgres: begin: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	cur, err := scanIssue(tx.QueryRowContext(ctx, selectIssueCols+` WHERE id = $1`, id))
 	if err != nil {
@@ -300,7 +300,7 @@ func (r *issueRepo) ReorderIssues(ctx context.Context, issueIDs []string) error 
 	if err != nil {
 		return fmt.Errorf("postgres: begin: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	for pos, id := range issueIDs {
 		if _, err := tx.ExecContext(ctx, `UPDATE issues SET position=$1 WHERE id=$2`, pos, id); err != nil {
 			return fmt.Errorf("postgres: reorder issue: %w", err)

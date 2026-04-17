@@ -142,7 +142,7 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 	if err != nil {
 		return domain.Issue{}, fmt.Errorf("sqlite: begin: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	cur, err := scanIssue(tx.QueryRowContext(ctx, selectIssueCols+` WHERE id = ?`, id))
 	if err != nil {
