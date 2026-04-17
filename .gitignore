@@ -45,8 +45,5 @@ frontend/.omc/
 backend/.omc/
 .gstack/
 
-# Git hooks (project-local)
-.githooks/
-
 # Screenshots (root only - docs/screenshots/ is tracked)
 /d-*.png

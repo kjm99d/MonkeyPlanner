@@ -1,0 +1,53 @@
+#!/usr/bin/env sh
+# Pre-commit hook: runs basic sanity checks before allowing a commit.
+# Works in POSIX shells (bash/zsh/Git Bash on Windows). Enable via:
+#   git config core.hooksPath .githooks
+# `make init` does this automatically after a fresh clone.
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Only run expensive checks when the relevant tree changed.
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+echo "$STAGED" | grep -q '^backend/' && BACKEND_CHANGED=1 || BACKEND_CHANGED=0
+echo "$STAGED" | grep -q '^frontend/' && FRONTEND_CHANGED=1 || FRONTEND_CHANGED=0
+
+fail() {
+  echo "pre-commit: $1" >&2
+  echo "pre-commit: commit blocked. Fix the issue above or use 'git commit --no-verify' to bypass." >&2
+  exit 1
+}
+
+# ---- Backend: go vet ------------------------------------------------------
+if [ "$BACKEND_CHANGED" = "1" ]; then
+  if command -v go >/dev/null 2>&1; then
+    echo "pre-commit: running go vet…"
+    (cd backend && go vet ./...) || fail "go vet failed"
+  else
+    echo "pre-commit: go not found on PATH, skipping go vet"
+  fi
+fi
+
+# ---- Frontend: typecheck + lint (best-effort) ----------------------------
+if [ "$FRONTEND_CHANGED" = "1" ]; then
+  if [ -d frontend/node_modules ] && command -v npx >/dev/null 2>&1; then
+    echo "pre-commit: running frontend typecheck…"
+    (cd frontend && npx --no-install tsc -b --noEmit) || fail "frontend typecheck failed"
+
+    if [ -f frontend/eslint.config.js ] || [ -f frontend/.eslintrc.cjs ]; then
+      echo "pre-commit: running frontend lint…"
+      # --max-warnings=-1 keeps warnings non-fatal; errors still block the commit.
+      (cd frontend && npx --no-install eslint . --max-warnings=-1) || fail "frontend lint failed"
+    fi
+  else
+    echo "pre-commit: frontend/node_modules missing, skipping frontend checks (run 'make init')"
+  fi
+fi
+
+exit 0
