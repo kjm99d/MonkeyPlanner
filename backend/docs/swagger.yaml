@@ -883,8 +883,14 @@ components:
     # ── Enumerations ──────────────────────────────────────────────────────
     Status:
       type: string
-      enum: [Pending, Approved, InProgress, Done]
-      description: Issue lifecycle status
+      enum: [Pending, Approved, InProgress, QA, Done, Rejected]
+      description: >
+        Issue lifecycle status. Transitions:
+        Pending → Approved (via dedicated approve endpoint only),
+        Approved → InProgress → QA → Done.
+        QA can loop back to InProgress for rework.
+        Done can return to QA for re-review.
+        Rejected is terminal.
       example: Pending
 
     ViewType:

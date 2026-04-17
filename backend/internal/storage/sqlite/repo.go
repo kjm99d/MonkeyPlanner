@@ -42,6 +42,12 @@ func Open(dsn string) (*Repo, error) {
 		_ = db.Close()
 		return nil, fmt.Errorf("sqlite ping: %w", err)
 	}
+	// Enforce foreign-key constraints explicitly — the DSN _pragma form is not
+	// guaranteed to apply on every driver version, so we set it via SQL too.
+	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+		_ = db.Close()
+		return nil, fmt.Errorf("sqlite pragma foreign_keys: %w", err)
+	}
 	if err := runMigrations(db); err != nil {
 		_ = db.Close()
 		return nil, err
