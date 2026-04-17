@@ -1,8 +1,8 @@
 import { useDraggable } from '@dnd-kit/core';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { GripVertical, Check, Calendar, Tag, Trash2, ExternalLink, Copy } from 'lucide-react';
+import { GripVertical, Check, CheckCircle2, Calendar, Tag, Trash2, ExternalLink, Copy } from 'lucide-react';
 import type { Issue, BoardProperty } from '../../api/types';
 import { useApproveIssue, useUpdateIssue, useDeleteIssue } from '../../api/hooks';
 import { ContextMenu } from '../../components/ContextMenu';
@@ -32,6 +32,32 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const [approvedFlash, setApprovedFlash] = useState(false);
+  const cardRef = useRef<HTMLElement>(null);
+
+  const handleApprove = useCallback(() => {
+    if (issue.status !== 'Pending' || approve.isPending) return;
+    approve.mutate(issue.id, {
+      onSuccess: () => {
+        setApprovedFlash(true);
+        setTimeout(() => setApprovedFlash(false), 800);
+      },
+    });
+  }, [approve, issue.id, issue.status]);
+
+  // ⌘↵ / Ctrl+↵ approves the focused Pending card.
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || issue.status !== 'Pending') return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleApprove();
+      }
+    };
+    el.addEventListener('keydown', handler);
+    return () => el.removeEventListener('keydown', handler);
+  }, [handleApprove, issue.status]);
 
   // DragOverlay handles the visual ghost — hide the original card during drag
   const style: React.CSSProperties | undefined = isDragging
@@ -45,14 +71,15 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
 
   return (
     <article
-      ref={setNodeRef}
+      ref={(node) => { (setNodeRef as (n: HTMLElement | null) => void)(node); (cardRef as React.MutableRefObject<HTMLElement | null>).current = node; }}
       style={style}
       {...attributes}
       {...listeners}
+      tabIndex={0}
       aria-roledescription="draggable item"
-      className={`group flex cursor-grab flex-col gap-2 rounded-lg border border-edge-base bg-surface-base p-3 shadow-sm transition-shadow hover:shadow-md motion-reduce:transition-none ${
+      className={`group flex cursor-grab flex-col gap-2 rounded-lg border bg-surface-base p-3 shadow-sm transition-all duration-200 hover:shadow-md motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
         isDragging ? 'cursor-grabbing' : ''
-      }`}
+      } ${approvedFlash ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 scale-[1.02]' : 'border-edge-base'}`}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -114,19 +141,26 @@ export function IssueCard({ issue, boardProperties = [] }: Props) {
         </div>
       </div>
       {issue.status === 'Pending' && (
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between gap-2">
+          <span className="hidden text-[10px] text-ink-muted group-focus-within:inline">
+            ⌘↵
+          </span>
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              approve.mutate(issue.id);
-            }}
-            disabled={approve.isPending}
+            onClick={(e) => { e.stopPropagation(); handleApprove(); }}
+            disabled={approve.isPending || approvedFlash}
             aria-label={t('kanban.approveLabel', { title: issue.title })}
-            className="flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:brightness-110 hover:shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+            className={`ml-auto flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-200 cursor-pointer
+              ${approvedFlash
+                ? 'bg-emerald-500 scale-105 shadow-emerald-300'
+                : 'bg-accent hover:brightness-110 hover:shadow-md active:scale-95 disabled:opacity-50'
+              }`}
           >
-            <Check size={12} /> {t('kanban.approve')}
+            {approvedFlash
+              ? <><CheckCircle2 size={12} /> Approved!</>
+              : <><Check size={12} /> {t('kanban.approve')}</>
+            }
           </button>
         </div>
       )}
