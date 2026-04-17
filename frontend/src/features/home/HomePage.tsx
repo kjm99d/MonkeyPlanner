@@ -1,12 +1,16 @@
 import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useBoards, useDayStats, useIssues } from '../../api/hooks';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Skeleton } from '../../components/Skeleton';
-import { WeeklyChart } from './WeeklyChart';
 import { AgentMetrics } from './AgentMetrics';
+
+// Lazy-load recharts (~400KB) — only needed on the home dashboard.
+const WeeklyChart = lazy(() =>
+  import('./WeeklyChart').then((m) => ({ default: m.WeeklyChart })),
+);
 
 function todayString(): string {
   const d = new Date();
@@ -62,8 +66,10 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* 주간 차트 */}
-      <WeeklyChart />
+      {/* Weekly chart (lazy-loaded: recharts bundle defers until home renders) */}
+      <Suspense fallback={<Skeleton className="h-[280px] rounded-xl" />}>
+        <WeeklyChart />
+      </Suspense>
 
       {/* 에이전트 메트릭 */}
       <AgentMetrics />
