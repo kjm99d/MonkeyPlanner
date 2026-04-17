@@ -10,7 +10,7 @@ import (
 //go:embed all:dist
 var embeddedDist embed.FS
 
-// Dist는 prod 빌드 시 embed.FS 의 dist/ 하위 내용을 반환합니다.
+// Dist returns the embedded dist/ tree from the prod build.
 func Dist() (fs.FS, error) {
 	return fs.Sub(embeddedDist, "dist")
 }

@@ -519,7 +519,7 @@ func mcpCallTool(c *mcpHTTPClient, name string, argsRaw json.RawMessage) (any, e
 		if err != nil {
 			return nil, err
 		}
-		_, _ = c.post("/api/issues/"+args.IssueID+"/comments", map[string]any{"body": "❌ QA 거절: " + args.Reason})
+		_, _ = c.post("/api/issues/"+args.IssueID+"/comments", map[string]any{"body": "❌ QA rejected: " + args.Reason})
 		var result any
 		_ = json.Unmarshal(raw, &result)
 		return result, nil
