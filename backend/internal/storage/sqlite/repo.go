@@ -14,7 +14,7 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 )
 
-// Repo 는 storage.Repo 구현체입니다.
+// Repo is the SQLite implementation of storage.Repo.
 type Repo struct {
 	db       *sql.DB
 	issues   *issueRepo
@@ -24,8 +24,8 @@ type Repo struct {
 	comments *commentRepo
 }
 
-// Open 은 지정된 DSN(예: "./data/monkey.db")으로 SQLite를 엽니다.
-// modernc.org/sqlite 드라이버는 "sqlite" 이름으로 등록됩니다.
+// Open connects to SQLite at the given DSN (e.g. "./data/monkey.db").
+// The modernc.org/sqlite driver is registered under the name "sqlite".
 func Open(dsn string) (*Repo, error) {
 	// busy_timeout(5000): block up to 5s on SQLITE_BUSY instead of failing immediately.
 	// _txlock=immediate: BeginTx acquires a write lock up front, avoiding deferred-upgrade deadlocks
@@ -167,7 +167,7 @@ func (r *issueRepo) Update(ctx context.Context, id string, p storage.IssuePatch)
 			if *newParent == id {
 				return domain.Issue{}, storage.ErrCycle
 			}
-			// Recursive CTE로 순환 탐지
+			// Detect cycles via a recursive CTE.
 			hasCycle, err := detectCycleTx(ctx, tx, id, *newParent)
 			if err != nil {
 				return domain.Issue{}, err
@@ -237,7 +237,7 @@ func (r *issueRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (r *issueRepo) Approve(ctx context.Context, id string, now time.Time) (domain.Issue, error) {
-	// 멱등: 이미 Approved면 approved_at 유지, 상태만 확정
+	// Idempotent: keep the original approved_at if the issue is already Approved.
 	_, err := r.db.ExecContext(ctx, `
 		UPDATE issues
 		SET status='Approved',
@@ -269,7 +269,7 @@ func (r *issueRepo) Complete(ctx context.Context, id string, now time.Time) (dom
 			return domain.Issue{}, err
 		}
 		if cur.Status == domain.StatusDone {
-			return cur, nil // 멱등
+			return cur, nil // idempotent
 		}
 		return domain.Issue{}, storage.ErrConflict
 	}
@@ -397,7 +397,7 @@ func (r *issueRepo) GetBlockedBy(ctx context.Context, issueID string) ([]string,
 	return out, rows.Err()
 }
 
-// ---- 공통 helpers ----
+// ---- shared helpers ----
 
 const selectIssueCols = `
 SELECT id, board_id, parent_id, title, body, instructions, status, properties, criteria, position, created_at, updated_at, approved_at, completed_at
@@ -464,7 +464,8 @@ func utcPtr(t *time.Time) any {
 	return u
 }
 
-// detectCycleTx 는 target(새 parent)의 조상 체인에 self(수정 대상 이슈) 가 포함되는지 검사합니다.
+// detectCycleTx returns true if self appears anywhere in target's ancestor chain,
+// which would turn the new parent_id link into a cycle.
 func detectCycleTx(ctx context.Context, tx *sql.Tx, self, target string) (bool, error) {
 	q := `
 		WITH RECURSIVE ancestors(id) AS (

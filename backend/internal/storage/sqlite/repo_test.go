@@ -103,12 +103,12 @@ func TestCycleDetection(t *testing.T) {
 	if err := setParent(c.ID, bi.ID); err != nil {
 		t.Fatalf("C→B: %v", err)
 	}
-	// A의 parent를 C로 시도 → 순환 (A→C→B→A)
+	// Try to set A's parent to C, which would form a cycle A→C→B→A.
 	err := setParent(a.ID, c.ID)
 	if !errors.Is(err, storage.ErrCycle) {
 		t.Fatalf("expected ErrCycle, got %v", err)
 	}
-	// 자기 자신 parent 금지
+	// An issue cannot be its own parent.
 	err = setParent(a.ID, a.ID)
 	if !errors.Is(err, storage.ErrCycle) {
 		t.Fatalf("self-parent expected ErrCycle, got %v", err)

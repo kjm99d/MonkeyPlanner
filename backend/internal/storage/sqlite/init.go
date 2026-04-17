@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	// sqlite://<path> 와 file:<path> 모두 지원
+	// Accept both sqlite://<path> and file:<path>.
 	open := func(dsn string) (storage.Repo, error) {
 		path := strings.TrimPrefix(dsn, "sqlite://")
 		path = strings.TrimPrefix(path, "file:")
