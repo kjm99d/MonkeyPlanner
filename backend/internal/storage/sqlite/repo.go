@@ -356,7 +356,7 @@ func (r *issueRepo) ReorderIssues(ctx context.Context, issueIDs []string) error 
 	if err != nil {
 		return fmt.Errorf("sqlite: begin: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	for pos, id := range issueIDs {
 		if _, err := tx.ExecContext(ctx, `UPDATE issues SET position=? WHERE id=?`, pos, id); err != nil {
 			return fmt.Errorf("sqlite: reorder issue: %w", err)
