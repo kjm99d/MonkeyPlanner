@@ -125,9 +125,12 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("approve not idempotent: first=%v second=%v", firstApproved, *afterApprove2.ApprovedAt)
 	}
 
-	// 7) InProgress → Done flow.
+	// 7) InProgress → QA → Done flow (QA inserted in migration 0009).
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "InProgress"})
+	mustStatus(t, resp, 200, body)
+	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
+		map[string]any{"status": "QA"})
 	mustStatus(t, resp, 200, body)
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "Done"})
@@ -138,7 +141,10 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("done: status=%s completedAt=%v", done.Status, done.CompletedAt)
 	}
 
-	// 8) Backward transition is allowed (Done → InProgress).
+	// 8) Backward transitions: Done → QA → InProgress.
+	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
+		map[string]any{"status": "QA"})
+	mustStatus(t, resp, 200, body)
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "InProgress"})
 	mustStatus(t, resp, 200, body)

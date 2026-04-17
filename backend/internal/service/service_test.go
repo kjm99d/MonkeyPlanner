@@ -91,6 +91,11 @@ func TestCompleteFlow(t *testing.T) {
 	if _, err := s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &ip}); err != nil {
 		t.Fatal(err)
 	}
+	// QA was added between InProgress and Done (migration 0009).
+	qa := domain.StatusQA
+	if _, err := s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &qa}); err != nil {
+		t.Fatal(err)
+	}
 	done := domain.StatusDone
 	got, err := s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &done})
 	if err != nil {
@@ -107,22 +112,31 @@ func TestBackwardTransitionAllowed(t *testing.T) {
 	_, iss := seed(t, s)
 	_, _ = s.ApproveIssue(ctx, iss.ID)
 
-	// Approved → InProgress
+	// Approved → InProgress → QA → Done (full forward flow).
 	ip := domain.StatusInProgress
 	got, err := s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &ip})
 	if err != nil || got.Status != domain.StatusInProgress {
-		t.Fatalf("forward: err=%v status=%s", err, got.Status)
+		t.Fatalf("forward to InProgress: err=%v status=%s", err, got.Status)
 	}
-	// InProgress → Done
+	qa := domain.StatusQA
+	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &qa})
+	if err != nil || got.Status != domain.StatusQA {
+		t.Fatalf("forward to QA: err=%v status=%s", err, got.Status)
+	}
 	done := domain.StatusDone
 	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &done})
 	if err != nil || got.Status != domain.StatusDone {
-		t.Fatalf("to done: err=%v status=%s", err, got.Status)
+		t.Fatalf("forward to Done: err=%v status=%s", err, got.Status)
 	}
-	// Done → InProgress (backward move is allowed here).
+	// Done → QA (re-review).
+	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &qa})
+	if err != nil || got.Status != domain.StatusQA {
+		t.Fatalf("backward done→qa: err=%v status=%s", err, got.Status)
+	}
+	// QA → InProgress (rework).
 	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &ip})
 	if err != nil || got.Status != domain.StatusInProgress {
-		t.Fatalf("backward done→inProgress should be allowed: err=%v status=%s", err, got.Status)
+		t.Fatalf("backward qa→inProgress: err=%v status=%s", err, got.Status)
 	}
 }
 
