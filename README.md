@@ -5,7 +5,8 @@
   <a href="https://github.com/kjm99d/MonkeyPlanner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/MonkeyPlanner?include_prereleases&sort=semver"></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <a href="https://github.com/kjm99d/MonkeyPlanner/pkgs/container/monkeyplanner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
-  <a href="https://github.com/kjm99d/MonkeyPlanner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/MonkeyPlanner/docker.yml?branch=main&label=build"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/MonkeyPlanner/ci.yml?branch=main&label=tests"></a>
+  <a href="https://goreportcard.com/report/github.com/kjm99d/MonkeyPlanner/backend"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/kjm99d/MonkeyPlanner/backend"></a>
 </p>
 
 # MonkeyPlanner
