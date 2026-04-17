@@ -1,10 +1,9 @@
 {
   "mcpServers": {
     "monkey-planner": {
-      "command": "bash",
-      "args": ["D:/mp/update-and-run.sh", "mcp"],
+      "command": "/path/to/monkey-planner",
+      "args": ["mcp"],
       "env": {
-        "MP_DSN": "sqlite://D:/mp/data/monkey.db",
         "MP_BASE_URL": "http://localhost:8080"
       }
     }

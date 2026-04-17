@@ -47,3 +47,8 @@ backend/.omc/
 
 # Screenshots (root only - docs/screenshots/ is tracked)
 /d-*.png
+
+# Local MCP client config — contains personal binary paths and DSN values.
+# Generate with: monkey-planner mcp install --for <client>
+# See .mcp.json.example for the format.
+.mcp.json
