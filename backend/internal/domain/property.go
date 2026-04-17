@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-// PropertyType 는 보드 속성의 타입입니다.
+// PropertyType is the data type of a board-level custom property.
 type PropertyType string
 
 const (
@@ -22,13 +22,13 @@ func (p PropertyType) Valid() bool {
 	return false
 }
 
-// BoardProperty 는 보드별 커스텀 속성 정의입니다.
+// BoardProperty defines a per-board custom property schema.
 type BoardProperty struct {
 	ID        string       `json:"id"`
 	BoardID   string       `json:"boardId"`
 	Name      string       `json:"name"`
 	Type      PropertyType `json:"type"`
-	Options   []string     `json:"options"`   // select/multi_select 용 선택지
+	Options   []string     `json:"options"` // choices for select / multi_select types
 	Position  int          `json:"position"`
 	CreatedAt time.Time    `json:"createdAt"`
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Status 는 이슈의 라이프사이클 상태입니다.
+// Status is an issue's lifecycle state.
 type Status string
 
 const (
@@ -17,7 +17,7 @@ const (
 	StatusRejected   Status = "Rejected"
 )
 
-// Valid 는 Status 가 허용된 값인지 검증합니다.
+// Valid reports whether the status is one of the allowed constants.
 func (s Status) Valid() bool {
 	switch s {
 	case StatusPending, StatusApproved, StatusInProgress, StatusQA, StatusDone, StatusRejected:
@@ -26,13 +26,13 @@ func (s Status) Valid() bool {
 	return false
 }
 
-// Criterion 은 이슈의 성공 기준 항목입니다.
+// Criterion is a single acceptance-criterion checklist item on an issue.
 type Criterion struct {
 	Text string `json:"text"`
 	Done bool   `json:"done"`
 }
 
-// Issue 는 에이전트 작업 기억의 기본 단위입니다.
+// Issue is the atomic unit of agent task memory.
 type Issue struct {
 	ID          string            `json:"id"`
 	BoardID     string            `json:"boardId"`
@@ -51,7 +51,7 @@ type Issue struct {
 	BlockedBy   []string          `json:"blockedBy"`
 }
 
-// 전이 규칙 에러
+// Status-transition sentinels returned by ValidateTransition.
 var (
 	ErrInvalidStatus       = errors.New("invalid status value")
 	ErrBackwardTransition  = errors.New("backward status transition is forbidden")
@@ -60,15 +60,15 @@ var (
 	ErrUnknownTransition   = errors.New("unknown status transition")
 )
 
-// ValidateTransition 은 PATCH 경로로 허용되는 상태 전이를 검증합니다.
-// 규칙:
-//   - Pending→Approved 직접 전이는 차단 (Approve 전용 엔드포인트 사용 강제)
-//   - Pending→Rejected 전이는 허용 (거절 처리)
+// ValidateTransition checks whether a status change is allowed via the PATCH path.
+// Rules:
+//   - Pending→Approved is blocked via PATCH (force use of the dedicated Approve endpoint)
+//   - Pending→Rejected is allowed (rejection path)
 //   - Approved → InProgress (claim)
-//   - InProgress → QA (작업 완료 후 QA 제출)
-//   - QA → Done (검증 통과)
-//   - QA → InProgress (검증 실패, 재작업)
-//   - Rejected 는 터미널 상태 (다른 상태로 전이 불가)
+//   - InProgress → QA (work finished, submit for review)
+//   - QA → Done (review passed)
+//   - QA → InProgress (review failed, rework)
+//   - Rejected is terminal (no further transitions allowed)
 func ValidateTransition(from, to Status) error {
 	if !from.Valid() || !to.Valid() {
 		return ErrInvalidStatus
@@ -76,11 +76,11 @@ func ValidateTransition(from, to Status) error {
 	if from == to {
 		return ErrSelfSameTransition
 	}
-	// Rejected는 터미널 상태
+	// Rejected is a terminal state.
 	if from == StatusRejected {
 		return ErrUnknownTransition
 	}
-	// Pending에서는 Approve 버튼 또는 Reject만 사용 가능
+	// From Pending only Approve (via dedicated endpoint) or Reject are allowed.
 	if from == StatusPending {
 		if to == StatusApproved {
 			return ErrDirectApproval
@@ -90,14 +90,14 @@ func ValidateTransition(from, to Status) error {
 		}
 		return ErrUnknownTransition
 	}
-	// Pending/Rejected로 되돌리기 불가
+	// Moving back to Pending or Rejected is never allowed from a post-approval state.
 	if to == StatusPending || to == StatusRejected {
 		return ErrUnknownTransition
 	}
 	if to == StatusApproved {
 		return ErrDirectApproval
 	}
-	// 허용되는 전이 정의
+	// Allowed transitions per source state.
 	allowed := map[Status][]Status{
 		StatusApproved:   {StatusInProgress},
 		StatusInProgress: {StatusQA},

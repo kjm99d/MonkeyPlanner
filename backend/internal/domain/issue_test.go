@@ -24,41 +24,41 @@ func TestValidateTransition(t *testing.T) {
 		to      Status
 		wantErr error
 	}{
-		// 전진 허용
+		// Forward transitions allowed.
 		{"approved→inProgress", StatusApproved, StatusInProgress, nil},
 		{"inProgress→qa", StatusInProgress, StatusQA, nil},
 		{"qa→done", StatusQA, StatusDone, nil},
 
-		// QA → InProgress (리젝 후 재작업)
+		// QA → InProgress (rework after reviewer rejects QA).
 		{"qa→inProgress", StatusQA, StatusInProgress, nil},
 
-		// Done → QA (재검증)
+		// Done → QA (re-review).
 		{"done→qa", StatusDone, StatusQA, nil},
 
-		// InProgress → Done 직접 차단 (QA를 거쳐야 함)
+		// InProgress → Done is blocked; must go through QA.
 		{"inProgress→done blocked", StatusInProgress, StatusDone, ErrUnknownTransition},
 
-		// Pending→Approved 직접 차단 (Approve 엔드포인트만)
+		// Pending→Approved is blocked via PATCH (use the dedicated Approve endpoint).
 		{"pending→approved direct PATCH", StatusPending, StatusApproved, ErrDirectApproval},
 
-		// Pending에서 다른 곳 직접 이동 불가
+		// From Pending no direct move to post-approval states is allowed.
 		{"pending→inProgress", StatusPending, StatusInProgress, ErrUnknownTransition},
 		{"pending→done", StatusPending, StatusDone, ErrUnknownTransition},
 
-		// Approved로 PATCH 전이 차단 (Approve 버튼 전용)
+		// Approved via PATCH is always blocked (Approve-endpoint only).
 		{"inProgress→approved", StatusInProgress, StatusApproved, ErrDirectApproval},
 		{"done→approved", StatusDone, StatusApproved, ErrDirectApproval},
 
-		// Pending으로 되돌리기 불가
+		// Moving back to Pending is forbidden from any post-approval state.
 		{"approved→pending", StatusApproved, StatusPending, ErrUnknownTransition},
 		{"inProgress→pending", StatusInProgress, StatusPending, ErrUnknownTransition},
 		{"done→pending", StatusDone, StatusPending, ErrUnknownTransition},
 
-		// 유효하지 않은 상태
+		// Unknown status values.
 		{"invalid from", Status("Nope"), StatusApproved, ErrInvalidStatus},
 		{"invalid to", StatusPending, Status("Nope"), ErrInvalidStatus},
 
-		// 같은 상태
+		// Same-status transitions are a no-op.
 		{"same status pending", StatusPending, StatusPending, ErrSelfSameTransition},
 		{"same status done", StatusDone, StatusDone, ErrSelfSameTransition},
 	}

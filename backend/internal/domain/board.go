@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-// ViewType 는 보드의 기본 표시 방식입니다.
+// ViewType is the default visual layout used when rendering a board.
 type ViewType string
 
 const (
@@ -14,7 +14,7 @@ func (v ViewType) Valid() bool {
 	return v == ViewKanban || v == ViewList
 }
 
-// Board 는 이슈의 최상위 컨테이너입니다.
+// Board is the top-level container that groups issues.
 type Board struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`

@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-// WebhookEvent 는 webhook이 구독할 수 있는 이벤트입니다.
+// WebhookEvent is one of the event names a webhook can subscribe to.
 type WebhookEvent string
 
 const (
@@ -28,7 +28,7 @@ func (e WebhookEvent) Valid() bool {
 	return false
 }
 
-// Webhook 는 보드별 외부 알림 엔드포인트입니다.
+// Webhook is a per-board outbound notification endpoint.
 type Webhook struct {
 	ID        string         `json:"id"`
 	BoardID   string         `json:"boardId"`
@@ -39,10 +39,10 @@ type Webhook struct {
 	CreatedAt time.Time      `json:"createdAt"`
 }
 
-// WebhookPayload 는 webhook POST 본문입니다.
+// WebhookPayload is the JSON body sent to a webhook URL.
 type WebhookPayload struct {
-	Event     WebhookEvent   `json:"event"`
-	Issue     *Issue         `json:"issue,omitempty"`
-	Board     *Board         `json:"board,omitempty"`
-	Timestamp time.Time      `json:"timestamp"`
+	Event     WebhookEvent `json:"event"`
+	Issue     *Issue       `json:"issue,omitempty"`
+	Board     *Board       `json:"board,omitempty"`
+	Timestamp time.Time    `json:"timestamp"`
 }
