@@ -18,6 +18,7 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
+	r.Use(SecurityHeaders)
 	r.Use(ValidateUTF8)
 
 	ih := &issueHandler{svc: svc}

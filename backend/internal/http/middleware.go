@@ -4,8 +4,49 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
+
+// SecurityHeaders sets a conservative set of response headers on every
+// response. The values are deliberately strict but compatible with a
+// React SPA served from the same origin:
+//
+//   - X-Content-Type-Options: nosniff blocks MIME sniffing
+//   - X-Frame-Options: DENY blocks clickjacking (also covered by CSP)
+//   - Referrer-Policy: strict-origin-when-cross-origin limits leakage
+//   - Permissions-Policy strips camera/microphone/geolocation defaults
+//   - Content-Security-Policy allows self + inline styles (Tailwind) +
+//     two Google Fonts CDNs the frontend index.html pulls from
+//
+// The CSP is skipped for /api/* responses because API clients never
+// render HTML and the header adds noise to responses.
+func SecurityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		h.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+
+		if !strings.HasPrefix(r.URL.Path, "/api/") {
+			// Matches what the current index.html actually loads. Tighten once
+			// we drop the jsdelivr font dependency.
+			h.Set("Content-Security-Policy",
+				"default-src 'self'; "+
+					"script-src 'self'; "+
+					"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "+
+					"font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; "+
+					"img-src 'self' data: blob:; "+
+					"connect-src 'self'; "+
+					"frame-ancestors 'none'; "+
+					"base-uri 'self'; "+
+					"form-action 'self'")
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 // ValidateUTF8 rejects non-UTF-8 JSON request bodies with 400 Bad Request.
 // This prevents mojibake from shells with non-UTF-8 encodings (e.g. Windows
