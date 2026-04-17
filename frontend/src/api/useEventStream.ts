@@ -10,8 +10,8 @@ type ServerEvent = {
 };
 
 /**
- * boardId의 서버 이벤트를 구독하고 React Query 캐시를 무효화합니다.
- * EventSource는 자동 재연결을 제공하므로 별도 로직 불필요.
+ * Subscribes to server events for a board and invalidates scoped React Query caches.
+ * EventSource handles auto-reconnect, so no explicit retry logic is needed.
  */
 export function useEventStream(boardId: string | undefined) {
   const qc = useQueryClient();
@@ -34,7 +34,8 @@ export function useEventStream(boardId: string | undefined) {
         case 'issue.status_changed':
         case 'issue.approved':
         case 'issue.deleted':
-          qc.invalidateQueries({ queryKey: ['issues'] });
+          // Partial match: invalidates any ['issues', { boardId, ... }] query for this board.
+          qc.invalidateQueries({ queryKey: ['issues', { boardId: ev.boardId }] });
           qc.invalidateQueries({ queryKey: ['calendar'] });
           if (ev.issueId) {
             qc.invalidateQueries({ queryKey: ['issue', ev.issueId] });
@@ -50,7 +51,7 @@ export function useEventStream(boardId: string | undefined) {
     };
 
     es.onerror = () => {
-      // EventSource가 자동 재연결함. 명시적 처리 불필요.
+      // EventSource auto-reconnects; no explicit handling needed.
     };
 
     return () => es.close();
