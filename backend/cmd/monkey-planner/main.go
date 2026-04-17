@@ -25,6 +25,11 @@ var version = "dev"
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "mcp" {
+		// Subcommands under `mcp`: `mcp` (default: run server), `mcp install ...`.
+		if len(os.Args) > 2 && os.Args[2] == "install" {
+			runMCPInstall(os.Args[3:])
+			return
+		}
 		runMCP()
 		return
 	}
