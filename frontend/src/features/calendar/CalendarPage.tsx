@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useDayStats, useMonthStats } from '../../api/hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { useBoards, useDayStats, useMonthStats } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { DayCount, Issue } from '../../api/types';
@@ -32,6 +33,19 @@ export default function CalendarPage() {
 
   const monthStats = useMonthStats(year, month);
   const dayStats = useDayStats(selected);
+  const boards = useBoards();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const ids = boards.data?.map((b) => b.id) ?? [];
+    if (!ids.length) return;
+    const sources = ids.map((id) => {
+      const es = new EventSource(`/api/events?boardId=${encodeURIComponent(id)}`);
+      es.onmessage = () => qc.invalidateQueries({ queryKey: ['calendar'] });
+      return es;
+    });
+    return () => sources.forEach((s) => s.close());
+  }, [boards.data, qc]);
 
   const countsByDate = useMemo(() => {
     const map = new Map<string, DayCount>();
