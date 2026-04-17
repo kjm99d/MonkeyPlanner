@@ -7,7 +7,7 @@ PRAGMA foreign_keys = OFF;
 CREATE TABLE issues_new (
     id           TEXT PRIMARY KEY,
     board_id     TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-    parent_id    TEXT NULL,
+    parent_id    TEXT NULL REFERENCES issues(id) ON DELETE CASCADE,
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     instructions TEXT NOT NULL DEFAULT '',
@@ -47,7 +47,7 @@ PRAGMA foreign_keys = OFF;
 CREATE TABLE issues_old (
     id           TEXT PRIMARY KEY,
     board_id     TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-    parent_id    TEXT NULL,
+    parent_id    TEXT NULL REFERENCES issues(id) ON DELETE CASCADE,
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     instructions TEXT NOT NULL DEFAULT '',
