@@ -9,15 +9,28 @@ type ServerEvent = {
   timestamp: string;
 };
 
+// How often to full-refresh as a safety net if SSE events are missed.
+// Covers the gap between an SSE drop and the next event-driven invalidate.
+const FALLBACK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Subscribes to server events for a board and invalidates scoped React Query caches.
- * EventSource handles auto-reconnect, so no explicit retry logic is needed.
+ * EventSource handles auto-reconnect automatically.
+ *
+ * Two recovery paths ensure UI correctness even when events are dropped:
+ *   1. onerror — invalidates immediately so a reconnect fetches current state.
+ *   2. 5-minute interval — catches any events missed during a connection gap.
  */
 export function useEventStream(boardId: string | undefined) {
   const qc = useQueryClient();
 
   useEffect(() => {
     if (!boardId) return;
+
+    const invalidateBoard = () => {
+      qc.invalidateQueries({ queryKey: ['issues', { boardId }] });
+    };
+
     const es = new EventSource(`/api/events?boardId=${encodeURIComponent(boardId)}`);
 
     es.onmessage = (e) => {
@@ -50,10 +63,16 @@ export function useEventStream(boardId: string | undefined) {
       }
     };
 
-    es.onerror = () => {
-      // EventSource auto-reconnects; no explicit handling needed.
-    };
+    // On error (proxy timeout, brief disconnect) force a refetch immediately
+    // so the UI does not stay stale while EventSource auto-reconnects.
+    es.onerror = () => invalidateBoard();
 
-    return () => es.close();
+    // Periodic safety-net: full refresh every 5 minutes regardless of SSE state.
+    const timer = setInterval(invalidateBoard, FALLBACK_INTERVAL_MS);
+
+    return () => {
+      es.close();
+      clearInterval(timer);
+    };
   }, [boardId, qc]);
 }

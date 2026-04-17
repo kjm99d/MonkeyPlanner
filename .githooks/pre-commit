@@ -36,17 +36,31 @@ fi
 
 # ---- Frontend: typecheck + lint (best-effort) ----------------------------
 if [ "$FRONTEND_CHANGED" = "1" ]; then
-  if [ -d frontend/node_modules ] && command -v npx >/dev/null 2>&1; then
-    echo "pre-commit: running frontend typecheck…"
-    (cd frontend && npx --no-install tsc -b --noEmit) || fail "frontend typecheck failed"
+  # Resolve the local tsc binary — prefer .cmd shim (Windows), fallback to unix symlink.
+  TSC_BIN=""
+  if [ -f "frontend/node_modules/.bin/tsc.cmd" ]; then
+    TSC_BIN="frontend/node_modules/.bin/tsc.cmd"
+  elif [ -f "frontend/node_modules/.bin/tsc" ]; then
+    TSC_BIN="frontend/node_modules/.bin/tsc"
+  fi
 
-    if [ -f frontend/eslint.config.js ] || [ -f frontend/.eslintrc.cjs ]; then
-      echo "pre-commit: running frontend lint…"
-      # --max-warnings=-1 keeps warnings non-fatal; errors still block the commit.
-      (cd frontend && npx --no-install eslint . --max-warnings=-1) || fail "frontend lint failed"
-    fi
+  ESLINT_BIN=""
+  if [ -f "frontend/node_modules/.bin/eslint.cmd" ]; then
+    ESLINT_BIN="frontend/node_modules/.bin/eslint.cmd"
+  elif [ -f "frontend/node_modules/.bin/eslint" ]; then
+    ESLINT_BIN="frontend/node_modules/.bin/eslint"
+  fi
+
+  if [ -n "$TSC_BIN" ]; then
+    echo "pre-commit: running frontend typecheck…"
+    (cd frontend && ../"$TSC_BIN" -b --noEmit) || fail "frontend typecheck failed"
   else
-    echo "pre-commit: frontend/node_modules missing, skipping frontend checks (run 'make init')"
+    echo "pre-commit: tsc not found in frontend/node_modules, skipping (run 'npm ci' in frontend/)"
+  fi
+
+  if [ -n "$ESLINT_BIN" ] && { [ -f frontend/eslint.config.js ] || [ -f frontend/.eslintrc.cjs ]; }; then
+    echo "pre-commit: running frontend lint…"
+    (cd frontend && ../"$ESLINT_BIN" . --max-warnings=-1) || fail "frontend lint failed"
   fi
 fi
 
