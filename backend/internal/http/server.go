@@ -5,12 +5,41 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/kjm99d/MonkeyPlanner/backend/internal/service"
 )
+
+// corsAllowedOrigins returns the origins allowed to call /api/*.
+//
+// Default: localhost on any port, plus the Vite dev server (5173). This
+// covers both "open http://localhost:8080 in a browser" and "run the Vite
+// dev server on :5173 with an API proxy to :8080".
+//
+// Override with MP_CORS_ORIGINS as a comma-separated list. The special
+// value "*" makes the policy fully permissive — use only when the server
+// is deliberately exposed as a public API.
+func corsAllowedOrigins() []string {
+	if v := os.Getenv("MP_CORS_ORIGINS"); v != "" {
+		out := make([]string, 0, 4)
+		for _, s := range strings.Split(v, ",") {
+			s = strings.TrimSpace(s)
+			if s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
+	return []string{
+		"http://localhost:*",
+		"http://127.0.0.1:*",
+		"http://[::1]:*",
+	}
+}
 
 // NewRouter wires the /api/* handlers onto a chi router. When static is
 // non-nil, any non-/api path falls through to the SPA handler.
@@ -36,6 +65,14 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 	apiToken := os.Getenv("MP_API_TOKEN")
 
 	r.Route("/api", func(api chi.Router) {
+		api.Use(cors.Handler(cors.Options{
+			AllowedOrigins:   corsAllowedOrigins(),
+			AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Requested-With", "If-Match"},
+			ExposedHeaders:   []string{"ETag", "Link"},
+			AllowCredentials: false,
+			MaxAge:           300,
+		}))
 		api.Use(RequireBearerToken(apiToken))
 
 		api.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
