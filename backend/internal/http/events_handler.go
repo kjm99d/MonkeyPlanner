@@ -18,7 +18,7 @@ type eventsHandler struct {
 	broker *events.Broker
 }
 
-// stream 은 SSE 엔드포인트입니다. GET /api/events?boardId=xxx
+// stream is the SSE endpoint: GET /api/events?boardId=xxx
 func (h *eventsHandler) stream(w http.ResponseWriter, r *http.Request) {
 	boardID := r.URL.Query().Get("boardId")
 	if boardID == "" {
@@ -35,12 +35,12 @@ func (h *eventsHandler) stream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("X-Accel-Buffering", "no") // nginx 버퍼링 방지
+	w.Header().Set("X-Accel-Buffering", "no") // disable nginx response buffering
 
 	ch := h.broker.Subscribe(boardID)
 	defer h.broker.Unsubscribe(boardID, ch)
 
-	// 연결 즉시 핑 이벤트로 헤더 flush
+	// Send an SSE comment immediately to flush response headers to the client.
 	fmt.Fprintf(w, ": connected\n\n")
 	flusher.Flush()
 

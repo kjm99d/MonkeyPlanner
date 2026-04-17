@@ -28,7 +28,7 @@ func (h *issueHandler) list(w http.ResponseWriter, r *http.Request) {
 		f.Status = &s
 	}
 	if q.Has("parent_id") {
-		v := q.Get("parent_id") // 빈 문자열이면 루트 필터
+		v := q.Get("parent_id") // empty string filters to root issues (parent IS NULL)
 		f.ParentID = &v
 	}
 	out, err := h.svc.ListIssues(r.Context(), f)
@@ -84,7 +84,7 @@ func (h *issueHandler) create(w http.ResponseWriter, r *http.Request) {
 
 func (h *issueHandler) patch(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	// parentId 는 3상태: 없음(미변경) / null(루트) / 문자열(지정)
+	// parentId has three states: absent (unchanged) / null (clear to root) / string (set).
 	raw := map[string]json.RawMessage{}
 	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
 		writeErr(w, http.StatusBadRequest, "invalid_json", err.Error())
@@ -133,7 +133,7 @@ func (h *issueHandler) patch(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, http.StatusBadRequest, "invalid_properties", err.Error())
 			return
 		}
-		// properties는 merge 방식으로 서비스 계층에서 처리
+		// properties are merged atomically in the service/storage layer.
 		updated, err := h.svc.UpdateIssueProperties(r.Context(), id, props)
 		if err != nil {
 			mapError(w, err)

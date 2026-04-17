@@ -48,7 +48,7 @@ func (h *calendarHandler) day(w http.ResponseWriter, r *http.Request) {
 		mapError(w, err)
 		return
 	}
-	// nil slice → [] 로 정규화 (클라이언트가 .length 접근 시 TypeError 방지)
+	// Normalize nil slices to [] so frontend `.length` access never throws TypeError.
 	if out.Created == nil {
 		out.Created = []domain.Issue{}
 	}

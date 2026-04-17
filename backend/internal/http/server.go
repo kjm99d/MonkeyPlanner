@@ -1,4 +1,4 @@
-// Package http는 chi 기반 HTTP 라우터와 핸들러를 제공합니다.
+// Package http provides the chi-based HTTP router and handlers.
 package http
 
 import (
@@ -11,8 +11,8 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/service"
 )
 
-// NewRouter는 /api/* 경로에 핸들러를 바인딩한 라우터를 반환합니다.
-// static 이 nil이 아니면 /api 이외 경로는 SPA fallback 으로 서빙됩니다.
+// NewRouter wires the /api/* handlers onto a chi router. When static is
+// non-nil, any non-/api path falls through to the SPA handler.
 func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -40,7 +40,7 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 			b.Delete("/{id}", bh.delete)
 		})
 
-		// 보드 속성(커스텀 프로퍼티)
+		// Board-level custom property definitions.
 		api.Route("/boards/{boardId}/properties", func(p chi.Router) {
 			p.Get("/", ph.list)
 			p.Post("/", ph.create)
@@ -48,7 +48,7 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 			p.Delete("/{propId}", ph.delete)
 		})
 
-		// 웹훅
+		// Outbound webhooks.
 		api.Route("/boards/{boardId}/webhooks", func(w chi.Router) {
 			w.Get("/", wh.list)
 			w.Post("/", wh.create)
@@ -56,7 +56,7 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 			w.Delete("/{whId}", wh.delete)
 		})
 
-		// 보드별 이슈 순서 재정렬
+		// Reorder issues within a board.
 		api.Post("/boards/{boardId}/issues/reorder", ih.reorder)
 
 		api.Route("/issues", func(i chi.Router) {
@@ -66,15 +66,15 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 			i.Patch("/{id}", ih.patch)
 			i.Delete("/{id}", ih.delete)
 			i.Post("/{id}/approve", ih.approve)
-			// 이슈 의존성
+			// Issue dependencies.
 			i.Post("/{issueId}/dependencies", ih.addDependency)
 			i.Delete("/{issueId}/dependencies/{blockerId}", ih.removeDependency)
-			// 이슈 댓글
+			// Issue comments.
 			i.Get("/{issueId}/comments", cmh.list)
 			i.Post("/{issueId}/comments", cmh.create)
 		})
 
-		// 댓글 삭제 (issueId 불필요)
+		// Comment deletion (issueId is not part of the path).
 		api.Delete("/comments/{commentId}", cmh.delete)
 
 		api.Route("/calendar", func(c chi.Router) {
@@ -82,7 +82,7 @@ func NewRouter(svc *service.Service, static fs.FS, version string) http.Handler 
 			c.Get("/day", ch.day)
 		})
 
-		// SSE 이벤트 스트림 (실시간 업데이트)
+		// SSE event stream for real-time UI updates.
 		api.Get("/events", eh.stream)
 	})
 

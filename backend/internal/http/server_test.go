@@ -76,18 +76,18 @@ type createdBoard struct {
 func TestFullFlow(t *testing.T) {
 	srv := newTestServer(t)
 
-	// 1) 헬스체크
+	// 1) Health check.
 	resp, body := doJSON(t, http.MethodGet, srv.URL+"/api/health", nil)
 	mustStatus(t, resp, 200, body)
 
-	// 2) 보드 생성
+	// 2) Create a board.
 	resp, body = doJSON(t, http.MethodPost, srv.URL+"/api/boards",
 		map[string]any{"name": "Backlog", "viewType": "kanban"})
 	mustStatus(t, resp, 201, body)
 	var b createdBoard
 	_ = json.Unmarshal(body, &b)
 
-	// 3) 이슈 생성 → Pending
+	// 3) Create an issue → expect Pending status.
 	resp, body = doJSON(t, http.MethodPost, srv.URL+"/api/issues",
 		map[string]any{"boardId": b.ID, "title": "첫 작업", "body": "내용"})
 	mustStatus(t, resp, 201, body)
@@ -97,7 +97,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("create: status=%s approvedAt=%v", iss.Status, iss.ApprovedAt)
 	}
 
-	// 4) PATCH 로 Approved 전이 시도 → 409 (use_approve_endpoint)
+	// 4) PATCH to Approved is rejected with 409 (use_approve_endpoint).
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "Approved"})
 	mustStatus(t, resp, 409, body)
@@ -105,7 +105,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("expected use-approve-endpoint hint, got %s", body)
 	}
 
-	// 5) Approve 전용 엔드포인트 호출 → Approved + approved_at
+	// 5) Dedicated approve endpoint → Approved + approved_at set.
 	resp, body = doJSON(t, http.MethodPost, srv.URL+"/api/issues/"+iss.ID+"/approve", nil)
 	mustStatus(t, resp, 200, body)
 	var afterApprove createdIssue
@@ -115,7 +115,7 @@ func TestFullFlow(t *testing.T) {
 	}
 	firstApproved := *afterApprove.ApprovedAt
 
-	// 6) Approve 두 번째 호출 → 멱등(approved_at 불변)
+	// 6) Second approve is idempotent — approved_at stays the same.
 	time.Sleep(15 * time.Millisecond)
 	resp, body = doJSON(t, http.MethodPost, srv.URL+"/api/issues/"+iss.ID+"/approve", nil)
 	mustStatus(t, resp, 200, body)
@@ -125,7 +125,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("approve not idempotent: first=%v second=%v", firstApproved, *afterApprove2.ApprovedAt)
 	}
 
-	// 7) InProgress → Done 흐름
+	// 7) InProgress → Done flow.
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "InProgress"})
 	mustStatus(t, resp, 200, body)
@@ -138,12 +138,12 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("done: status=%s completedAt=%v", done.Status, done.CompletedAt)
 	}
 
-	// 8) 역행 허용 (Done → InProgress)
+	// 8) Backward transition is allowed (Done → InProgress).
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+iss.ID,
 		map[string]any{"status": "InProgress"})
 	mustStatus(t, resp, 200, body)
 
-	// 9) 캘린더 월 집계에 반영됨
+	// 9) Calendar month aggregate reflects the issue.
 	now := time.Now().UTC()
 	resp, body = doJSON(t, http.MethodGet,
 		srv.URL+"/api/calendar?year="+itoa(now.Year())+"&month="+itoa(int(now.Month())), nil)
@@ -154,8 +154,9 @@ func TestFullFlow(t *testing.T) {
 }
 
 func TestEmptyCalendarDayReturnsArrays(t *testing.T) {
-	// 회귀: 빈 날짜에 대한 /api/calendar/day 응답에서 created/approved/completed가
-	// null이 아닌 [] 로 직렬화되어야 한다 (프론트의 .length 접근 TypeError 방지).
+	// Regression: /api/calendar/day for an empty day must serialize
+	// created/approved/completed as [] (not null) so the frontend's
+	// `.length` access never throws TypeError.
 	srv := newTestServer(t)
 	resp, body := doJSON(t, http.MethodGet, srv.URL+"/api/calendar/day?date=2099-01-01", nil)
 	mustStatus(t, resp, 200, body)
@@ -193,7 +194,7 @@ func TestCycleBlocked(t *testing.T) {
 	bi := mk("B", &a.ID)
 	c := mk("C", &bi.ID)
 
-	// A의 parent를 C로 → 순환 (A→C→B→A) → 400 cycle
+	// Setting A's parent to C forms a cycle A→C→B→A → expect 400 cycle.
 	resp, body = doJSON(t, http.MethodPatch, srv.URL+"/api/issues/"+a.ID,
 		map[string]any{"parentId": c.ID})
 	mustStatus(t, resp, 400, body)

@@ -10,7 +10,7 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 )
 
-// errBody는 공통 JSON 에러 응답 본문입니다.
+// errBody is the shared JSON shape for error responses.
 type errBody struct {
 	Error struct {
 		Code    string `json:"code"`
@@ -36,7 +36,7 @@ func writeErr(w http.ResponseWriter, status int, code, msg string) {
 	writeJSON(w, status, b)
 }
 
-// mapError 는 service/storage 에러를 HTTP 상태로 매핑합니다.
+// mapError translates service/storage sentinel errors to HTTP status codes.
 func mapError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, storage.ErrNotFound):
