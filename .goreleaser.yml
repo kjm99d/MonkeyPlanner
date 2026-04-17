@@ -6,9 +6,10 @@ before:
   hooks:
     # Build the frontend bundle before goreleaser starts compiling Go.
     # The dist/ output is embedded via embed.FS when built with -tags prod.
-    - npm ci --prefix frontend --silent
-    - npm run build --prefix frontend
-    - cp -r frontend/dist backend/web/dist
+    # Use subshell form — more reliable than --prefix across npm versions.
+    - sh -c "cd frontend && npm ci --silent"
+    - sh -c "cd frontend && npm run build"
+    - sh -c "cp -r frontend/dist backend/web/dist"
 
 builds:
   - id: monkey-planner
