@@ -45,6 +45,12 @@ func main() {
 
 	svc := service.New(repo, nil)
 
+	// First-run bootstrap: seed a Welcome board + issue if the DB is empty.
+	// Idempotent — on every subsequent start this is a cheap SELECT + early return.
+	if err := svc.SeedWelcomeIfEmpty(context.Background()); err != nil {
+		log.Printf("monkey-planner: welcome seed skipped: %v", err)
+	}
+
 	var static fs.FS
 	if dist, err := web.Dist(); err == nil {
 		static = dist
