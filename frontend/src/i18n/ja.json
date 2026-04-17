@@ -66,7 +66,14 @@
     "noIssuesFound": "条件に一致するイシューがありません。",
     "colTitle": "タイトル",
     "colStatus": "ステータス",
-    "colCreated": "作成日"
+    "colCreated": "作成日",
+    "showDone": "完了を表示",
+    "hideDone": "完了を隠す",
+    "fullscreen": "全画面",
+    "exitFullscreen": "全画面解除"
+  },
+  "chart": {
+    "noData": "アクティビティデータがまだありません"
   },
   "kanban": {
     "pending": "待機",

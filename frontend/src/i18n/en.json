@@ -66,7 +66,14 @@
     "noIssuesFound": "No issues match your filter.",
     "colTitle": "Title",
     "colStatus": "Status",
-    "colCreated": "Created"
+    "colCreated": "Created",
+    "showDone": "Show done",
+    "hideDone": "Hide done",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
+  },
+  "chart": {
+    "noData": "No activity data yet"
   },
   "kanban": {
     "pending": "Pending",

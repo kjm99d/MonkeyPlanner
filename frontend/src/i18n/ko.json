@@ -66,7 +66,14 @@
     "noIssuesFound": "조건에 맞는 이슈가 없습니다.",
     "colTitle": "제목",
     "colStatus": "상태",
-    "colCreated": "생성일"
+    "colCreated": "생성일",
+    "showDone": "완료 표시",
+    "hideDone": "완료 숨김",
+    "fullscreen": "전체 화면",
+    "exitFullscreen": "전체 화면 해제"
+  },
+  "chart": {
+    "noData": "아직 활동 데이터가 없습니다"
   },
   "kanban": {
     "pending": "대기",
