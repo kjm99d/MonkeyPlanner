@@ -60,7 +60,7 @@ jobs:
             -o ../monkey-planner-${{ matrix.suffix }}${{ matrix.ext }} \
             ./cmd/monkey-planner
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: monkey-planner-${{ matrix.suffix }}
           path: monkey-planner-${{ matrix.suffix }}${{ matrix.ext }}
@@ -81,7 +81,7 @@ jobs:
           npm run build
           tar -czf ../frontend-dist.tar.gz -C dist .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: frontend-dist
           path: frontend-dist.tar.gz
