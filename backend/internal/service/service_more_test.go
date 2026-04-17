@@ -23,7 +23,7 @@ func TestBoardCRUD(t *testing.T) {
 	if _, err := s.CreateBoard(ctx, "x", domain.ViewType("grid")); err == nil {
 		t.Fatal("expected invalid viewType error")
 	}
-	b, err := s.CreateBoard(ctx, "backlog", "") // 빈 viewType 이면 kanban 기본
+	b, err := s.CreateBoard(ctx, "backlog", "") // empty viewType defaults to kanban
 	if err != nil || b.ViewType != domain.ViewKanban {
 		t.Fatalf("create board defaults: err=%v vt=%s", err, b.ViewType)
 	}

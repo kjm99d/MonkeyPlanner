@@ -119,7 +119,7 @@ func TestBackwardTransitionAllowed(t *testing.T) {
 	if err != nil || got.Status != domain.StatusDone {
 		t.Fatalf("to done: err=%v status=%s", err, got.Status)
 	}
-	// Done → InProgress (역행 허용)
+	// Done → InProgress (backward move is allowed here).
 	got, err = s.UpdateIssue(ctx, iss.ID, service.UpdateIssueInput{Status: &ip})
 	if err != nil || got.Status != domain.StatusInProgress {
 		t.Fatalf("backward done→inProgress should be allowed: err=%v status=%s", err, got.Status)

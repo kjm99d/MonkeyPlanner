@@ -1,5 +1,6 @@
-// Package service는 도메인·storage 계층을 얇게 감싼 유스케이스 계층입니다.
-// HTTP 핸들러가 의존하는 지점이며, 상태 전이 규칙과 ID/시간 생성 책임을 가집니다.
+// Package service is a thin use-case layer over domain and storage. HTTP
+// handlers depend on it; it owns ID/time generation and enforces status-
+// transition rules that the storage layer cannot express alone.
 package service
 
 import (
@@ -14,14 +15,15 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 )
 
-// Service는 이슈·보드·캘린더 유스케이스를 묶은 퍼사드입니다.
+// Service is the facade that bundles issue, board, and calendar use cases.
 type Service struct {
 	repo   storage.Repo
 	now    func() time.Time
 	broker *events.Broker
 }
 
-// New는 storage.Repo 를 감싸 Service 를 만듭니다. now 가 nil이면 time.Now().UTC() 사용.
+// New wraps a storage.Repo into a Service. If now is nil, time.Now().UTC()
+// is used — pass a fake clock in tests for deterministic timestamps.
 func New(repo storage.Repo, now func() time.Time) *Service {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
@@ -29,10 +31,10 @@ func New(repo storage.Repo, now func() time.Time) *Service {
 	return &Service{repo: repo, now: now, broker: events.New()}
 }
 
-// Broker 는 SSE 구독용 이벤트 브로커를 반환합니다.
+// Broker returns the event broker that SSE handlers subscribe to.
 func (s *Service) Broker() *events.Broker { return s.broker }
 
-// publishEvent 는 SSE 구독자에게 이벤트를 발행합니다.
+// publishEvent fans an Event out to all SSE subscribers of the board.
 func (s *Service) publishEvent(boardID, eventType, issueID, status string) {
 	if s.broker == nil {
 		return
@@ -45,9 +47,9 @@ func (s *Service) publishEvent(boardID, eventType, issueID, status string) {
 	})
 }
 
-// ---- Issue 유스케이스 ----
+// ---- Issue use cases ----
 
-// CreateIssueInput은 이슈 생성 요청 본문입니다.
+// CreateIssueInput is the request body for creating an issue.
 type CreateIssueInput struct {
 	BoardID  string
 	ParentID *string
@@ -91,19 +93,20 @@ func (s *Service) CreateIssue(ctx context.Context, in CreateIssueInput) (domain.
 	return created, nil
 }
 
-// UpdateIssueInput은 PATCH 본문입니다. nil 은 미변경.
+// UpdateIssueInput is the PATCH body; any nil field leaves the value unchanged.
 type UpdateIssueInput struct {
 	Title        *string
 	Body         *string
 	Instructions *string
-	ParentID     **string              // 이중 포인터로 "미변경" vs "NULL로" 구분
+	ParentID     **string              // double pointer: nil = unchanged, *nil = set NULL
 	Status       *domain.Status
-	Criteria     *[]domain.Criterion   // nil이면 미변경
+	Criteria     *[]domain.Criterion   // nil = unchanged
 }
 
-// UpdateIssue는 PATCH 전이 규칙을 강제합니다. Approved 전이는 차단(409).
+// UpdateIssue enforces PATCH transition rules; direct Approved transitions
+// are blocked (409) and must use the dedicated approve endpoint.
 func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInput) (domain.Issue, error) {
-	// 상태 전이 검증 먼저 (DB 왕복 전)
+	// Validate the transition first to avoid a pointless DB round-trip.
 	var patchStatus *domain.Status
 	if in.Status != nil {
 		cur, err := s.repo.Issues().GetByID(ctx, id)
@@ -111,7 +114,7 @@ func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInpu
 			return domain.Issue{}, err
 		}
 		if *in.Status == cur.Status {
-			// 같은 상태는 no-op로 허용
+			// Same-status transition is a silent no-op at the service layer.
 		} else if err := domain.ValidateTransition(cur.Status, *in.Status); err != nil {
 			switch {
 			case errors.Is(err, domain.ErrDirectApproval):
@@ -122,17 +125,17 @@ func (s *Service) UpdateIssue(ctx context.Context, id string, in UpdateIssueInpu
 				return domain.Issue{}, ErrInvalidTransition
 			}
 		}
-		// QA → Done 은 Complete 메서드로 completed_at 기록
+		// QA → Done goes through Complete so completed_at gets recorded.
 		if cur.Status == domain.StatusQA && *in.Status == domain.StatusDone {
 			done, err := s.repo.Issues().Complete(ctx, id, s.now())
 			if err != nil {
 				return domain.Issue{}, err
 			}
-			// Title/Body/ParentID 도 추가로 변경이 필요할 수 있음
+			// Title/Body/ParentID may still need to change alongside the status.
 			if in.Title == nil && in.Body == nil && in.ParentID == nil {
 				return done, nil
 			}
-			// status 는 이미 적용됐으므로 추가 Update 에서 빼기
+			// status was already applied by Complete; strip it from the follow-up patch.
 			in.Status = nil
 		} else {
 			patchStatus = in.Status
@@ -218,7 +221,7 @@ func (s *Service) GetBlockedBy(ctx context.Context, issueID string) ([]string, e
 	return s.repo.Issues().GetBlockedBy(ctx, issueID)
 }
 
-// ---- Comment 유스케이스 ----
+// ---- Comment use cases ----
 
 func (s *Service) CreateComment(ctx context.Context, issueID, body string) (*domain.Comment, error) {
 	c, err := s.repo.Comments().Create(ctx, issueID, body)
@@ -239,7 +242,7 @@ func (s *Service) DeleteComment(ctx context.Context, commentID string) error {
 	return s.repo.Comments().Delete(ctx, commentID)
 }
 
-// ---- Board 유스케이스 ----
+// ---- Board use cases ----
 
 func (s *Service) CreateBoard(ctx context.Context, name string, viewType domain.ViewType) (domain.Board, error) {
 	if name == "" {
@@ -279,7 +282,7 @@ func (s *Service) DeleteBoard(ctx context.Context, id string) error {
 	return s.repo.Boards().Delete(ctx, id)
 }
 
-// ---- Issue Properties 유스케이스 ----
+// ---- Issue property use cases ----
 
 // UpdateIssueProperties atomically merges props into the issue's properties.
 // Keys with nil values are removed (RFC 7396 merge-patch semantics). The merge
@@ -289,7 +292,7 @@ func (s *Service) UpdateIssueProperties(ctx context.Context, id string, props ma
 	return s.repo.Issues().MergeProperties(ctx, id, props)
 }
 
-// ---- Board Properties 유스케이스 ----
+// ---- Board property use cases ----
 
 func (s *Service) CreateBoardProperty(ctx context.Context, boardID, name string, propType domain.PropertyType, options []string) (domain.BoardProperty, error) {
 	if name == "" {
@@ -324,7 +327,7 @@ func (s *Service) DeleteBoardProperty(ctx context.Context, id string) error {
 	return s.repo.BoardProperties().Delete(ctx, id)
 }
 
-// ---- Calendar 유스케이스 ----
+// ---- Calendar use cases ----
 
 func (s *Service) GetMonthStats(ctx context.Context, year int, month time.Month) ([]storage.DayCount, error) {
 	return s.repo.Issues().GetMonthStats(ctx, year, month)
