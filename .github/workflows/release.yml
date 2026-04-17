@@ -28,6 +28,15 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Copy frontend dist for Go embed
+        run: cp -r frontend/dist backend/web/dist
+
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -36,6 +45,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Optional: only needed when the brews section is active.
-          # Create a fine-grained PAT with write access to the homebrew-tap repo.
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
