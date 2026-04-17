@@ -21,6 +21,9 @@ func (s *Service) CreateWebhook(ctx context.Context, boardID, name, url string, 
 	if url == "" {
 		return domain.Webhook{}, errors.New("webhook url must not be empty")
 	}
+	if err := validateWebhookURL(url); err != nil {
+		return domain.Webhook{}, err
+	}
 	for _, e := range events {
 		if !e.Valid() {
 			return domain.Webhook{}, errors.New("invalid webhook event: " + string(e))
@@ -41,6 +44,11 @@ func (s *Service) ListWebhooks(ctx context.Context, boardID string) ([]domain.We
 }
 
 func (s *Service) UpdateWebhook(ctx context.Context, id string, name *string, url *string, events *[]domain.WebhookEvent, enabled *bool) (domain.Webhook, error) {
+	if url != nil {
+		if err := validateWebhookURL(*url); err != nil {
+			return domain.Webhook{}, err
+		}
+	}
 	return s.repo.Webhooks().Update(ctx, id, name, url, events, enabled)
 }
 
@@ -72,6 +80,12 @@ func (s *Service) DispatchWebhook(boardID string, event domain.WebhookEvent, iss
 
 		client := &http.Client{Timeout: 5 * time.Second}
 		for _, wh := range hooks {
+			// Re-validate at dispatch time — the DB row may predate the check
+			// (older install) or have been edited around the registration guard.
+			if err := validateWebhookURL(wh.URL); err != nil {
+				log.Printf("webhook %s: URL rejected: %v", wh.Name, err)
+				continue
+			}
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, wh.URL, bytes.NewReader(body))
 			if err != nil {
 				log.Printf("webhook %s: request error: %v", wh.Name, err)
