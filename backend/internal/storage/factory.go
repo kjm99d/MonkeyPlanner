@@ -5,23 +5,24 @@ import (
 	"strings"
 )
 
-// NewRepo 는 DSN 접두사로 어댑터를 선택하는 팩토리입니다.
-// 지원 형식:
-//   - "sqlite://<path>" 또는 "file:<path>" → SQLite 어댑터 (modernc.org/sqlite)
-//   - "postgres://user:pass@host:port/db?opts" → PostgreSQL 어댑터 (pgx/v5)
+// Opener opens a storage adapter from a DSN string.
+// Supported DSN schemes (registered at init time by each adapter package):
+//   - "sqlite://<path>" or "file:<path>" → SQLite (modernc.org/sqlite)
+//   - "postgres://user:pass@host:port/db?opts" → PostgreSQL (pgx/v5)
 //
-// 실제 어댑터 구현은 import 순환을 피하기 위해 외부에서 NewFromDSN 을
-// 등록(Register)하는 방식을 사용합니다.
+// Adapter packages Register themselves from init() to avoid an import cycle
+// between this factory and the concrete implementations.
 type Opener func(dsn string) (Repo, error)
 
 var openers = map[string]Opener{}
 
-// Register 는 스킴별 어댑터 Opener 를 등록합니다. 각 어댑터 패키지가 init() 에서 호출합니다.
+// Register associates a DSN scheme with an Opener. Adapter packages call this
+// from their init() function.
 func Register(scheme string, o Opener) {
 	openers[scheme] = o
 }
 
-// NewRepo 는 DSN 을 읽어 등록된 어댑터로 위임합니다.
+// NewRepo dispatches to the Opener registered for the DSN's scheme.
 func NewRepo(dsn string) (Repo, error) {
 	scheme := dsnScheme(dsn)
 	o, ok := openers[scheme]

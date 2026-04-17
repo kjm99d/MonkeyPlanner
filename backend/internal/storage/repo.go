@@ -8,47 +8,49 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/domain"
 )
 
-// 공통 에러 (어댑터가 래핑해서 반환)
+// Shared sentinel errors returned (or wrapped) by every storage adapter so
+// that service-layer code can remain backend-agnostic.
 var (
-	ErrNotFound  = errors.New("not found")
-	ErrCycle     = errors.New("parent_id would create a cycle")
-	ErrConflict  = errors.New("conflict")
+	ErrNotFound = errors.New("not found")
+	ErrCycle    = errors.New("parent_id would create a cycle")
+	ErrConflict = errors.New("conflict")
 )
 
-// IssueFilter 는 List 쿼리의 선택적 조건입니다.
+// IssueFilter holds optional predicates for the List query.
 type IssueFilter struct {
 	BoardID  *string
-	ParentID *string // 빈 문자열이면 "루트(parent=NULL)"만
+	ParentID *string // empty string = only top-level issues (parent IS NULL)
 	Status   *domain.Status
 }
 
-// DayCount 는 캘린더 월 집계 응답의 일별 카운트입니다.
+// DayCount is a per-day bucket used by the calendar month aggregate.
 type DayCount struct {
-	Date      time.Time `json:"date"` // UTC 자정
+	Date      time.Time `json:"date"` // midnight UTC
 	Created   int       `json:"created"`
 	Approved  int       `json:"approved"`
 	Completed int       `json:"completed"`
 }
 
-// DayStats 는 특정 일자의 3분할 이슈 목록입니다.
+// DayStats splits a single day's issues into the three activity buckets.
 type DayStats struct {
 	Created   []domain.Issue `json:"created"`
 	Approved  []domain.Issue `json:"approved"`
 	Completed []domain.Issue `json:"completed"`
 }
 
-// IssuePatch 는 PATCH 요청에서 변경할 필드만 담습니다 (nil = 미변경).
+// IssuePatch carries only the fields that should be mutated on a PATCH
+// (nil = leave unchanged).
 type IssuePatch struct {
 	Title        *string
 	Body         *string
 	Instructions *string
-	ParentID     **string              // 이중 포인터: nil(미변경) vs *nil(=NULL로 설정)
-	Status       *domain.Status        // Approved로 전이 시도 시 서비스 계층이 409 응답
-	Properties   *map[string]any       // nil이면 미변경, 값이면 전체 교체(merge는 서비스 계층)
-	Criteria     *[]domain.Criterion   // nil이면 미변경
+	ParentID     **string            // double-pointer: nil (unchanged) vs *nil (set NULL)
+	Status       *domain.Status      // service layer returns 409 on direct Approved
+	Properties   *map[string]any     // nil = unchanged, non-nil = whole-object replace
+	Criteria     *[]domain.Criterion // nil = unchanged
 }
 
-// IssueRepo 는 이슈 저장소 인터페이스입니다.
+// IssueRepo is the storage contract for issues.
 type IssueRepo interface {
 	Create(ctx context.Context, issue domain.Issue) (domain.Issue, error)
 	GetByID(ctx context.Context, id string) (domain.Issue, error)
@@ -60,25 +62,27 @@ type IssueRepo interface {
 	// avoids the read-modify-write race inherent in service-layer merging.
 	MergeProperties(ctx context.Context, id string, props map[string]any) (domain.Issue, error)
 	Delete(ctx context.Context, id string) error
-	// Approve 는 멱등: 이미 Approved인 이슈에 호출해도 approved_at 유지.
+	// Approve is idempotent: calling it on an already-Approved issue keeps the
+	// original approved_at timestamp.
 	Approve(ctx context.Context, id string, now time.Time) (domain.Issue, error)
-	// Complete 는 InProgress→Done 전이 + completed_at 기록.
+	// Complete transitions InProgress → Done and records completed_at.
 	Complete(ctx context.Context, id string, now time.Time) (domain.Issue, error)
-	// GetMonthStats 는 지정 연/월의 일별 created/approved/completed 카운트.
+	// GetMonthStats returns per-day created/approved/completed counts for the
+	// given year+month (UTC).
 	GetMonthStats(ctx context.Context, year int, month time.Month) ([]DayCount, error)
-	// GetDayStats 는 특정 날짜의 3분할 이슈 목록.
+	// GetDayStats returns the three-bucket issue lists for a single day.
 	GetDayStats(ctx context.Context, day time.Time) (DayStats, error)
-	// ReorderIssues 는 issueIDs 순서대로 position 을 업데이트합니다.
+	// ReorderIssues updates positions to match the supplied ID ordering.
 	ReorderIssues(ctx context.Context, issueIDs []string) error
-	// AddDependency 는 blockerID → blockedID 의존성을 추가합니다.
+	// AddDependency records that blockerID must complete before blockedID.
 	AddDependency(ctx context.Context, blockerID, blockedID string) error
-	// RemoveDependency 는 blockerID → blockedID 의존성을 제거합니다.
+	// RemoveDependency drops the blockerID → blockedID edge.
 	RemoveDependency(ctx context.Context, blockerID, blockedID string) error
-	// GetBlockedBy 는 issueID 를 차단하는 blocker ID 목록을 반환합니다.
+	// GetBlockedBy returns the IDs currently blocking the given issue.
 	GetBlockedBy(ctx context.Context, issueID string) ([]string, error)
 }
 
-// BoardRepo 는 보드 저장소 인터페이스입니다.
+// BoardRepo is the storage contract for boards.
 type BoardRepo interface {
 	Create(ctx context.Context, board domain.Board) (domain.Board, error)
 	GetByID(ctx context.Context, id string) (domain.Board, error)
@@ -87,7 +91,7 @@ type BoardRepo interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// BoardPropertyRepo 는 보드별 커스텀 속성 저장소 인터페이스입니다.
+// BoardPropertyRepo is the storage contract for per-board custom properties.
 type BoardPropertyRepo interface {
 	Create(ctx context.Context, prop domain.BoardProperty) (domain.BoardProperty, error)
 	List(ctx context.Context, boardID string) ([]domain.BoardProperty, error)
@@ -95,7 +99,7 @@ type BoardPropertyRepo interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// WebhookRepo 는 webhook 저장소 인터페이스입니다.
+// WebhookRepo is the storage contract for per-board outbound webhooks.
 type WebhookRepo interface {
 	Create(ctx context.Context, wh domain.Webhook) (domain.Webhook, error)
 	List(ctx context.Context, boardID string) ([]domain.Webhook, error)
@@ -104,14 +108,14 @@ type WebhookRepo interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// CommentRepo 는 이슈 댓글 저장소 인터페이스입니다.
+// CommentRepo is the storage contract for issue comments.
 type CommentRepo interface {
 	Create(ctx context.Context, issueID, body string) (*domain.Comment, error)
 	List(ctx context.Context, issueID string) ([]domain.Comment, error)
 	Delete(ctx context.Context, commentID string) error
 }
 
-// Repo 는 이슈/보드/속성/웹훅/댓글 레포를 함께 제공하는 상위 인터페이스입니다.
+// Repo is the aggregate root that exposes all per-entity repos.
 type Repo interface {
 	Issues() IssueRepo
 	Boards() BoardRepo

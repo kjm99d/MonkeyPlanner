@@ -1,6 +1,6 @@
-// Package contract 는 모든 storage 어댑터가 만족해야 하는 계약 테스트를 제공합니다.
-// SQLite/PostgreSQL 어댑터가 동일한 동작을 보이도록 강제하며, PG는 MP_PG_DSN
-// 환경변수 미설정 시 skip 처리됩니다.
+// Package contract provides the test suite every storage adapter must satisfy.
+// It ensures the SQLite and PostgreSQL adapters behave identically; the
+// PostgreSQL run is skipped when MP_PG_DSN is unset.
 package contract
 
 import (
@@ -15,8 +15,9 @@ import (
 	"github.com/kjm99d/monkey-planner/backend/internal/storage"
 )
 
-// RunAll 은 등록된 계약 테스트 전부를 실행합니다.
-// 호출자는 `t` 와 fresh `storage.Repo` 팩토리(각 subtest가 독립 DB 사용하도록) 를 전달합니다.
+// RunAll runs every registered contract case against the supplied adapter.
+// The factory must return a fresh storage.Repo per subtest so cases do not
+// share state.
 func RunAll(t *testing.T, newRepo func(t *testing.T) storage.Repo) {
 	t.Helper()
 	cases := []struct {
