@@ -1,12 +1,33 @@
 **English** | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [中文](./README.zh.md)
 
+<p align="center">
+  <a href="https://github.com/kjm99d/monkey-planner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kjm99d/monkey-planner?style=flat&logo=github"></a>
+  <a href="https://github.com/kjm99d/monkey-planner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/monkey-planner?include_prereleases&sort=semver"></a>
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/kjm99d/monkey-planner/pkgs/container/monkey-planner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
+  <a href="https://github.com/kjm99d/monkey-planner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/monkey-planner/docker.yml?branch=main&label=build"></a>
+</p>
+
 # MonkeyPlanner
 
-> AI agent task memory store — Notion/JIRA-style issue tracker + MCP server
+> **Local-first task memory for your AI coding agents.**
+> Approve with a click; your agents do the rest. No cloud. No telemetry. Forever free, forever MIT.
 
-A collaborative tool where humans create and approve issues, and AI agents consume tasks via MCP (Model Context Protocol) clients.
+Works with **Claude Code** · **Claude Desktop** · **Cursor** · **Continue** · any MCP-compatible client.
 
 ![MonkeyPlanner Demo](./docs/demo/monkey-planner-demo.gif)
+
+## Quickstart
+
+```bash
+# Docker (recommended)
+docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkey-planner:latest
+
+# then wire up your agent
+monkey-planner mcp install --for claude-code     # or --for cursor / --for claude-desktop
+```
+
+Open http://localhost:8080 — the built-in Welcome board walks you through the rest.
 
 ## Features
 
