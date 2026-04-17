@@ -10,8 +10,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
 )
 
 // Repo is the SQLite implementation of storage.Repo.

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/events"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/events"
 )
 
 // heartbeatInterval is how often an SSE comment is flushed to keep the

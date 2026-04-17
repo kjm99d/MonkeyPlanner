@@ -12,12 +12,12 @@ import (
 	"syscall"
 	"time"
 
-	mphttp "github.com/kjm99d/monkey-planner/backend/internal/http"
-	"github.com/kjm99d/monkey-planner/backend/internal/service"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
-	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/postgres"
-	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/sqlite"
-	"github.com/kjm99d/monkey-planner/backend/web"
+	mphttp "github.com/kjm99d/MonkeyPlanner/backend/internal/http"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/service"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
+	_ "github.com/kjm99d/MonkeyPlanner/backend/internal/storage/postgres"
+	_ "github.com/kjm99d/MonkeyPlanner/backend/internal/storage/sqlite"
+	"github.com/kjm99d/MonkeyPlanner/backend/web"
 )
 
 // version is set at build time via -ldflags "-X main.version=v1.2.0"

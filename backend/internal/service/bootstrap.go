@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
 )
 
 // welcomeBody is shown as the body of the first issue on a brand-new install.

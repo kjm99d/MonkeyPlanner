@@ -110,7 +110,7 @@
 
 #### 1. 克隆仓库并初始化
 ```bash
-git clone https://github.com/kjm99d/monkey-planner.git
+git clone https://github.com/kjm99d/MonkeyPlanner.git
 cd monkey-planner
 make init
 ```

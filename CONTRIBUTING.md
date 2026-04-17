@@ -96,8 +96,8 @@ Include, in order of importance:
 
 ## Community
 
-- **Questions**: open a [Discussion](https://github.com/kjm99d/monkey-planner/discussions/categories/q-a)
-- **Bugs**: open an [Issue](https://github.com/kjm99d/monkey-planner/issues/new?template=bug_report.yml)
+- **Questions**: open a [Discussion](https://github.com/kjm99d/MonkeyPlanner/discussions/categories/q-a)
+- **Bugs**: open an [Issue](https://github.com/kjm99d/MonkeyPlanner/issues/new?template=bug_report.yml)
 - **Security vulnerabilities**: see [SECURITY.md](./SECURITY.md) — do not file them publicly
 
 ## License

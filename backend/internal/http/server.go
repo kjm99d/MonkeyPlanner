@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/service"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/service"
 )
 
 // NewRouter wires the /api/* handlers onto a chi router. When static is

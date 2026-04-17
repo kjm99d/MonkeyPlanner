@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage/contract"
-	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/postgres"
-	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/sqlite"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage/contract"
+	_ "github.com/kjm99d/MonkeyPlanner/backend/internal/storage/postgres"
+	_ "github.com/kjm99d/MonkeyPlanner/backend/internal/storage/sqlite"
 )
 
 func TestContract_SQLite(t *testing.T) {

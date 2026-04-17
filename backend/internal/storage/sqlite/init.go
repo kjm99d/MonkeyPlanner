@@ -3,7 +3,7 @@ package sqlite
 import (
 	"strings"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
 )
 
 func init() {

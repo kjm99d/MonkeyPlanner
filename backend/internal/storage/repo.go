@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
 )
 
 // Shared sentinel errors returned (or wrapped) by every storage adapter so

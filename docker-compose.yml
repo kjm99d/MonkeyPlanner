@@ -1,7 +1,7 @@
 services:
   monkey-planner:
     # Pull the published image when available; fall back to local build.
-    image: ghcr.io/kjm99d/monkey-planner:latest
+    image: ghcr.io/kjm99d/monkeyplanner:latest
     build:
       context: .
       args:

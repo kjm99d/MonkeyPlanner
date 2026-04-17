@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
-	"github.com/kjm99d/monkey-planner/backend/internal/service"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/service"
 )
 
 type boardHandler struct{ svc *service.Service }

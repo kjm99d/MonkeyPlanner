@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mphttp "github.com/kjm99d/monkey-planner/backend/internal/http"
+	mphttp "github.com/kjm99d/MonkeyPlanner/backend/internal/http"
 )
 
 func TestValidateUTF8_RejectsNonUTF8(t *testing.T) {

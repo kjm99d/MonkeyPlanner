@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         For open-ended ideas ("should we even do X?"), a
-        [Discussion](https://github.com/kjm99d/monkey-planner/discussions/categories/ideas)
+        [Discussion](https://github.com/kjm99d/MonkeyPlanner/discussions/categories/ideas)
         is a better home than an issue. Use this template when the request
         is specific enough to scope.
 

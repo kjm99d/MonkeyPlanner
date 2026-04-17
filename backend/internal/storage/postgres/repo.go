@@ -14,8 +14,8 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
 )
 
 // Repo is the PostgreSQL implementation of storage.Repo.

@@ -110,7 +110,7 @@
 
 #### 1. 저장소 클론 및 초기화
 ```bash
-git clone https://github.com/kjm99d/monkey-planner.git
+git clone https://github.com/kjm99d/MonkeyPlanner.git
 cd monkey-planner
 make init
 ```

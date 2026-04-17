@@ -10,9 +10,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
-	"github.com/kjm99d/monkey-planner/backend/internal/events"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/events"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
 )
 
 // Service is the facade that bundles issue, board, and calendar use cases.

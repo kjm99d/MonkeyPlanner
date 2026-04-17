@@ -109,10 +109,10 @@ Initial public release.
 - Webhooks (Discord / Slack / Telegram compatible).
 - Full-text issue search (Cmd+K), keyboard shortcuts, dark mode.
 
-[Unreleased]: https://github.com/kjm99d/monkey-planner/compare/v1.3.1...HEAD
-[1.3.1]: https://github.com/kjm99d/monkey-planner/compare/v1.3.0...v1.3.1
-[1.3.0]: https://github.com/kjm99d/monkey-planner/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/kjm99d/monkey-planner/compare/v1.1.1...v1.2.0
-[1.1.1]: https://github.com/kjm99d/monkey-planner/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/kjm99d/monkey-planner/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/kjm99d/monkey-planner/releases/tag/v1.0.0
+[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.1.1...v1.2.0
+[1.1.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/kjm99d/MonkeyPlanner/releases/tag/v1.0.0

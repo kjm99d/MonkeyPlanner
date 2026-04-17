@@ -1,4 +1,4 @@
-module github.com/kjm99d/monkey-planner/backend
+module github.com/kjm99d/MonkeyPlanner/backend
 
 go 1.26.1
 

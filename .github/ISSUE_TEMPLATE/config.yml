@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question or general discussion
-    url: https://github.com/kjm99d/monkey-planner/discussions/categories/q-a
+    url: https://github.com/kjm99d/MonkeyPlanner/discussions/categories/q-a
     about: Ask the community. Questions tend to resolve faster than issues.
   - name: Show and tell
-    url: https://github.com/kjm99d/monkey-planner/discussions/categories/show-and-tell
+    url: https://github.com/kjm99d/MonkeyPlanner/discussions/categories/show-and-tell
     about: Built something cool with MonkeyPlanner + your agents? Share it here.
   - name: Security vulnerability
-    url: https://github.com/kjm99d/monkey-planner/blob/main/SECURITY.md
+    url: https://github.com/kjm99d/MonkeyPlanner/blob/main/SECURITY.md
     about: Please do NOT file security issues publicly — see SECURITY.md for the private channel.

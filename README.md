@@ -1,11 +1,11 @@
 **English** | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [中文](./README.zh.md)
 
 <p align="center">
-  <a href="https://github.com/kjm99d/monkey-planner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kjm99d/monkey-planner?style=flat&logo=github"></a>
-  <a href="https://github.com/kjm99d/monkey-planner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/monkey-planner?include_prereleases&sort=semver"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kjm99d/MonkeyPlanner?style=flat&logo=github"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/MonkeyPlanner?include_prereleases&sort=semver"></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <a href="https://github.com/kjm99d/monkey-planner/pkgs/container/monkey-planner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
-  <a href="https://github.com/kjm99d/monkey-planner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/monkey-planner/docker.yml?branch=main&label=build"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/pkgs/container/monkeyplanner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/MonkeyPlanner/docker.yml?branch=main&label=build"></a>
 </p>
 
 # MonkeyPlanner
@@ -21,7 +21,7 @@ Works with **Claude Code** · **Claude Desktop** · **Cursor** · **Continue** �
 
 ```bash
 # Docker (recommended)
-docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkey-planner:latest
+docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkeyplanner:latest
 
 # then wire up your agent
 monkey-planner mcp install --for claude-code     # or --for cursor / --for claude-desktop
@@ -131,7 +131,7 @@ Thirteen tools for AI agent automation:
 
 #### 1. Clone and initialize
 ```bash
-git clone https://github.com/kjm99d/monkey-planner.git
+git clone https://github.com/kjm99d/MonkeyPlanner.git
 cd monkey-planner
 make init
 ```

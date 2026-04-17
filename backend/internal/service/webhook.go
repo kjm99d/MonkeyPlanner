@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
 )
 
 // ---- Webhook CRUD ----

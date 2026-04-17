@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	mphttp "github.com/kjm99d/monkey-planner/backend/internal/http"
-	"github.com/kjm99d/monkey-planner/backend/internal/service"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
-	_ "github.com/kjm99d/monkey-planner/backend/internal/storage/sqlite"
+	mphttp "github.com/kjm99d/MonkeyPlanner/backend/internal/http"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/service"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
+	_ "github.com/kjm99d/MonkeyPlanner/backend/internal/storage/sqlite"
 )
 
 func newTestServer(t *testing.T) *httptest.Server {

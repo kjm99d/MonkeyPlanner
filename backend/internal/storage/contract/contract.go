@@ -11,8 +11,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/kjm99d/monkey-planner/backend/internal/domain"
-	"github.com/kjm99d/monkey-planner/backend/internal/storage"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/domain"
+	"github.com/kjm99d/MonkeyPlanner/backend/internal/storage"
 )
 
 // RunAll runs every registered contract case against the supplied adapter.
