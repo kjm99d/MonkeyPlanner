@@ -1,12 +1,12 @@
 [English](./README.md) | [한국어](./README.ko.md) | **日本語** | [中文](./README.zh.md)
 
-# Monkey Planner
+# MonkeyPlanner
 
 > AIエージェントのタスク管理ストア — Notion/JIRAスタイルのイシュートラッカー + MCPサーバー
 
 人間がイシューを作成・承認し、AIエージェントがMCP（Model Context Protocol）クライアント経由でタスクを処理する協働ツールです。
 
-![Monkey Planner](./docs/screenshots/d-home-l.png)
+![MonkeyPlanner](./docs/screenshots/d-home-l.png)
 
 ## 主な機能
 
@@ -229,7 +229,7 @@ AI: 最初のPendingイシューを承認し、作業後QAに提出します
 
 ## ワークフロー — 実際の使用シナリオ
 
-多言語切替バグの修正で経験した実際のワークフローです。人間とAIエージェントがMonkey Plannerを通じてどのように協業するかを示します。
+多言語切替バグの修正で経験した実際のワークフローです。人間とAIエージェントがMonkeyPlannerを通じてどのように協業するかを示します。
 
 ### ステータスフロー
 

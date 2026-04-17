@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Monkey Planner",
+    "name": "MonkeyPlanner",
     "tagline": "Your code monkeys are working",
     "description": "Create issues, approve them, and mark as done. Check your progress on the calendar."
   },

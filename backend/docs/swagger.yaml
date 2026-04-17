@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: Monkey Planner API
+  title: MonkeyPlanner API
   version: 1.0.0
   description: |
-    REST API for Monkey Planner — a kanban/list board with issues, comments,
+    REST API for MonkeyPlanner — a kanban/list board with issues, comments,
     custom properties, webhooks, and a calendar stats view.
 
     ### Status transition rules

@@ -1,12 +1,12 @@
 [English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | **中文**
 
-# Monkey Planner
+# MonkeyPlanner
 
 > AI 智能体任务记忆仓库 — 类 Notion/JIRA 的问题追踪器 + MCP 服务器
 
 一款协作工具，由人工创建并审批任务，AI 智能体通过 MCP（模型上下文协议）客户端来消费和执行任务。
 
-![Monkey Planner](./docs/screenshots/d-home-l.png)
+![MonkeyPlanner](./docs/screenshots/d-home-l.png)
 
 ## 核心功能
 
@@ -229,7 +229,7 @@ AI: 审批第一个待处理问题，完成后提交 QA
 
 ## 工作流 — 实际使用场景
 
-以下是修复多语言切换 Bug 时的真实工作流，展示人类与 AI 智能体如何通过 Monkey Planner 协作。
+以下是修复多语言切换 Bug 时的真实工作流，展示人类与 AI 智能体如何通过 MonkeyPlanner 协作。
 
 ### 状态流程
 

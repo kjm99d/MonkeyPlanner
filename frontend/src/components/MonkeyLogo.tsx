@@ -3,7 +3,7 @@ import type { SVGProps } from 'react';
 type Props = SVGProps<SVGSVGElement> & { size?: number };
 
 /**
- * MonkeyLogo — minimal monkey face mark for the Monkey Planner brand.
+ * MonkeyLogo — minimal monkey face mark for the MonkeyPlanner brand.
  * Uses currentColor so it inherits the surrounding text color.
  */
 export function MonkeyLogo({ size = 16, ...rest }: Props) {

@@ -1,12 +1,12 @@
 [English](./README.md) | **한국어** | [日本語](./README.ja.md) | [中文](./README.zh.md)
 
-# 몽키 플래너 (Monkey Planner)
+# 몽키 플래너 (MonkeyPlanner)
 
 > AI 에이전트 작업 기억 저장소 — Notion/JIRA 스타일 이슈 트래커 + MCP 서버
 
 사람이 이슈를 생성하고 승인하면, AI 에이전트가 MCP(Model Context Protocol) 클라이언트를 통해 작업을 소비하는 협업 도구입니다.
 
-![Monkey Planner](./docs/screenshots/d-home-l.png)
+![MonkeyPlanner](./docs/screenshots/d-home-l.png)
 
 ## 주요 기능
 

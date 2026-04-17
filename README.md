@@ -1,12 +1,12 @@
 **English** | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [中文](./README.zh.md)
 
-# Monkey Planner
+# MonkeyPlanner
 
 > AI agent task memory store — Notion/JIRA-style issue tracker + MCP server
 
 A collaborative tool where humans create and approve issues, and AI agents consume tasks via MCP (Model Context Protocol) clients.
 
-![Monkey Planner Demo](./docs/demo/monkey-planner-demo.gif)
+![MonkeyPlanner Demo](./docs/demo/monkey-planner-demo.gif)
 
 ## Features
 
@@ -229,7 +229,7 @@ AI: Approve the first pending issue, claim it, work on it, and submit for QA
 
 ## Workflow — Real Usage Scenario
 
-Below is a real workflow from fixing a language switcher bug, showing how a human and AI agent collaborate through Monkey Planner.
+Below is a real workflow from fixing a language switcher bug, showing how a human and AI agent collaborate through MonkeyPlanner.
 
 ### Status Flow
 
