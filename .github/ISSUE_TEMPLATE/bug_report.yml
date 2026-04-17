@@ -1,0 +1,88 @@
+name: Bug report
+description: Something broke or is clearly wrong.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The more reproducible your
+        report, the faster it gets fixed.
+
+  - type: input
+    id: version
+    attributes:
+      label: MonkeyPlanner version
+      description: Output of `monkey-planner --version`, or commit SHA if built from source.
+      placeholder: "v1.3.1 or main@abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - Docker image (GHCR)
+        - Prebuilt binary (GitHub Release)
+        - Built from source (make build)
+        - Homebrew / Scoop / package manager
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Linux
+        - Windows
+        - Other / Container
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: clients
+    attributes:
+      label: Which MCP client(s) were connected when it broke?
+      options:
+        - label: Claude Code
+        - label: Claude Desktop
+        - label: Cursor
+        - label: Other (describe in "Steps to reproduce")
+        - label: None — web UI only
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Smallest possible sequence that reliably triggers the bug.
+      placeholder: |
+        1. Start the server with `docker compose up`
+        2. Open the Welcome board
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+      description: Server logs, screenshots, and browser console output are gold.
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Reverse proxies, unusual data volumes, custom `.mcp.json`, anything non-default.

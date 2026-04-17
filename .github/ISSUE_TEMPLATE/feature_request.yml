@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest a new capability, UX improvement, or integration.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended ideas ("should we even do X?"), a
+        [Discussion](https://github.com/kjm99d/monkey-planner/discussions/categories/ideas)
+        is a better home than an issue. Use this template when the request
+        is specific enough to scope.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the friction you hit today, not the feature name.
+      placeholder: "When I run Claude Code and Cursor in parallel, I cannot tell which agent is editing which issue in real time."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: How would the feature look, feel, or behave?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing workarounds, other tools, or rejected designs.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Would you be willing to help?
+      options:
+        - label: I am willing to open a PR
+        - label: I can help test once it lands
+        - label: I can write the docs for it
