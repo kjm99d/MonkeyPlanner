@@ -1,12 +1,33 @@
 [English](./README.md) | [한국어](./README.ko.md) | **日本語** | [中文](./README.zh.md)
 
+<p align="center">
+  <a href="https://github.com/kjm99d/MonkeyPlanner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kjm99d/MonkeyPlanner?style=flat&logo=github"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/MonkeyPlanner?include_prereleases&sort=semver"></a>
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/pkgs/container/monkeyplanner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/MonkeyPlanner/docker.yml?branch=main&label=build"></a>
+</p>
+
 # MonkeyPlanner
 
-> AIエージェントのタスク管理ストア — Notion/JIRAスタイルのイシュートラッカー + MCPサーバー
+> **AIコーディングエージェントのためのローカルファーストなタスク記憶。**
+> ワンクリックで承認すれば、あとはエージェントが仕事を片付けます。クラウドなし、テレメトリなし、**永遠に無料・永遠にMIT**。
 
-人間がイシューを作成・承認し、AIエージェントがMCP（Model Context Protocol）クライアント経由でタスクを処理する協働ツールです。
+**Claude Code** · **Claude Desktop** · **Cursor** · **Continue** · その他すべてのMCP対応クライアントで動作します。
 
-![MonkeyPlanner](./docs/screenshots/d-home-l.png)
+![MonkeyPlanner Demo](./docs/demo/monkey-planner-demo.gif)
+
+## クイックスタート
+
+```bash
+# Docker（推奨）
+docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkeyplanner:latest
+
+# エージェントを接続
+monkey-planner mcp install --for claude-code     # または --for cursor / --for claude-desktop
+```
+
+http://localhost:8080 を開くと、組み込みのWelcomeボードが残りの手順をガイドします。
 
 ## 主な機能
 

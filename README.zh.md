@@ -1,12 +1,33 @@
 [English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | **中文**
 
+<p align="center">
+  <a href="https://github.com/kjm99d/MonkeyPlanner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kjm99d/MonkeyPlanner?style=flat&logo=github"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/MonkeyPlanner?include_prereleases&sort=semver"></a>
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/pkgs/container/monkeyplanner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/MonkeyPlanner/docker.yml?branch=main&label=build"></a>
+</p>
+
 # MonkeyPlanner
 
-> AI 智能体任务记忆仓库 — 类 Notion/JIRA 的问题追踪器 + MCP 服务器
+> **为你的 AI 编码智能体打造的本地优先任务记忆。**
+> 一键审批，剩下的交给智能体。无云端，无遥测，**永久免费，永久 MIT**。
 
-一款协作工具，由人工创建并审批任务，AI 智能体通过 MCP（模型上下文协议）客户端来消费和执行任务。
+兼容 **Claude Code** · **Claude Desktop** · **Cursor** · **Continue** · 以及任何支持 MCP 的客户端。
 
-![MonkeyPlanner](./docs/screenshots/d-home-l.png)
+![MonkeyPlanner Demo](./docs/demo/monkey-planner-demo.gif)
+
+## 快速开始
+
+```bash
+# Docker（推荐）
+docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkeyplanner:latest
+
+# 接入智能体
+monkey-planner mcp install --for claude-code     # 或 --for cursor / --for claude-desktop
+```
+
+打开 http://localhost:8080 — 内置的 Welcome 看板会指引你完成后续设置。
 
 ## 核心功能
 

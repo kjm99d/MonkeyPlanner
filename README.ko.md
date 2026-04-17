@@ -1,12 +1,33 @@
 [English](./README.md) | **한국어** | [日本語](./README.ja.md) | [中文](./README.zh.md)
 
+<p align="center">
+  <a href="https://github.com/kjm99d/MonkeyPlanner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kjm99d/MonkeyPlanner?style=flat&logo=github"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kjm99d/MonkeyPlanner?include_prereleases&sort=semver"></a>
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/pkgs/container/monkeyplanner"><img alt="Docker image" src="https://img.shields.io/badge/docker-ghcr.io-2496ed?logo=docker&logoColor=white"></a>
+  <a href="https://github.com/kjm99d/MonkeyPlanner/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kjm99d/MonkeyPlanner/docker.yml?branch=main&label=build"></a>
+</p>
+
 # 몽키 플래너 (MonkeyPlanner)
 
-> AI 에이전트 작업 기억 저장소 — Notion/JIRA 스타일 이슈 트래커 + MCP 서버
+> **AI 코딩 에이전트를 위한 로컬 우선 작업 기억 저장소.**
+> 클릭 한 번으로 승인하면, 나머지는 에이전트가 처리합니다. 클라우드 없음, 텔레메트리 없음, **영원한 무료 · 영원한 MIT**.
 
-사람이 이슈를 생성하고 승인하면, AI 에이전트가 MCP(Model Context Protocol) 클라이언트를 통해 작업을 소비하는 협업 도구입니다.
+**Claude Code** · **Claude Desktop** · **Cursor** · **Continue** · 모든 MCP 호환 클라이언트와 함께 사용할 수 있습니다.
 
-![MonkeyPlanner](./docs/screenshots/d-home-l.png)
+![MonkeyPlanner Demo](./docs/demo/monkey-planner-demo.gif)
+
+## 빠른 시작
+
+```bash
+# Docker (권장)
+docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/kjm99d/monkeyplanner:latest
+
+# 에이전트 연결
+monkey-planner mcp install --for claude-code     # 또는 --for cursor / --for claude-desktop
+```
+
+http://localhost:8080 을 열면, 내장된 Welcome 보드가 나머지 과정을 안내합니다.
 
 ## 주요 기능
 
