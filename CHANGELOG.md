@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-04-18
+
+### Fixed
+- **Calendar real-time sync** — status changes made in other views (board,
+  issue detail, MCP) now reflect immediately in the calendar panel without
+  a page reload. `CalendarPage` was missing its SSE subscription; it now
+  subscribes to every board's event stream and invalidates the calendar
+  query cache on any incoming event.
+- `defer tx.Rollback()` return value explicitly discarded (`_ =`) in three
+  transaction sites across the SQLite and PostgreSQL storage layers —
+  silences `errcheck` linter warnings without changing runtime behaviour.
+
+### Changed
+- `golangci-lint` in CI switched from pre-built binary to `install-mode:
+  goinstall` so the linter is compiled with the project's Go 1.26.1
+  toolchain, eliminating the "language version lower than targeted" error.
+  The `continue-on-error` bypass is removed; lint failures now block CI.
+
 ## [1.4.1] — 2026-04-17
 
 ### Added
@@ -166,7 +184,8 @@ Initial public release.
 - Webhooks (Discord / Slack / Telegram compatible).
 - Full-text issue search (Cmd+K), keyboard shortcuts, dark mode.
 
-[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/kjm99d/MonkeyPlanner/compare/v1.3.0...v1.3.1
